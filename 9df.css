@@ -13,6 +13,12 @@
     --shadow-hover: rgba(0, 31, 63, 0.2);
 }
 
+.logo-img {
+    height: 48px;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -28,7 +34,11 @@ body {
     line-height: 1.6;
     color: var(--text-dark);
     background-color: var(--white);
+    background: url('img/landing.png') no-repeat top center;
+    background-size: cover;
 }
+
+
 
 .container {
     max-width: 1200px;
@@ -130,7 +140,10 @@ body {
    HERO SECTION
    ============================================ */
 .hero {
+    background: url('images/landing.png') no-repeat center center;
+    background-size: cover;
     position: relative;
+    min-height: 400px; /* ajuste conforme necessário */
     height: 100vh;
     min-height: 600px;
     display: flex;
@@ -154,11 +167,9 @@ body {
 
 .hero-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 31, 63, 0.4);
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4); /* escurece o fundo para melhor leitura */
+    z-index: 1;
 }
 
 .hero-content {
@@ -183,14 +194,14 @@ body {
 }
 
 .hero-scroll {
-    position: absolute;
+    position: relative;
+    z-index: 2;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--white);
     font-size: 2rem;
     animation: bounce 2s infinite;
-    z-index: 2;
 }
 
 @keyframes fadeInUp {
@@ -891,7 +902,7 @@ section {
     gap: 1.5rem;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, var(--white) 0%, var(--light-blue) 100%);
+    background: linear-gradient(135deg, var (--white) 0%, var(--light-blue) 100%);
     border-radius: 10px;
     box-shadow: 0 3px 10px var(--shadow);
 }
