@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grupo Escoteiro - Página Inicial</title>
-       <link rel="stylesheet" href="style.css">
+    <title>Galeria - Grupo Escoteiro</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <link rel="icon" href="images/logo_9df.png" type="image/png">
+    <link rel="icon" href="images/logo_9df.png" type="image/png">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <nav class="navbar">
             <div class="container">
-                <div class="nas="logo">
-                        <img src="images/logo_9df.png" alt="Logo Grupo Escoteiro do Ar Salgado Filho 9º DF" class="logo-img" />
-                        <span>Grupo Escoteiro do Ar Salgado Filho 9º DF </span>
+                <div class="nav-wrapper">
+                    <div class="logo">
+                        <img src="images/logo_9df.png" alt="Logo do Grupo Escoteiro" class="logo-img">
+                        <span>Grupo Escoteiro do Ar Salgado Filho 9º DF</span>
                     </div>
                     <button class="menu-toggle" aria-label="Toggle menu">
                         <span></span>
@@ -23,12 +24,12 @@
                         <span></span>
                     </button>
                     <ul class="nav-menu">
-                        <li><a href="index.html" class="active">Início</a></li>
+                        <li><a href="index.html">Início</a></li>
                         <li><a href="sobre.html">Sobre</a></li>
                         <li><a href="atividades.html">Atividades</a></li>
                         <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                        <li><a href="projetos.html">Projetos</a></li>
+                         <li><a href="ramo.html">Ramos</a></li>
+                        <li><a href="projetos.html" class="active">Projetos</a></li>
                         <li><a href="contato.html">Contato</a></li>
                     </ul>
                 </div>
@@ -97,14 +98,10 @@
                     <p>Através de um sistema de valores baseado na Promessa e na Lei Escoteira, os jovens são incentivados a desenvolverem seu caráter, habilidades e responsabilidades.</p>
                     <a href="sobre.html" class="btn btn-secondary">Saiba Mais</a>
                 </div>
-                <div class="about-image">
-                    <div class="image-placeholder">
-                        <i class="fas fa-image"></i>
-                        <p>Adicione uma foto aqui</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <picture>
+                            <source srcset="cla.jpg" type="image/jpeg">
+                            <img src="cla.jpg" alt="Sobre o Escotismo" class="responsive-image" loading="lazy" width="1200" height="675" style="max-width:100%;height:auto;">
+                        <picture>
     </section>
 
     <!-- Activities Preview -->
