@@ -477,6 +477,21 @@ section {
     background-color: var(--white);
 }
 
+/* Projetos: área mais ampla e grid mais espaçado */
+.projects-section .container {
+    max-width: 1400px; /* aumenta largura disponível para os cards */
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.25rem;
+}
+
+.project-card {
+    padding: 2rem;
+}
+
 .content-wrapper {
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -1320,6 +1335,64 @@ section {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Project details modal */
+.project-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 2100;
+}
+.project-modal.open {
+    display: block;
+}
+.project-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+}
+.project-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(1100px, 95vw);
+    max-height: 90vh;
+    overflow: auto;
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.project-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--navy-blue);
+    color: var(--white);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.project-modal-title {
+    color: var(--navy-blue);
+    margin-bottom: 0.75rem;
+}
+.project-modal-body {
+    color: var(--text-dark);
+}
+
+@media (max-width: 768px) {
+    .project-modal-content {
+        padding: 1rem;
+        width: 95vw;
+    }
 }
 
 /* ============================================
