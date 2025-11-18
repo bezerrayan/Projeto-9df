@@ -6,8 +6,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const navMenu = document.querySelector('.nav-menu');
 
     if (menuToggle && navMenu) {
+        // ensure aria-expanded present
+        if (!menuToggle.hasAttribute('aria-expanded')) menuToggle.setAttribute('aria-expanded', 'false');
+
         menuToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
+            const isActive = navMenu.classList.toggle('active');
+            // update aria-expanded for accessibility
+            menuToggle.setAttribute('aria-expanded', isActive ? 'true' : 'false');
             
             // Animate hamburger menu
             const spans = menuToggle.querySelectorAll('span');
@@ -27,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
         navLinks.forEach(link => {
             link.addEventListener('click', function() {
                 navMenu.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
                 const spans = menuToggle.querySelectorAll('span');
                 spans[0].style.transform = 'none';
                 spans[1].style.opacity = '1';
@@ -41,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!isClickInsideNav && !isClickOnToggle && navMenu.classList.contains('active')) {
                 navMenu.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
                 const spans = menuToggle.querySelectorAll('span');
                 spans[0].style.transform = 'none';
                 spans[1].style.opacity = '1';

@@ -917,6 +917,30 @@ section {
     text-align: center;
 }
 
+/* Overlay de texto centralizado sobre imagens (mantém o dimensionamento da imagem) */
+.image-placeholder .overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--white);
+    background: rgba(0,0,0,0.36);
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    font-weight: 700;
+    text-align: center;
+    max-width: 90%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    pointer-events: none; /* evita interceptar cliques na imagem */
+}
+
+@media (max-width: 480px) {
+    .image-placeholder .overlay-text {
+        font-size: 0.95rem;
+        padding: 0.35rem 0.6rem;
+    }
+}
+
 @media (max-width: 768px) {
     .branch-image .image-placeholder.has-image img {
         width: 100%;
@@ -1432,18 +1456,22 @@ section {
         display: flex;
     }
 
+    /* Mobile navigation: full-height panel under the header, scrollable */
     .nav-menu {
         position: fixed;
-        top: 70px;
+        top: 64px; /* assume header height ~64px */
         left: -100%;
         flex-direction: column;
         background-color: var(--navy-blue);
         width: 100%;
+        height: calc(100vh - 64px);
         text-align: center;
-        transition: left 0.3s ease;
-        box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
-        padding: 2rem 0;
+        transition: left 0.28s ease, opacity 0.28s ease;
+        box-shadow: 0 10px 27px rgba(0, 0, 0, 0.12);
+        padding-top: 1.25rem;
         gap: 0;
+        overflow-y: auto;
+        z-index: 1500;
     }
 
     .nav-menu.active {
@@ -1456,8 +1484,10 @@ section {
 
     .nav-menu a {
         display: block;
-        padding: 1rem;
+        padding: 1.2rem 1rem;
         width: 100%;
+        font-size: 1.15rem; /* larger tap area */
+        border-top: 1px solid rgba(255,255,255,0.04);
     }
 
     .hero-title {
@@ -1526,5 +1556,42 @@ section {
 
     .filter-btn {
         width: 100%;
+    }
+}
+
+/* Ajustes específicos para centralizar o conteúdo do hero na versão mobile */
+@media (max-width: 768px) {
+    .hero {
+        /* usar uma altura menor para caber melhor em telas pequenas */
+        height: 70vh;
+        min-height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem 1rem;
+    }
+
+    .hero-content {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        text-align: center;
+        z-index: 2;
+        max-width: 95%;
+        padding: 0.5rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.05;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .hero-scroll {
+        bottom: 10px;
     }
 }
