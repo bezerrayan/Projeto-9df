@@ -40,6 +40,22 @@ Para adicionar fotos, substitua os elementos `.image-placeholder` por tags `<img
 <img src="caminho/para/sua/foto.jpg" alt="Descrição da foto">
 ```
 
+### Carrossel (hero)
+
+O carrossel da página inicial lê imagens a partir do atributo `data-hero-images` na tag `section.hero`.
+Para trocar as imagens apenas:
+
+1. Coloque seus arquivos dentro da pasta `images/` (ex.: `images/hero1.jpg`, `images/hero2.jpg`).
+2. Abra `index.html` e edite o atributo `data-hero-images` para os nomes desejados, separados por vírgula:
+
+```html
+<section class="hero" data-hero-images="images/hero1.jpg, images/hero2.jpg" data-hero-interval="15000">
+```
+
+3. (Opcional) Ajuste `data-hero-interval` com o tempo em milissegundos entre as trocas.
+
+O carrossel suporta imagens com `object-fit: cover`; use imagens com proporções semelhantes para melhor resultado.
+
 ## 📱 Responsividade
 
 O site é totalmente responsivo e se adapta automaticamente a:

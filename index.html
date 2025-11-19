@@ -38,10 +38,21 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <img src="images/landing.png" alt="Fundo Grupo Escoteiro" style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:0;object-fit:cover;">
+        <!-- Carrossel do hero
+            Para trocar as imagens, coloque seus arquivos dentro da pasta `images/`
+            e edite apenas a lista abaixo (separe por vírgula). Exemplo:
+            data-hero-images="images/hero1.jpg, images/hero2.jpg, images/hero3.jpg"
+            data-hero-interval é o tempo entre trocas em milissegundos (ex.: 15000 = 15s).
+        -->
+        <section class="hero" data-hero-images="images/hero1.svg, images/hero2.svg, images/hero3.svg" data-hero-interval="15000">
+        <div class="hero-slider" aria-hidden="false">
+            <!-- As imagens listadas em data-hero-images serão carregadas pelo script.
+                 Substitua/adicione nomes reais em `images/` conforme desejar. -->
+            <img src="images/landing.png" alt="Fundo Grupo Escoteiro" class="hero-slide active" loading="lazy">
+        </div>
+        <!-- Controles e indicadores serão criados dinamicamente pelo script -->
         <div class="hero-overlay"></div>
-       <div class="hero-content" style="color: #ffffff;">
+        <div class="hero-content" style="color: #ffffff;">
     <h1 class="hero-title">Bem-vindo ao Grupo Escoteiro <br> Salgado Filho 9° DF</h1>
     <p style="color: #ffffff;" class="hero-subtitle">Sempre Alerta para Servir!</p>
     <a href="sobre.html" class="btn btn-primary">Conheça Mais</a>

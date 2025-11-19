@@ -281,3 +281,115 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') closeModal();
     });
 });
+
+// ============================================
+// HERO CAROUSEL
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    const hero = document.querySelector('.hero');
+    const slider = document.querySelector('.hero-slider');
+    if (!hero || !slider) return;
+
+    // pegar lista de imagens do atributo data-hero-images (csv)
+    const data = hero.getAttribute('data-hero-images') || '';
+    const list = data.split(',').map(s => s.trim()).filter(Boolean);
+
+    // se não houver lista, use imagens já presentes no markup
+    if (list.length === 0) {
+        const exist = Array.from(slider.querySelectorAll('img')).map(i => i.src).filter(Boolean);
+        list.push(...exist);
+    }
+
+    // garantir ao menos uma imagem
+    if (list.length === 0) {
+        list.push('images/landing.png');
+    }
+
+    // construir slides (substitui conteúdo atual)
+    slider.innerHTML = '';
+    list.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.className = 'hero-slide' + (i === 0 ? ' active' : '');
+        img.src = src;
+        img.alt = 'Fundo do site';
+        img.loading = 'lazy';
+        img.onerror = function() { this.src = 'images/landing.png'; };
+        slider.appendChild(img);
+    });
+
+    const slides = slider.querySelectorAll('.hero-slide');
+    if (slides.length <= 1) return; // nada a animar
+
+    let current = 0;
+
+    // intervalo configurável via atributo data-hero-interval (ms)
+    let intervalMs = parseInt(hero.getAttribute('data-hero-interval'), 10);
+    if (isNaN(intervalMs) || intervalMs < 1000) intervalMs = 15000;
+
+    // criar controles (prev/next)
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'hero-control hero-prev';
+    prevBtn.setAttribute('aria-label', 'Anterior');
+    prevBtn.innerHTML = '&#10094;';
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'hero-control hero-next';
+    nextBtn.setAttribute('aria-label', 'Próximo');
+    nextBtn.innerHTML = '&#10095;';
+
+    hero.appendChild(prevBtn);
+    hero.appendChild(nextBtn);
+
+    // criar indicadores (dots)
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'hero-dots';
+    dotsContainer.setAttribute('role', 'tablist');
+
+    slides.forEach((s, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'hero-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', 'Ir para slide ' + (i + 1));
+        dot.dataset.index = String(i);
+        dot.addEventListener('click', function() { goTo(parseInt(this.dataset.index, 10)); resetTimer(); });
+        dotsContainer.appendChild(dot);
+    });
+
+    hero.appendChild(dotsContainer);
+
+    function show(index) {
+        slides[current].classList.remove('active');
+        const dots = dotsContainer.querySelectorAll('.hero-dot');
+        if (dots[current]) dots[current].classList.remove('active');
+        current = index;
+        slides[current].classList.add('active');
+        if (dots[current]) dots[current].classList.add('active');
+    }
+
+    function nextSlide() { show((current + 1) % slides.length); }
+    function prevSlide() { show((current - 1 + slides.length) % slides.length); }
+    function goTo(i) { if (i >= 0 && i < slides.length) show(i); }
+
+    prevBtn.addEventListener('click', function() { prevSlide(); resetTimer(); });
+    nextBtn.addEventListener('click', function() { nextSlide(); resetTimer(); });
+
+    // keyboard navigation
+    hero.setAttribute('tabindex', '-1');
+    hero.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') { prevSlide(); resetTimer(); }
+        if (e.key === 'ArrowRight') { nextSlide(); resetTimer(); }
+    });
+
+    let timer = setInterval(nextSlide, intervalMs);
+
+    function resetTimer() { clearInterval(timer); timer = setInterval(nextSlide, intervalMs); }
+
+    // pausar enquanto o usuário interage
+    slider.addEventListener('mouseenter', () => clearInterval(timer));
+    slider.addEventListener('mouseleave', () => { resetTimer(); });
+
+    // pausar quando página não visível
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) clearInterval(timer);
+        else { resetTimer(); }
+    });
+});
