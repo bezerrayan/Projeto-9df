@@ -254,16 +254,17 @@ body {
 }
 
 .hero-content {
-    position: relative;
     z-index: 2;
     text-align: center;
     color: var(--white);
     padding: 2rem;
+    margin-left: 2.1rem;
 }
 
 .hero-title {
     font-size: 3.5rem;
     margin-bottom: 1rem;
+   
     animation: fadeInUp 1s ease;
 }
 
