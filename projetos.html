@@ -1,200 +1,433 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projetos - Grupo Escoteiro</title>
+    <title>Projetos - GEAR 9º DF</title>
+    <meta name="description" content="Conheça os projetos sociais e ambientais realizados pelo GEAR 9º DF.">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
+    <style>
+        .project-card {
+            background: var(--bg-white);
+            padding: 24px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            transition: var(--transition);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .project-icon {
+            flex-shrink: 0;
+            width: 52px;
+            height: 52px;
+            background: rgba(0, 113, 227, 0.08);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 1.6rem;
+        }
+
+        .project-header h3 {
+            font-size: 1.25rem;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .project-tags span {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: #f5f5f7;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .project-explanation {
+            margin-bottom: 20px;
+        }
+
+        .project-explanation h4 {
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .project-explanation p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .project-meta {
+            margin-top: auto;
+            /* Push to bottom if flex column */
+            padding-top: 24px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .project-meta div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .project-toggle {
+            width: 100%;
+            text-align: center;
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .project-details {
+            display: none;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modals (Keep existing) */
+        .project-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .project-modal.open {
+            display: flex;
+        }
+
+        .project-modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .project-modal-content {
+            position: relative;
+            background: var(--bg-white);
+            width: 100%;
+            max-width: 700px;
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .project-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h3 {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .steps {
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .steps li {
+            margin-bottom: 8px;
+        }
+
+        .projects-section {
+            width: 100%;
+            overflow-x: hidden;
+            padding: 40px 16px;
+            background: linear-gradient(180deg, var(--bg-page), rgba(0, 0, 0, 0.02));
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+    </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="navbar">
-            <div class="container">
-                <div class="nav-wrapper">
-                    <div class="logo">
-                        <img src="images/logo_9df.png" alt="Logo do Grupo Escoteiro" class="logo-img">
-                        <span>Grupo Escoteiro do Ar Salgado Filho 9º DF</span>
-                    </div>
-                    <button class="menu-toggle" aria-label="Toggle menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <ul class="nav-menu">
-                        <li><a href="index.html">Início</a></li>
-                        <li><a href="sobre.html">Sobre</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                         <li><a href="ramo.html">Ramos</a></li>
-                        <li><a href="projetos.html" class="active">Projetos</a></li>
-                        <li><a href="contato.html">Contato</a></li>
-                    </ul>
-                </div>
+        <div class="container navbar">
+            <div class="nav-wrapper">
+                <a href="index.html" class="logo">
+                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
+                    <span>GEAR 9º DF</span>
+                </a>
+                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="sobre.html">Sobre</a></li>
+                    <li><a href="atividades.html">Atividades</a></li>
+                    <li><a href="galeria.html">Galeria</a></li>
+                    <li><a href="ramo.html">Ramos</a></li>
+                    <li><a href="projetos.html" class="active">Projetos</a></li>
+                    <li><a href="contato.html">Contato</a></li>
+                </ul>
             </div>
-        </nav>
+        </div>
     </header>
 
     <!-- Page Header -->
-    <section class="page-header">
+    <header class="page-header">
         <div class="container">
-            <h1>Projetos</h1>
-            <p>Conheça nossos projetos e explore os detalhes de cada um</p>
+            <h1>Impacto Social</h1>
+            <p>Nossos projetos transformam realidades e formam cidadãos.</p>
         </div>
-    </section>
+    </header>
 
-    <!-- Projects Content -->
-    <section class="page-content projects-section">
+    <!-- Projects Grid -->
+    <section class="projects-section">
         <div class="container">
-            <div class="projects-grid">
-                <!-- Project Card 1 -->
-                <article class="project-card">
+            <div class="features-grid">
+                <!-- Project 1 -->
+                <article class="project-card glass">
                     <div class="project-header">
-                        <div class="project-icon">
-                            <i class="fas fa-seedling"></i>
-                        </div>
+                        <div class="project-icon"><i class="fas fa-seedling"></i></div>
                         <div>
-                            <h2>Mutirão Verde</h2>
-                            <p class="project-tags"><span>#MeioAmbiente</span><span>#Comunidade</span></p>
+                            <h3>Mutirão Verde</h3>
+                            <div class="project-tags"><span>#MeioAmbiente</span><span>#Comunidade</span></div>
                         </div>
                     </div>
-                    <p class="project-summary">Ação de reflorestamento em áreas urbanas com plantio de mudas, educação ambiental e mobilização comunitária.</p>
-                    <div class="project-meta">
-                        <div><i class="fas fa-calendar"></i> Mar-Jun 2024</div>
-                        <div><i class="fas fa-users"></i> 40 participantes</div>
-                        <div><i class="fas fa-map-marker-alt"></i> Parque Central</div>
-                    </div>
-                    <button class="btn btn-primary project-toggle" data-target="#p1">Ver detalhes</button>
 
-                    <div class="project-details" id="p1">
+                    <div class="project-explanation">
+                        <h4>A Jornada do Reflorestamento</h4>
+                        <p>Reflorestar áreas degradadas e promover a consciência ecológica na vizinhança através da ação
+                            prática e contínua. Uma iniciativa que une aprendizado técnico e serviço comunitário.</p>
+                    </div>
+
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/mult_verde/DSC08677.JPG" alt="Fase 1 - Planejamento">
+                            <img class="carousel-img" src="images/mult_verde/DSC08692.JPG" alt="Fase 2 - Preparação">
+                            <img class="carousel-img" src="images/mult_verde/DSC08726.JPG" alt="Fase 3 - Plantio">
+                            <img class="carousel-img" src="images/mult_verde/photo_4909301671674973015_y.jpg"
+                                alt="Fase 4 - Foto">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+
+                    <div class="project-meta">
+                        <div><i class="fas fa-calendar"></i>Novembro de 2025</div>
+                        <div><i class="fas fa-users"></i> 40 Participantes</div>
+                    </div>
+
+                    <button class="btn btn-secondary project-toggle" data-target="#p1">Saiba Mais</button>
+
+                    <div class="project-details" id="p1" style="display:none;">
                         <div class="detail-section">
-                            <h3>Objetivo</h3>
-                            <p>Reflorestar áreas degradadas, sensibilizar a comunidade e promover a educação ambiental.</p>
+                            <h3>Objetivo Detalhado</h3>
+                            <p>O Mutirão Verde é dividido em quatro fases essenciais: Primeiro, realizamos o
+                                levantamento das áreas que necessitam de reflorestamento em parceria com a prefeitura.
+                                Em seguida, buscamos a doação de mudas nativas em viveiros especializados. A terceira
+                                fase envolve a capacitação técnica dos nossos escoteiros e voluntários da comunidade.
+                                Por fim, executamos o plantio coletivo e estabelecemos um cronograma de manutenção para
+                                garantir o crescimento das mudas.</p>
                         </div>
                         <div class="detail-section">
-                            <h3>Passo a passo</h3>
-                            <ol class="steps">
-                                <li>Levantamento das áreas prioritárias</li>
-                                <li>Parceria com viveiros e prefeitura</li>
-                                <li>Capacitação dos voluntários</li>
-                                <li>Mutirões de plantio e manutenção</li>
-                            </ol>
-                        </div>
-                        <div class="detail-section">
-                            <h3>Galeria</h3>
-                            <div class="project-gallery">
-                                <div class="gallery-thumb" data-image="images/projeto1-1.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 1</p></div>
-                                </div>
-                                <div class="gallery-thumb" data-image="images/projeto1-2.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 2</p></div>
-                                </div>
-                                <div class="gallery-thumb" data-image="images/projeto1-3.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 3</p></div>
-                                </div>
-                            </div>
+                            <h3>Fases Implementadas</h3>
+                            <ul class="steps">
+                                <li>Levantamento técnico e parcerias</li>
+                                <li>Captação de recursos e mudas</li>
+                                <li>Execução do plantio comunitário</li>
+                                <li>Manutenção e monitoramento</li>
+                            </ul>
                         </div>
                     </div>
                 </article>
 
-                <!-- Project Card 2 -->
-                <article class="project-card">
+                <!-- Project 2 -->
+                <article class="project-card glass">
                     <div class="project-header">
-                        <div class="project-icon">
-                            <i class="fas fa-hands-helping"></i>
-                        </div>
+                        <div class="project-icon"><i class="fas fa-hands-helping"></i></div>
                         <div>
-                            <h2>Campanha do Agasalho</h2>
-                            <p class="project-tags"><span>#Solidariedade</span><span>#Inverno</span></p>
+                            <h3>Campanha Higiene é dignidade</h3>
+                            <div class="project-tags"><span>#Solidariedade</span><span>#Inverno</span></div>
                         </div>
                     </div>
-                    <p class="project-summary">Coleta e distribuição de roupas de inverno para famílias em situação de vulnerabilidade social na região.</p>
-                    <div class="project-meta">
-                        <div><i class="fas fa-calendar"></i> Maio-Agosto 2024</div>
-                        <div><i class="fas fa-users"></i> 60 participantes</div>
-                        <div><i class="fas fa-map-marker-alt"></i> Sede e Bairros</div>
+
+                    <div class="project-explanation">
+                        <h4>Apoio à Comunidade</h4>
+                        <p>Coleta e distribuição de produtos de higiene para famílias em vulnerabilidade na região do
+                            Riacho Fundo. Uma ação direta para levar dignidade e cuidado a quem mais precisa.</p>
                     </div>
-                    <button class="btn btn-primary project-toggle" data-target="#p2">Ver detalhes</button>
+
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/higiene/photo_4909301671674972985_y.jpg"
+                                alt="Campanha Higiene - Foto 1">
+                            <img class="carousel-img" src="images/higiene/photo_4909301671674972982_y.jpg"
+                                alt="Campanha Higiene - Foto 2">
+                            <img class="carousel-img" src="images/higiene/photo_4909301671674972986_y.jpg"
+                                alt="Campanha Higiene - Foto 3">
+                            <img class="carousel-img" src="images/higiene/photo_4958569241523630116_y.jpg"
+                                alt="Campanha Higiene - Foto 4">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+
+                    <div class="project-meta">
+                        <div><i class="fas fa-calendar"></i> Julho de 2025</div>
+                        <div><i class="fas fa-users"></i> 60 Participantes</div>
+                    </div>
+                    <button class="btn btn-secondary project-toggle" data-target="#p2">Saiba Mais</button>
 
                     <div class="project-details" id="p2">
                         <div class="detail-section">
                             <h3>Objetivo</h3>
-                            <p>Apoiar famílias no inverno por meio da doação de agasalhos, cobertores e calçados.</p>
+                            <p>Apoiar uma ONG local fornecendo itens essenciais de higiene pessoal.</p>
                         </div>
                         <div class="detail-section">
-                            <h3>Passo a passo</h3>
-                            <ol class="steps">
-                                <li>Divulgação e pontos de coleta</li>
-                                <li>Triagem e higienização</li>
-                                <li>Organização por tamanhos e tipos</li>
-                                <li>Distribuição em parceria com entidades</li>
-                            </ol>
-                        </div>
-                        <div class="detail-section">
-                            <h3>Galeria</h3>
-                            <div class="project-gallery">
-                                <div class="gallery-thumb" data-image="images/projeto2-1.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 1</p></div>
-                                </div>
-                                <div class="gallery-thumb" data-image="images/projeto2-2.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 2</p></div>
-                                </div>
-                                <div class="gallery-thumb" data-image="images/projeto2-3.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 3</p></div>
-                                </div>
-                            </div>
+                            <h3>Ações</h3>
+                            <ul class="steps">
+                                <li>Divulgação da campanha nas redes sociais</li>
+                                <li>Parceria com centros comunitários para coleta</li>
+                                <li>Triagem e montagem de kits</li>
+                                <li>Distribuição direta das doações</li>
+                            </ul>
                         </div>
                     </div>
                 </article>
 
-                <!-- Project Card 3 -->
-                <article class="project-card">
+                <!-- Project 3 -->
+                <article class="project-card glass">
                     <div class="project-header">
-                        <div class="project-icon">
-                            <i class="fas fa-first-aid"></i>
-                        </div>
+                        <div class="project-icon"><i class="fas fa-gift"></i></div>
                         <div>
-                            <h2>Primeiros Socorros na Comunidade</h2>
-                            <p class="project-tags"><span>#Saúde</span><span>#Educação</span></p>
+                            <h3>Doação de Brinquedos da Alcateia</h3>
+                            <div class="project-tags"><span>#NatalSolidário</span><span>#Crianças</span></div>
                         </div>
                     </div>
-                    <p class="project-summary">Oficinas práticas de primeiros socorros para moradores, com foco em situações do dia a dia.</p>
-                    <div class="project-meta">
-                        <div><i class="fas fa-calendar"></i> Fev-Nov 2024</div>
-                        <div><i class="fas fa-users"></i> 25 participantes</div>
-                        <div><i class="fas fa-map-marker-alt"></i> Sede do Grupo</div>
-                    </div>
-                    <button class="btn btn-primary project-toggle" data-target="#p3">Ver detalhes</button>
 
-                    <div class="project-details" id="p3">
+                    <div class="project-explanation">
+                        <h4>Alegria em forma de presente</h4>
+                        <p>Nossa alcateia se mobilizou para levar a magia do Natal a crianças de uma creche carente. Os
+                            lobinhos arrecadaram, limparam e embalaram brinquedos, garantindo que cada criança recebesse
+                            um presente especial e um gesto de carinho nesta data tão significativa.</p>
+                    </div>
+
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/doa_toys/photo_4909301671674973044_y.jpg"
+                                alt="Doação de Brinquedos 7">
+
+                            <img class="carousel-img" src="images/doa_toys/photo_4909301671674973010_y.jpg"
+                                alt="Doação de Brinquedos 2">
+                            <img class="carousel-img" src="images/doa_toys/photo_4909301671674973012_y.jpg"
+                                alt="Doação de Brinquedos 4">
+                            <img class="carousel-img" src="images/doa_toys/photo_4909301671674973013_y.jpg"
+                                alt="Doação de Brinquedos 5">
+
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+
+                    <div class="project-meta">
+                        <div><i class="fas fa-calendar"></i> Natal 2025</div>
+                        <div><i class="fas fa-users"></i> 25 Participantes</div>
+                    </div>
+                    <button class="btn btn-secondary project-toggle" data-target="#p3">Saiba Mais</button>
+
+                    <div class="project-details" id="p3" style="display:none;">
                         <div class="detail-section">
                             <h3>Objetivo</h3>
-                            <p>Capacitar a comunidade a prestar primeiros socorros de maneira correta e segura.</p>
+                            <p>Proporcionar um Natal mais feliz para crianças em situação de vulnerabilidade através da
+                                doação de brinquedos e da presença solidária.</p>
                         </div>
                         <div class="detail-section">
-                            <h3>Passo a passo</h3>
-                            <ol class="steps">
-                                <li>Planejamento das oficinas</li>
-                                <li>Parceria com profissionais da saúde</li>
-                                <li>Aulas teóricas e práticas</li>
-                                <li>Avaliação e entrega de certificados</li>
-                            </ol>
-                        </div>
-                        <div class="detail-section">
-                            <h3>Galeria</h3>
-                            <div class="project-gallery">
-                                <div class="gallery-thumb" data-image="images/projeto3-1.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 1</p></div>
-                                </div>
-                                <div class="gallery-thumb" data-image="images/projeto3-2.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 2</p></div>
-                                </div>
-                                <div class="gallery-thumb" data-image="images/projeto3-3.jpg">
-                                    <div class="image-placeholder"><i class="fas fa-image"></i><p>Foto 3</p></div>
-                                </div>
-                            </div>
+                            <h3>Ações Realizadas</h3>
+                            <ul class="steps">
+                                <li>Campanha de arrecadação de brinquedos</li>
+                                <li>Triagem e limpeza dos itens doados</li>
+                                <li>Embalagem dos presentes</li>
+                                <li>Entrega festiva na creche</li>
+                            </ul>
                         </div>
                     </div>
                 </article>
@@ -202,24 +435,13 @@
         </div>
     </section>
 
-    <!-- Image Modal -->
-    <div class="image-modal" id="imageModal" aria-hidden="true">
-        <div class="image-modal-backdrop"></div>
-        <div class="image-modal-content" role="dialog" aria-modal="true">
-            <button class="image-modal-close" aria-label="Fechar"><i class="fas fa-times"></i></button>
-            <img src="" alt="Imagem do projeto" id="imageModalSrc">
-        </div>
-    </div>
-
-    <!-- Project Details Modal -->
-    <div class="project-modal" id="projectModal" aria-hidden="true">
+    <!-- Project Modal -->
+    <div class="project-modal" id="projectModal">
         <div class="project-modal-backdrop"></div>
-        <div class="project-modal-content" role="dialog" aria-modal="true">
-            <button class="project-modal-close" aria-label="Fechar"><i class="fas fa-times"></i></button>
-            <div class="project-modal-inner">
-                <h2 class="project-modal-title"></h2>
-                <div class="project-modal-body"></div>
-            </div>
+        <div class="project-modal-content">
+            <button class="project-modal-close">&times;</button>
+            <h2 class="project-modal-title"></h2>
+            <div class="project-modal-body"></div>
         </div>
     </div>
 
@@ -228,39 +450,39 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Grupo Escoteiro</h3>
-                    <p>Sempre Alerta para Servir!</p>
+                    <h3>GEAR 9º DF</h3>
+                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
+                                class="fab fa-instagram"></i></a>
                         <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Links Rápidos</h4>
+                    <h4>Navegação</h4>
                     <ul>
-                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
                         <li><a href="atividades.html">Atividades</a></li>
                         <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="projetos.html">Projetos</a></li>
                         <li><a href="ramo.html">Ramos</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Contato</h4>
+                    <h4>Onde Estamos</h4>
                     <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
                         <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
-                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500 </li>
                     </ul>
                 </div>
-                            <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Grupo Escoteiro. Todos os direitos reservados.</p>
+                <p>&copy; 2024 GEAR 9º DF. Todos os direitos reservados. Design by Gustavo.</p>
             </div>
         </div>
     </footer>
 
     <script src="script.js"></script>
 </body>
+
 </html>

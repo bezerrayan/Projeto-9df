@@ -1,206 +1,128 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria - Grupo Escoteiro</title>
+    <title>Galeria - GEAR 9º DF</title>
+    <meta name="description"
+        content="Explore os momentos inesquecíveis registrados no Grupo Escoteiro do Ar Salgado Filho 9º DF.">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
+    <style>
+        .gallery-filter {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 24px;
+            border-radius: 980px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: var(--bg-white);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .gallery-item.hidden {
+            display: none;
+        }
+    </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="navbar">
-            <div class="container">
-                <div class="nav-wrapper">
-                    <div class="logo">
-                        <img src="images/logo_9df.png" alt="Logo Grupo Escoteiro do Ar Salgado Filho 9º DF" class="logo-img" />
-                        <span>Grupo Escoteiro do Ar Salgado Filho 9º DF</span>
-                    </div>
-                    <button class="menu-toggle" aria-label="Toggle menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <ul class="nav-menu">
-                        <li><a href="index.html">Início</a></li>
-                        <li><a href="sobre.html">Sobre</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html" class="active">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                        <li><a href="projetos.html">Projetos</a></li>
-                        <li><a href="contato.html">Contato</a></li>
-                    </ul>
-                </div>
+        <div class="container navbar">
+            <div class="nav-wrapper">
+                <a href="index.html" class="logo">
+                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
+                    <span>GEAR 9º DF</span>
+                </a>
+                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="sobre.html">Sobre</a></li>
+                    <li><a href="atividades.html">Atividades</a></li>
+                    <li><a href="galeria.html" class="active">Galeria</a></li>
+                    <li><a href="ramo.html">Ramos</a></li>
+                    <li><a href="projetos.html">Projetos</a></li>
+                    <li><a href="contato.html">Contato</a></li>
+                </ul>
             </div>
-        </nav>
+        </div>
     </header>
 
     <!-- Page Header -->
-    <section class="page-header">
+    <header class="page-header">
         <div class="container">
-            <h1>Galeria de Fotos</h1>
-            <p>Momentos especiais registrados</p>
+            <h1>Galeria</h1>
+            <p>Memórias que duram para sempre.</p>
         </div>
-    </section>
+    </header>
 
-    <!-- Gallery Content -->
-    <section class="page-content">
+    <!-- Gallery Section -->
+    <section class="gallery-section">
         <div class="container">
-            <!-- Gallery Filter -->
             <div class="gallery-filter">
                 <button class="filter-btn active" data-filter="all">Todas</button>
                 <button class="filter-btn" data-filter="acampamento">Acampamentos</button>
                 <button class="filter-btn" data-filter="atividade">Atividades</button>
                 <button class="filter-btn" data-filter="evento">Eventos</button>
-                <button class="filter-btn" data-filter="comunidade">Ações Comunitárias</button>
+                <button class="filter-btn" data-filter="comunidade">Ações Sociais</button>
             </div>
 
-            <!-- Gallery Grid -->
             <div class="gallery-grid">
-                <div class="gallery-item" data-category="acampamento">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Acampamento</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <!-- Items with placeholders if real images are missing -->
+                <div class="gallery-item glass" data-category="acampamento">
+                    <img src="images/landing.png" alt="Acampamento"
+                        onerror="this.src='https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="atividade">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Atividade</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <div class="gallery-item glass" data-category="atividade">
+                    <img src="cla.jpg" alt="Atividade"
+                        onerror="this.src='https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="evento">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Evento</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <div class="gallery-item glass" data-category="evento">
+                    <img src="images/higiene/photo_4958569241523630116_y.jpg" alt="Evento"
+                        onerror="this.src='https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="comunidade">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Ação Comunitária</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <div class="gallery-item glass" data-category="comunidade">
+                    <img src="images/mult_verde/DSC08677.JPG" alt="Ação Social"
+                        onerror="this.src='https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="acampamento">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Acampamento</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <!-- Repeat for more items -->
+                <div class="gallery-item glass" data-category="acampamento">
+                    <img src="images/mult_verde/DSC08726.JPG" alt="Acampamento"
+                        onerror="this.src='https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="atividade">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Atividade</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <div class="gallery-item glass" data-category="atividade">
+                    <img src="images/photo_4909301671674973021_x.jpg" alt="Atividade"
+                        onerror="this.src='https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="evento">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Evento</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <div class="gallery-item glass" data-category="comunidade">
+                    <img src="images/doa_toys/photo_4909301671674973014_y.jpg" alt="Evento"
+                        onerror="this.src='https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80'">
                 </div>
-
-                <div class="gallery-item" data-category="comunidade">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Ação Comunitária</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="gallery-item" data-category="acampamento">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Acampamento</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="gallery-item" data-category="atividade">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Atividade</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="gallery-item" data-category="evento">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Evento</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="gallery-item" data-category="comunidade">
-                    <div class="gallery-image">
-                        <div class="image-placeholder">
-                            <i class="fas fa-image"></i>
-                            <p>Foto de Ação Comunitária</p>
-                        </div>
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                    </div>
+                <div class="gallery-item glass" data-category="comunidade">
+                    <img src="images/higiene/photo_4909301671674972985_y.jpg" alt="Ação Social"
+                        onerror="this.src='https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=800&q=80'">
                 </div>
             </div>
         </div>
@@ -211,37 +133,39 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Grupo Escoteiro</h3>
-                    <p>Sempre Alerta para Servir!</p>
+                    <h3>GEAR 9º DF</h3>
+                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
+                                class="fab fa-instagram"></i></a>
                         <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Links Rápidos</h4>
+                    <h4>Navegação</h4>
                     <ul>
-                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
                         <li><a href="atividades.html">Atividades</a></li>
                         <li><a href="galeria.html">Galeria</a></li>
                         <li><a href="ramo.html">Ramos</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Contato</h4>
+                    <h4>Onde Estamos</h4>
                     <ul>
-                            <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
-                            <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
+                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
+                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Grupo Escoteiro. Todos os direitos reservados.</p>
+                <p>&copy; 2024 GEAR 9º DF. Todos os direitos reservados. Design by Gustavo.</p>
             </div>
         </div>
     </footer>
 
     <script src="script.js"></script>
 </body>
+
 </html>

@@ -1,190 +1,234 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria - Grupo Escoteiro</title>
+    <title>Grupo Escoteiro do Ar Salgado Filho 9º DF</title>
+    <meta name="description"
+        content="Bem-vindo ao Grupo Escoteiro do Ar Salgado Filho 9º DF. Sempre Alerta para Servir!">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
+    <style>
+        .hero-btns {
+            display: flex;
+            flex-direction: column;
+            /* um embaixo do outro */
+            gap: 16px;
+            /* espaço entre os botões */
+            margin-top: 24px;
+        }
+
+        /* Se quiser lado a lado no desktop */
+        @media (min-width: 768px) {
+            .hero-btns {
+                flex-direction: row;
+                justify-content: center;
+                gap: 20%;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="navbar">
-            <div class="container">
-                <div class="nav-wrapper">
-                    <div class="logo">
-                        <img src="images/logo_9df.png" alt="Logo Grupo Escoteiro do Ar Salgado Filho 9º DF" class="logo-img" />
-                        <span>Grupo Escoteiro do Ar Salgado Filho 9º DF</span>
-                    </div>
-                    <button class="menu-toggle" aria-label="Toggle menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <ul class="nav-menu">
-                        <li><a href="index.html">Início</a></li>
-                        <li><a href="sobre.html">Sobre</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                        <li><a href="projetos.html">Projetos</a></li>
-                        <li><a href="contato.html">Contato</a></li>
-                    </ul>
-                </div>
+        <div class="container navbar">
+            <div class="nav-wrapper">
+                <a href="index.html" class="logo">
+                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
+                    <span>GEAR 9º DF</span>
+                </a>
+                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="active">Início</a></li>
+                    <li><a href="sobre.html">Sobre</a></li>
+                    <li><a href="atividades.html">Atividades</a></li>
+                    <li><a href="galeria.html">Galeria</a></li>
+                    <li><a href="ramo.html">Ramos</a></li>
+                    <li><a href="projetos.html">Projetos</a></li>
+                    <li><a href="contato.html">Contato</a></li>
+                </ul>
             </div>
-        </nav>
+        </div>
     </header>
-
+    <div class="container"> .</div>
     <!-- Hero Section -->
-        <section class="hero" data-hero-images="images/hero1.webp,images/landing.png, images/hero2.webp" data-hero-interval="15000">
-        <div class="hero-slider" aria-hidden="false">
-            <!-- As imagens listadas em data-hero-images serão carregadas pelo script.
-                 Substitua/adicione nomes reais em `images/` conforme desejar. -->
-            <img src="images/landing.png" alt="Fundo Grupo Escoteiro" class="hero-slide active" loading="lazy">
+    <section class="hero" data-hero-images="images/landing.png">
+
+        <div class="hero-slider">
+            <img src="images/landing.png" alt="Escoteiros em atividade ao ar livre" class="hero-slide active">
         </div>
-        <!-- Controles e indicadores serão criados dinamicamente pelo script -->
-        <div class="hero-overlay"></div>
-        <div class="hero-content" style="color: #ffffff;">
-    <h1 class="hero-title">Bem-vindo ao Grupo Escoteiro <br> Salgado Filho 9° DF</h1>
-    <p style="color: #ffffff;" class="hero-subtitle">Sempre Alerta para Servir!</p>
-    <a href="sobre.html" class="btn btn-primary">Conheça Mais</a>
-</div>
-        <div class="hero-scroll">
-            <i class="fas fa-chevron-down"></i>
+
+        <div class="hero-content">
+            <h1 class="hero-title">
+                Aprender fazendo. <br>
+                Crescer vivendo.
+            </h1>
+
+            <p class="hero-subtitle">
+                No GEAR 9º DF, jovens vivem aventuras, constroem amizades
+                e desenvolvem valores para a vida toda.
+                <br><strong>Sempre Alerta para Servir.</strong>
+            </p>
+
+            <div class="hero-btns">
+                <a href="sobre.html" class="btn btn-primary">Conheça nosso grupo</a>
+                <a href="atividades.html" class="btn btn-secondary">O que fazemos</a>
+            </div>
+
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <h2 class="section-title">Nossos Valores</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-hands-helping"></i>
-                    </div>
-                    <h3>Serviço</h3>
-                    <p>Dedicação ao próximo e à comunidade através de ações voluntárias e projetos sociais.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-mountain"></i>
-                    </div>
-                    <h3>Aventura</h3>
-                    <p>Exploração da natureza, acampamentos e atividades ao ar livre que desenvolvem habilidades.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Companheirismo</h3>
-                    <p>Construção de amizades duradouras e trabalho em equipe para alcançar objetivos comuns.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-seedling"></i>
-                    </div>
-                    <h3>Desenvolvimento</h3>
-                    <p>Crescimento pessoal através de desafios, responsabilidades e aprendizado contínuo.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- About Preview -->
     <section class="about-preview">
-        <div class="container">
+        <div class="container content-wrapper">
             <div class="about-content">
                 <div class="about-text">
-                    <h2>Sobre o Escotismo</h2>
-                    <p>O Escotismo é um movimento educacional que, por meio de atividades variadas e atraentes, incentiva os jovens a assumirem seu próprio desenvolvimento, a se envolverem com a comunidade, formando assim verdadeiros líderes.</p>
-                    <p>Através de um sistema de valores baseado na Promessa e na Lei Escoteira, os jovens são incentivados a desenvolverem seu caráter, habilidades e responsabilidades.</p>
-                    <a href="sobre.html" class="btn btn-secondary">Saiba Mais</a>
-                </div>
-                        <picture>
-                            <source srcset="cla.jpg" type="image/jpeg">
-                            <img src="cla.jpg" alt="Sobre o Escotismo" class="responsive-image" loading="lazy" width="1200" height="675" style="max-width:100%;height:auto;">
-                        <picture>
-    </section>
+                    <h2>Mais que um Grupo, uma Família</h2>
+                    <p>O Escotismo é um movimento educacional que, por meio de atividades variadas e atraentes,
+                        incentiva os jovens a assumirem seu próprio desenvolvimento.</p>
+                    <p>Através de um sistema de valores baseado na Promessa e na Lei Escoteira, os jovens são
+                        incentivados a desenvolverem seu caráter.</p>
 
-    <!-- Activities Preview -->
-    <section class="activities-preview">
-        <div class="container">
-            <h2 class="section-title">Nossas Atividades</h2>
-            <div class="activities-grid">
-                <div class="activity-card">
-                    <div class="activity-image">
-                        <i class="fas fa-campground"></i>
-                    </div>
-                    <h3>Acampamentos</h3>
-                    <p>Vivências na natureza com fogueiras, histórias e muito aprendizado.</p>
                 </div>
-                <div class="activity-card">
-                    <div class="activity-image">
-                        <i class="fas fa-fire"></i>
-                    </div>
-                    <h3>Fogueiras</h3>
-                    <p>Momentos de integração, cantorias e tradições escoteiras.</p>
+                <div class="about-image">
+                    <img src="cla.jpg" alt="Scouts in action" class="responsive-image">
                 </div>
-                <div class="activity-card">
-                    <div class="activity-image">
-                        <i class="fas fa-hiking"></i>
-                    </div>
-                    <h3>Trilhas</h3>
-                    <p>Exploração de trilhas e desenvolvimento de habilidades de orientação.</p>
-                </div>
-                <div class="activity-card">
-                    <div class="activity-image">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <h3>Especialidades</h3>
-                    <p>Desenvolvimento de habilidades específicas através de insígnias e especialidades.</p>
-                </div>
-            </div>
-            <div class="text-center">
-                <a href="atividades.html" class="btn btn-primary">Ver Todas as Atividades</a>
-            </div>
+
+            </div><br>
+            <a href="sobre.html" class="btn btn-primary mt-4">Conheça Nossa História</a>
         </div>
     </section>
+
+    <section class="about-preview">
+        <div class="container content-wrapper">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Cada idade, uma grande aventura</h2>
+                    <p>No Escotismo, cada jovem vive experiências pensadas para sua fase da vida.
+                        Dos primeiros passos como Lobinho até os grandes desafios do Ramo Sênior,
+                        todos crescem aprendendo, fazendo e convivendo.</p>
+
+                    <p>Descubra em qual ramo você ou seu filho pode viver essa jornada.</p>
+
+                </div>
+                <div class="about-image">
+                    <img src="images/hero1.webp" alt="Scouts in action" class="responsive-image">
+                </div>
+            </div><br>
+            <a href="ramo.html" class="btn btn-primary mt-4">Conhecer os Ramos</a>
+        </div>
+    </section>
+
+
+    <!-- 
+    <div class="container">
+        <h2 class="section-title">As 10 Leis Escoteiras</h2>
+        <p class="section-subtitle">Clique nos números para saber mais sobre cada lei:
+        </p>
+        <div class="law-circle-container">
+            <div class="law-center-glass">
+                <img src="images/logo_9df.png" alt="Escoteiros Logo" class="responsive-image">
+            </div>
+
+            <div class="law-dot" style="--i:1;"
+                data-text="O Escoteiro tem uma só palavra; sua honra vale mais que sua própria vida.">1</div>
+            <div class="law-dot" style="--i:2;" data-text="O Escoteiro é leal.">2</div>
+            <div class="law-dot" style="--i:3;"
+                data-text="O Escoteiro está sempre alerta para ajudar o próximo e pratica diariamente uma boa ação.">
+                3
+            </div>
+            <div class="law-dot" style="--i:4;" data-text="O Escoteiro é amigo de todos e irmão dos demais escoteiros.">
+                4</div>
+            <div class="law-dot" style="--i:5;" data-text="O Escoteiro é cortês.">5</div>
+            <div class="law-dot" style="--i:6;" data-text="O Escoteiro é bom para os animais e as plantas.">6</div>
+            <div class="law-dot" style="--i:7;" data-text="O Escoteiro é obediente e disciplinado.">7</div>
+            <div class="law-dot" style="--i:8;" data-text="O Escoteiro é alegre e sorri nas dificuldades.">8</div>
+            <div class="law-dot" style="--i:9;" data-text="O Escoteiro é econômico e respeita o bem alheio.">9</div>
+            <div class="law-dot" style="--i:10;" data-text="O Escoteiro é limpo de corpo e alma.">10</div>
+        </div>
+    </div> -->
+
+    <!-- Activities Preview -->
+    <div class="container">
+        <h2 class="section-title">O que fazemos</h2>
+        <div class="activities-grid">
+            <div class="activity-card glass">
+                <br>
+                <div class="feature-image">
+                    <img src="images/mult_verde/photo_4909301671674973015_y.jpg"
+                        alt="Especialidade de Primeiros Socorros" class="responsive-image">
+                </div><br>
+
+                <h3>Acampamentos</h3>
+            </div>
+            <div class="activity-card glass">
+                <div class="feature-image">
+                    <img src="images/hero1.webp" alt="Especialidade de Primeiros Socorros" class="responsive-image">
+                </div><br>
+                <h3>Fogueiras</h3>
+            </div>
+            <div class="activity-card glass">
+                <div class="feature-image">
+                    <img src="cla.jpg" alt="Especialidade de Primeiros Socorros" class="responsive-image">
+                </div><br>
+                <h3>Trilhas</h3>
+            </div>
+
+        </div>
+        <div class="text-center mt-4 d-flex justify-content-center">
+            <a href="atividades.html" class="btn btn-secondary">Ver todas as atividades</a>
+        </div>
+        <br><br>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Grupo Escoteiro</h3>
-                    <p>Sempre Alerta para Servir!</p>
+                    <h3>GEAR 9º DF</h3>
+                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
+                                class="fab fa-instagram"></i></a>
                         <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Links Rápidos</h4>
+                    <h4>Navegação</h4>
                     <ul>
-                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
                         <li><a href="atividades.html">Atividades</a></li>
                         <li><a href="galeria.html">Galeria</a></li>
                         <li><a href="ramo.html">Ramos</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Contato</h4>
+                    <h4>Onde Estamos</h4>
                     <ul>
-                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
                         <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
+                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Grupo Escoteiro. Todos os direitos reservados.</p>
+                <p>&copy; 2024 Grupo Escoteiro do Ar Salgado Filho 9º DF. Todos os direitos reservados. Design by
+                    Gustavo.
+                </p>
             </div>
         </div>
     </footer>
 
     <script src="script.js"></script>
 </body>
+
 </html>

@@ -1,162 +1,474 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramos - Grupo Escoteiro</title>
+    <title>Ramos - GEAR 9º DF</title>
+    <meta name="description"
+        content="Conheça os ramos do escotismo no GEAR 9º DF: Filhotes, Lobinhos, Escoteiros, Seniores e Pioneiros.">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
+    <style>
+        .project-card {
+            background: var(--bg-white);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .project-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 113, 227, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1.5rem;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .project-tags span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: #f0f0f2;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+
+        .project-meta {
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .project-meta div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .project-details {
+            display: none;
+        }
+
+        /* Modals */
+        .project-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .project-modal.open {
+            display: flex;
+        }
+
+        .project-modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .project-modal-content {
+            position: relative;
+            background: var(--bg-white);
+            width: 100%;
+            max-width: 700px;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .project-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h3 {
+            margin-bottom: 12px;
+        }
+
+        .steps {
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        .steps li {
+            margin-bottom: 8px;
+        }
+
+        .branch-age {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(0, 113, 227, 0.1);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .branch-features {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .branch-features li {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .branch-features li i {
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        .branch-img {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="navbar">
-            <div class="container">
-                <div class="nav-wrapper">
-                    <div class="logo">
-                        <img src="images/logo_9df.png" alt="Logo Grupo Escoteiro do Ar Salgado Filho 9º DF" class="logo-img" />
-                        <span>Grupo Escoteiro do Ar Salgado Filho 9º DF</span>
-                    </div>
-                    <button class="menu-toggle" aria-label="Toggle menu">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                    <ul class="nav-menu">
-                        <li><a href="index.html">Início</a></li>
-                        <li><a href="sobre.html">Sobre</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html" class="active">Ramos</a></li>
-                        <li><a href="projetos.html">Projetos</a></li>
-                        <li><a href="contato.html">Contato</a></li>
-                    </ul>
-                </div>
+        <div class="container navbar">
+            <div class="nav-wrapper">
+                <a href="index.html" class="logo">
+                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
+                    <span>GEAR 9º DF</span>
+                </a>
+                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Início</a></li>
+                    <li><a href="sobre.html">Sobre</a></li>
+                    <li><a href="atividades.html">Atividades</a></li>
+                    <li><a href="galeria.html">Galeria</a></li>
+                    <li><a href="ramo.html" class="active">Ramos</a></li>
+                    <li><a href="projetos.html">Projetos</a></li>
+                    <li><a href="contato.html">Contato</a></li>
+                </ul>
             </div>
-        </nav>
+        </div>
     </header>
 
     <!-- Page Header -->
-    <section class="page-header">
-        <div class="container">
-            <h1>Ramos Escoteiros</h1>
-            <p>Conheça os diferentes ramos do escotismo</p>
-        </div>
-    </section>
+    <header class="page-header">
+        <h1>Nossos Ramos</h1>
+        <p>Atividades adaptadas para cada fase do desenvolvimento.</p>
 
-    <!-- Branches Content -->
-    <section class="page-content">
-        <div class="container">
-            <div class="branches-grid">
+    </header>
 
-  <div class="branch-card">
-                    <div class="branch-image">
-                        <div class="image-placeholder has-image">
-                            <!-- Substitua o src pela imagem do ramo: ex. images/ramos/lobinho.jpg -->
-                            <img src="images/logo_filhotes.jpg" alt="Foto do Ramo Filhotes" class="branch-photo">
-                            
-                        
+    <!-- Branches Section -->
+    <section class="branches-section">
+        <div class="container">
+            <div class="features-grid" style="grid-template-columns: 1fr;">
+                <!-- Ramo Filhote -->
+                <article class="project-card glass">
+                    <div class="project-header">
+                        <div class="project-icon"><i class="fas fa-paw"></i></div>
+                        <div>
+                            <h3>Filhotes</h3>
+                            <div class="project-tags"><span class="branch-age">5 a 7 anos</span></div>
                         </div>
                     </div>
 
-                    <h2>Filhote</h2>
+                    <div class="project-explanation">
+                        <h4>O Início da Aventura</h4>
+                        <p>O Ramo Filhotes é a porta de entrada para o mundo do escotismo. Focado na ludicidade e na
+                            sociabilização, as crianças aprendem a compartilhar, a conviver em grupo e a descobrir as
+                            maravilhas da natureza através de brincadeiras e atividades dirigidas, sempre com muita
+                            segurança e carinho.</p>
+                    </div>
 
-                    <p class="branch-age">5 a 6,5 anos</p>
-                    <p>O Ramo Filhotes é para crianças que estão começando sua jornada no escotismo. Através da história do Livro da Jângal, os lobinhos 
-                        aprendem valores importantes enquanto se divertem.</p>
-                    <ul class="branch-features">
-                        <li><i class="fas fa-check"></i> Atividades lúdicas</li>
-                        <li><i class="fas fa-check"></i> Desenvolvimento de valores</li>
-                        <li><i class="fas fa-check"></i> Trabalho em alcateia</li>
-                        <li><i class="fas fa-check"></i> Primeiros acampamentos</li>
-                    </ul>
-                    
-                </div>
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/logo_filhotes.jpg" alt="Filhotes 1">
+                            <img class="carousel-img" src="images/logo_filhotes.jpg" alt="Filhotes 2">
+                            <img class="carousel-img" src="images/logo_filhotes.jpg" alt="Filhotes 3">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+
+                    <p>Início da jornada escoteira com foco em ludicidade e integração.</p>
+
+                    <div class="project-details" id="filhotes-details" style="display:none;">
+                        <div class="detail-section">
+                            <h3>Objetivo</h3>
+                            <p>Proporcionar um ambiente seguro e divertido para o primeiro contato com os valores
+                                escoteiros.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>Atividades Típicas</h3>
+                            <ul class="steps">
+                                <li>Brincadeiras cooperativas</li>
+                                <li>Contação de histórias</li>
+                                <li>Pequenos passeios ecológicos</li>
+                                <li>Atividades manuais e artísticas</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
 
                 <!-- Ramo Lobinho -->
-<div class="branch-card">
-    <div class="branch-image">
-        <div class="image-placeholder has-image">
-            <img src="images/logo_lobinhos.jpg" alt="Foto do Ramo Lobinho" class="branch-photo">
-            
-        </div>
-    </div>
+                <article class="project-card glass">
+                    <div class="project-header">
+                        <div class="fa-brands fa-wolf-pack-battalion"></div>
+                        <div>
+                            <h3>Lobinhos</h3>
+                            <div class="project-tags"><span class="branch-age">7 a 10 anos</span></div>
+                        </div>
+                    </div>
 
-    <h2>Lobinho</h2>
-    <p class="branch-age">6,5 a 10 anos</p>
-    <p>O Ramo Lobinho é para crianças que estão começando sua jornada no escotismo. Através da história do Livro da Jângal, os lobinhos aprendem valores importantes enquanto se divertem.</p>
-    <ul class="branch-features">
-        <li><i class="fas fa-check"></i> Atividades lúdicas</li>
-        <li><i class="fas fa-check"></i> Desenvolvimento de valores</li>
-        <li><i class="fas fa-check"></i> Trabalho em alcateia</li>
-        <li><i class="fas fa-check"></i> Primeiros acampamentos</li>
-    </ul>
-</div>
+                    <div class="project-explanation">
+                        <h4>A Força da Alcateia</h4>
+                        <p>Inspirado no "Livro da Jângal" de Rudyard Kipling, o Ramo Lobinho trabalha a fantasia e o
+                            aprendizado pela ação. As crianças, chamadas de lobinhos e lobinhas, aprendem a conviver em
+                            equipe (a Alcateia), respeitar os mais velhos e fazer sempre o seu "Melhor Possível".</p>
+                    </div>
 
-<!-- Ramo Escoteiro -->
-<div class="branch-card">
-    <div class="branch-image">
-        <div class="image-placeholder has-image">
-            <img src="images/logo_escoteiros.jpg" alt="Foto do Ramo Escoteiro" class="branch-photo">
-            
-        </div>
-    </div>
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/logo_lobinhos.jpg" alt="Lobinhos 1">
+                            <img class="carousel-img" src="images/logo_lobinhos.jpg" alt="Lobinhos 2">
+                            <img class="carousel-img" src="images/logo_lobinhos.jpg" alt="Lobinhos 3">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
 
-    <h2>Escoteiro</h2>
-    <p class="branch-age">11 a 14 anos</p>
-    <p>O Ramo Escoteiro é onde os jovens desenvolvem habilidades práticas, participam de acampamentos mais longos e começam a assumir responsabilidades dentro da tropa.</p>
-    <ul class="branch-features">
-        <li><i class="fas fa-check"></i> Acampamentos regulares</li>
-        <li><i class="fas fa-check"></i> Sistema de patrulhas</li>
-        <li><i class="fas fa-check"></i> Especialidades</li>
-        <li><i class="fas fa-check"></i> Aventuras na natureza</li>
-    </ul>
-</div>
+                    <p>Focado em valores fundamentais, vida em grupo e diversão.</p>
 
-<!-- Ramo Sênior -->
-<div class="branch-card">
-    <div class="branch-image">
-        <div class="image-placeholder has-image">
-            <img src="images/logo_senior.jpg" alt="Foto do Ramo Sênior" class="branch-photo">
-            
-        </div>
-    </div>
+                    <div class="project-details" id="lobinhos-details" style="display:none;">
+                        <div class="detail-section">
+                            <h3>A Lei da Jângal</h3>
+                            <p>O Lobinho ouve os Velhos Lobos; O Lobinho não cede a si mesmo.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>O que fazemos</h3>
+                            <ul class="steps">
+                                <li>Acantonamentos (dormir fora em local fechado)</li>
+                                <li>Jogos e canções</li>
+                                <li>Jornadas ao ar livre</li>
+                                <li>Boas ações diárias</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
 
-    <h2>Sênior</h2>
-    <p class="branch-age">15 a 17 anos</p>
-    <p>O Ramo Sênior oferece desafios maiores e mais autonomia. Os seniores planejam e executam suas próprias atividades, desenvolvendo liderança e responsabilidade.</p>
-    <ul class="branch-features">
-        <li><i class="fas fa-check"></i> Projetos próprios</li>
-        <li><i class="fas fa-check"></i> Desenvolvimento de liderança</li>
-        <li><i class="fas fa-check"></i> Expedições</li>
-        <li><i class="fas fa-check"></i> Maior autonomia</li>
-    </ul>
-</div>
+                <!-- Ramo Escoteiro -->
+                <article class="project-card glass">
+                    <div class="project-header">
+                        <div class="project-icon"><i class="fas fa-compass"></i></div>
+                        <div>
+                            <h3>Escoteiros</h3>
+                            <div class="project-tags"><span class="branch-age">10 a 15 anos</span></div>
+                        </div>
+                    </div>
 
-<!-- Ramo Pioneiro -->
-<div class="branch-card">
-    <div class="branch-image">
-        <div class="image-placeholder has-image">
-            <img src="images/logo_pioneiros.jpg" alt="Foto do Ramo Pioneiro" class="branch-photo">
-            
-            
-        </div>
-    </div>
+                    <div class="project-explanation">
+                        <h4>Aventura e Autonomia</h4>
+                        <p>Nesta fase, o jovem assume mais responsabilidades dentro da Patrulha (grupos de 6 a 8
+                            jovens). O foco é a vida ao ar livre, o aprendizado de técnicas mateiras (nós, amarras,
+                            fogueiras) e o desenvolvimento da liderança e da autoconfiança. O lema é "Sempre Alerta".
+                        </p>
+                    </div>
 
-   
-    <h2>Pioneiro</h2>
-    <p class="branch-age">18 a 21 anos</p>
-    <p>O Ramo Pioneiro é para jovens adultos que buscam desafios ainda maiores. Os pioneiros desenvolvem projetos comunitários e se preparam para se tornarem adultos escoteiros.</p>
-    <ul class="branch-features">
-        <li><i class="fas fa-check"></i> Projetos comunitários</li>
-        <li><i class="fas fa-check"></i> Liderança avançada</li>
-        <li><i class="fas fa-check"></i> Preparação para adultos</li>
-        <li><i class="fas fa-check"></i> Missões especiais</li>
-    </ul>
-</div>
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/logo_escoteiros.jpg" alt="Escoteiros 1">
+                            <img class="carousel-img" src="images/logo_escoteiros.jpg" alt="Escoteiros 2">
+                            <img class="carousel-img" src="images/logo_escoteiros.jpg" alt="Escoteiros 3">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
 
-                </div>
+                    <p>Aventura, técnicas mateiras e sistema de patrulhas.</p>
+
+                    <div class="project-details" id="escoteiros-details" style="display:none;">
+                        <div class="detail-section">
+                            <h3>Sistema de Patrulhas</h3>
+                            <p>Os jovens lideram e organizam suas próprias atividades, sob supervisão dos chefes.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>Atividades</h3>
+                            <ul class="steps">
+                                <li>Acampamentos de fim de semana</li>
+                                <li>Pioneirias (construções com madeira e corda)</li>
+                                <li>Culinária mateira</li>
+                                <li>Jogos noturnos e de orientação</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Ramo Sênior -->
+                <article class="project-card glass">
+                    <div class="project-header">
+                        <div class="project-icon"><i class="fas fa-mountain"></i></div>
+                        <div>
+                            <h3>Seniores</h3>
+                            <div class="project-tags"><span class="branch-age">15 a 18 anos</span></div>
+                        </div>
+                    </div>
+
+                    <div class="project-explanation">
+                        <h4>Desafios e Superação</h4>
+                        <p>O Ramo Sênior é para aqueles que buscam desafios reais. As atividades exigem mais preparo
+                            físico, técnico e mental. É a fase de superar limites, realizar expedições, escaladas e
+                            projetos mais complexos, preparando-se para a vida adulta com responsabilidade e coragem.
+                        </p>
+                    </div>
+
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/logo_senior.jpg" alt="Senior 1">
+                            <img class="carousel-img" src="images/logo_senior.jpg" alt="Senior 2">
+                            <img class="carousel-img" src="images/logo_senior.jpg" alt="Senior 3">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+
+                    <p>Desafios físicos e mentais, espírito crítico e liderança.</p>
+
+                    <div class="project-details" id="senior-details" style="display:none;">
+                        <div class="detail-section">
+                            <h3>Identidade</h3>
+                            <p>O jovem sênior busca sua identidade e seu lugar no mundo, desafiando a si mesmo
+                                constantemente.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>Aventuras</h3>
+                            <ul class="steps">
+                                <li>Jornadas de sobrevivência</li>
+                                <li>Rapel e escalada</li>
+                                <li>Cicloturismo</li>
+                                <li>Serviços comunitários de impacto</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Ramo Pioneiro -->
+                <article class="project-card glass">
+                    <div class="project-header">
+                        <div class="project-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                        <div>
+                            <h3>Pioneiros</h3>
+                            <div class="project-tags"><span class="branch-age">18 a 22 anos</span></div>
+                        </div>
+                    </div>
+
+                    <div class="project-explanation">
+                        <h4>Servir e Construir</h4>
+                        <p>O Ramo Pioneiro é o ponto culminante da educação escoteira. Jovens adultos focados em seu
+                            projeto de vida e no serviço ao próximo. O lema é "Servir". Eles atuam ativamente na
+                            comunidade, organizam grandes projetos e apoiam a gestão do grupo, preparando-se para serem
+                            líderes em nossa sociedade.</p>
+                    </div>
+
+                    <div class="project-carousel-container">
+                        <div class="project-carousel">
+                            <img class="carousel-img" src="images/logo_pioneiros.jpg" alt="Pioneiro 1">
+                            <img class="carousel-img" src="images/logo_pioneiros.jpg" alt="Pioneiro 2">
+                            <img class="carousel-img" src="images/logo_pioneiros.jpg" alt="Pioneiro 3">
+                        </div>
+                        <div class="carousel-nav">
+                            <span class="dot active"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </div>
+
+                    <p>Foco total no serviço à comunidade e transição para a vida adulta.</p>
+
+                    <div class="project-details" id="pioneiro-details" style="display:none;">
+                        <div class="detail-section">
+                            <h3>O Clã</h3>
+                            <p>Os pioneiros se organizam em um Clã, onde a democracia e a responsabilidade mútua são a
+                                base.</p>
+                        </div>
+                        <div class="detail-section">
+                            <h3>Ações do Clã</h3>
+                            <ul class="steps">
+                                <li>Mutirões comunitários</li>
+                                <li>Projetos de empreendedorismo social</li>
+                                <li>Apoio às seções mais jovens</li>
+                                <li>Viagens culturais e de intercâmbio</li>
+                            </ul>
+                        </div>
+                    </div>
+                </article>
             </div>
         </div>
     </section>
@@ -166,37 +478,39 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Grupo Escoteiro</h3>
-                    <p>Sempre Alerta para Servir!</p>
+                    <h3>GEAR 9º DF</h3>
+                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
+                                class="fab fa-instagram"></i></a>
                         <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
-                    <h4>Links Rápidos</h4>
+                    <h4>Navegação</h4>
                     <ul>
-                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
                         <li><a href="atividades.html">Atividades</a></li>
                         <li><a href="galeria.html">Galeria</a></li>
                         <li><a href="ramo.html">Ramos</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Contato</h4>
+                    <h4>Onde Estamos</h4>
                     <ul>
-                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
                         <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
+                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Grupo Escoteiro. Todos os direitos reservados.</p>
+                <p>&copy; 2024 GEAR 9º DF. Todos os direitos reservados. Design by Gustavo.</p>
             </div>
         </div>
     </footer>
 
     <script src="script.js"></script>
 </body>
+
 </html>
