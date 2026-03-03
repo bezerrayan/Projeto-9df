@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -10,25 +10,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
-    <style>
-        .hero-btns {
-            display: flex;
-            flex-direction: column;
-            /* um embaixo do outro */
-            gap: 16px;
-            /* espaço entre os botões */
-            margin-top: 24px;
-        }
-
-        /* Se quiser lado a lado no desktop */
-        @media (min-width: 768px) {
-            .hero-btns {
-                flex-direction: row;
-                justify-content: center;
-                gap: 20%;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -57,8 +38,7 @@
             </div>
         </div>
     </header>
-    <div class="container"> .</div>
-    <!-- Hero Section -->
+<!-- Hero Section -->
     <section class="hero" data-hero-images="images/landing.png">
 
         <div class="hero-slider">
@@ -189,18 +169,69 @@
         <br><br>
     </div>
 
+    <section class="calendar-section">
+        <div class="container">
+            <h2 class="section-title">Calendário do Grupo</h2>
+            <p class="section-subtitle calendar-subtitle">
+                Atividades regulares todos os sábados (14h30 às 18h) e eventos especiais do grupo e regionais.
+            </p>
+            <div class="calendar-layout" data-group-calendar>
+                <article class="calendar-panel glass">
+                    <div class="calendar-header">
+                        <button class="calendar-nav" type="button" data-cal-prev aria-label="Mês anterior">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 data-cal-month></h3>
+                        <button class="calendar-nav" type="button" data-cal-next aria-label="Próximo mês">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <span>Dom</span>
+                        <span>Seg</span>
+                        <span>Ter</span>
+                        <span>Qua</span>
+                        <span>Qui</span>
+                        <span>Sex</span>
+                        <span>Sáb</span>
+                    </div>
+                    <div class="calendar-grid" data-cal-grid></div>
+                    <div class="calendar-legend">
+                        <span><i class="dot dot-saturday"></i> Atividade regular (sábado)</span>
+                        <span><i class="dot dot-group"></i> Evento do grupo</span>
+                        <span><i class="dot dot-regional"></i> Evento regional</span>
+                    </div>
+                </article>
+
+                <article class="calendar-panel glass">
+                    <h3 class="calendar-events-title">Eventos do mês</h3>
+                    <p class="calendar-note">
+                        Todo sábado há atividade regular do GEAR 9º DF. A lista abaixo mostra eventos especiais.
+                    </p>
+                    <ul class="calendar-events-list" data-cal-events></ul>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section">
-                    <h3>GEAR 9º DF</h3>
-                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
+                <div class="footer-section footer-brand">
+                    <div class="footer-brand-head">
+                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
+                        <div>
+                            <h3>GEAR 9º DF</h3>
+                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
+                        </div>
+                    </div>
+                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
                     <div class="social-links">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
                         <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
                                 class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -221,9 +252,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Grupo Escoteiro do Ar Salgado Filho 9º DF. Todos os direitos reservados. Design by
-                    Gustavo.
-                </p>
+                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site: <strong>Gustavo</strong> e <strong>Yan</strong>.</p>
             </div>
         </div>
     </footer>
@@ -232,3 +261,7 @@
 </body>
 
 </html>
+
+
+
+

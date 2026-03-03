@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // MENU MOBILE TOGGLE
 // ============================================
 document.addEventListener('DOMContentLoaded', function () {
@@ -154,18 +154,265 @@ document.addEventListener('DOMContentLoaded', function () {
         if (backdrop) backdrop.onclick = close;
     }
 
-    // Project Carousel Dots Update
+    // Project Carousel Controls + Dots
     const carousels = document.querySelectorAll('.project-carousel');
     carousels.forEach(carousel => {
         const container = carousel.closest('.project-carousel-container');
         if (!container) return;
+        const slides = Array.from(carousel.querySelectorAll('img'));
         const dots = container.querySelectorAll('.dot');
+        const prevBtn = container.querySelector('[data-carousel-prev]');
+        const nextBtn = container.querySelector('[data-carousel-next]');
 
-        carousel.addEventListener('scroll', () => {
-            const index = Math.round(carousel.scrollLeft / carousel.offsetWidth);
+        const getCurrentIndex = () => {
+            if (slides.length === 0) return 0;
+            let activeIndex = 0;
+            let minDistance = Number.POSITIVE_INFINITY;
+
+            slides.forEach((slide, index) => {
+                const distance = Math.abs(slide.offsetLeft - carousel.scrollLeft);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    activeIndex = index;
+                }
+            });
+
+            return activeIndex;
+        };
+
+        const goToSlide = (index) => {
+            if (slides.length === 0) return;
+            const safeIndex = (index + slides.length) % slides.length;
+            carousel.scrollTo({ left: slides[safeIndex].offsetLeft, behavior: 'smooth' });
+        };
+
+        const updateDots = () => {
+            const index = getCurrentIndex();
             dots.forEach((dot, i) => {
                 dot.classList.toggle('active', i === index);
             });
+        };
+
+        carousel.addEventListener('scroll', updateDots);
+
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => goToSlide(index));
         });
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                goToSlide(getCurrentIndex() - 1);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                goToSlide(getCurrentIndex() + 1);
+            });
+        }
+
+        updateDots();
     });
 });
+// ============================================
+// IMAGE PERFORMANCE
+// ============================================
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('img').forEach(img => {
+        if (!img.hasAttribute('loading')) {
+            img.loading = img.classList.contains('hero-slide') ? 'eager' : 'lazy';
+        }
+        if (!img.hasAttribute('decoding')) {
+            img.decoding = 'async';
+        }
+    });
+});
+
+// ============================================
+// FOOTER YEAR
+// ============================================
+document.addEventListener('DOMContentLoaded', function () {
+    const year = String(new Date().getFullYear());
+    document.querySelectorAll('.current-year').forEach(node => {
+        node.textContent = year;
+    });
+});
+
+// ============================================
+// GROUP CALENDAR
+// ============================================
+document.addEventListener('DOMContentLoaded', function () {
+    const calendarRoot = document.querySelector('[data-group-calendar]');
+    if (!calendarRoot) return;
+
+    // Editar lista para marcar eventos do grupo e regionais
+    // Formato: YYYY-MM-DD
+    const groupEvents = [
+        { date: '2026-03-07', title: 'Abertura Regional', type: 'regional' },
+        { date: '2026-03-14', title: 'Atividade de seções', type: 'grupo' },
+        { date: '2026-03-21', title: 'Atividade de seções', type: 'grupo' },
+        { date: '2026-03-28', title: 'Atividade de seções', type: 'grupo' },
+        { date: '2026-04-25', title: 'Atividade de seções', type: 'grupo' }
+    ];
+
+    const monthLabel = calendarRoot.querySelector('[data-cal-month]');
+    const grid = calendarRoot.querySelector('[data-cal-grid]');
+    const eventsList = calendarRoot.querySelector('[data-cal-events]');
+    const prevBtn = calendarRoot.querySelector('[data-cal-prev]');
+    const nextBtn = calendarRoot.querySelector('[data-cal-next]');
+    const monthNames = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    const now = new Date();
+    let currentMonth = now.getMonth();
+    let currentYear = now.getFullYear();
+
+    function getDateKey(year, month, day) {
+        return year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    }
+
+    function renderMonth() {
+        monthLabel.textContent = monthNames[currentMonth] + ' de ' + currentYear;
+        grid.innerHTML = '';
+
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const startOffset = firstDay.getDay();
+        const totalDays = lastDay.getDate();
+
+        for (let i = 0; i < startOffset; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-day empty';
+            grid.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= totalDays; day++) {
+            const date = new Date(currentYear, currentMonth, day);
+            const dateKey = getDateKey(currentYear, currentMonth, day);
+            const dayEvents = groupEvents.filter(event => event.date === dateKey);
+
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            cell.textContent = day;
+
+            if (date.getDay() === 6) {
+                cell.classList.add('saturday');
+                cell.title = 'Atividade regular do grupo';
+            }
+
+            if (
+                day === now.getDate() &&
+                currentMonth === now.getMonth() &&
+                currentYear === now.getFullYear()
+            ) {
+                cell.classList.add('today');
+            }
+
+            if (dayEvents.length > 0) {
+                cell.classList.add('has-event');
+                if (dayEvents.some(event => event.type === 'regional')) {
+                    cell.classList.add('has-regional');
+                }
+
+                const tooltip = dayEvents.map(event => event.title).join(' | ');
+                cell.title = cell.title ? cell.title + ' | ' + tooltip : tooltip;
+            }
+
+            grid.appendChild(cell);
+        }
+
+        renderEventList();
+    }
+
+    function renderEventList() {
+        const monthlyEvents = groupEvents
+            .filter(event => {
+                const [year, month] = event.date.split('-').map(Number);
+                return year === currentYear && month === currentMonth + 1;
+            })
+            .sort((a, b) => a.date.localeCompare(b.date));
+
+        eventsList.innerHTML = '';
+
+        if (monthlyEvents.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'empty';
+            empty.textContent = 'Sem eventos especiais cadastrados para este mês.';
+            eventsList.appendChild(empty);
+            return;
+        }
+
+        monthlyEvents.forEach(event => {
+            const [year, month, day] = event.date.split('-').map(Number);
+            const item = document.createElement('li');
+            item.innerHTML =
+                '<div class="event-meta">' +
+                '<span class="tag ' + event.type + '">' + event.type + '</span>' +
+                '<span>' + String(day).padStart(2, '0') + '/' + String(month).padStart(2, '0') + '/' + year + '</span>' +
+                '</div>' +
+                '<p class="event-title">' + event.title + '</p>';
+            eventsList.appendChild(item);
+        });
+    }
+
+    prevBtn.addEventListener('click', function () {
+        currentMonth -= 1;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear -= 1;
+        }
+        renderMonth();
+    });
+
+    nextBtn.addEventListener('click', function () {
+        currentMonth += 1;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear += 1;
+        }
+        renderMonth();
+    });
+
+    renderMonth();
+});
+
+// ============================================
+// CONTACT FORM
+// ============================================
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('contactForm');
+    if (!form) return;
+
+    const feedback = document.getElementById('contactFeedback');
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const name = document.getElementById('name')?.value.trim() || '';
+        const email = document.getElementById('email')?.value.trim() || '';
+        const subject = document.getElementById('subject')?.value.trim() || 'Contato pelo site';
+        const message = document.getElementById('message')?.value.trim() || '';
+
+        if (!name || !email || !message) {
+            if (feedback) feedback.textContent = 'Preencha nome, e-mail e mensagem antes de enviar.';
+            return;
+        }
+
+        const body = [
+            'Nome: ' + name,
+            'E-mail: ' + email,
+            '',
+            'Mensagem:',
+            message
+        ].join('\n');
+
+        const mailto = 'mailto:contato@escoteiro.com?subject=' + encodeURIComponent(subject) +
+            '&body=' + encodeURIComponent(body);
+        window.location.href = mailto;
+
+        if (feedback) feedback.textContent = 'Abrimos seu app de e-mail para finalizar o envio.';
+    });
+});
+

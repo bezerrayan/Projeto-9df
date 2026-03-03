@@ -1,4 +1,4 @@
-# Site Escoteiro
+﻿# Site Escoteiro
 
 Site institucional para Grupo Escoteiro com design moderno, responsivo e atraente.
 
@@ -73,7 +73,7 @@ O site é totalmente responsivo e se adapta automaticamente a:
 ## 📝 Personalização
 
 Você pode personalizar facilmente:
-- Cores no arquivo `css/style.css` (variáveis CSS no topo)
+- Cores no arquivo `style.css` (variáveis CSS no topo)
 - Conteúdo nas páginas HTML
 - Fotos substituindo os placeholders
 - Informações de contato na página de contato

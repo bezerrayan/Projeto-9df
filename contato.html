@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -11,38 +11,72 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
     <style>
-        .contact-grid {
+        .contact-layout {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 48px;
+            gap: 28px;
+            align-items: start;
         }
 
-        .contact-details-box {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 48px;
-        }
-
-        .info-card {
-            padding: 32px;
-            border-radius: 24px;
-            text-align: center;
-        }
-
-        .info-card i {
+        .contact-column-title {
             font-size: 2rem;
+            margin-bottom: 20px;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .contact-info-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .contact-info-card {
+            padding: 20px 18px;
+            border-radius: 18px;
+            display: grid;
+            grid-template-columns: 38px 1fr;
+            gap: 12px;
+            align-items: start;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .contact-info-card i {
+            font-size: 1.5rem;
             color: var(--primary);
-            margin-bottom: 16px;
+            margin-top: 2px;
+        }
+
+        .contact-info-card h3 {
+            font-size: 1rem;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .contact-info-card p {
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.55;
+        }
+
+        .contact-form {
+            padding: 24px;
+            border-radius: 24px;
+        }
+
+        .contact-form label {
+            font-weight: 600;
         }
 
         .map-wrapper {
             width: 100%;
-            height: 400px;
-            border-radius: 32px;
+            height: 360px;
+            border-radius: 24px;
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin-top: 48px;
+            margin-top: 30px;
         }
 
         .map-wrapper iframe {
@@ -51,9 +85,19 @@
             border: none;
         }
 
-        @media (min-width: 768px) {
-            .contact-grid {
-                grid-template-columns: 1fr 1.5fr;
+        .contact-submit {
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        @media (min-width: 980px) {
+            .contact-layout {
+                grid-template-columns: 1fr 1fr;
+                gap: 36px;
+            }
+
+            .contact-column-title {
+                font-size: 2.2rem;
             }
         }
     </style>
@@ -97,47 +141,66 @@
     <!-- Contact Info & Form -->
     <section class="contact-section">
         <div class="container">
-            <div class="contact-details-box">
-                <div class="info-card glass">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <h3>Localização</h3>
-                    <p>SHIS QI 3 - s/n sn, DF, 71605-500</p>
+            <div class="contact-layout">
+                <div class="contact-info-column">
+                    <h2 class="contact-column-title">Informações de Contato</h2>
+                    <div class="contact-info-list">
+                        <div class="contact-info-card glass">
+                            <i class="fas fa-envelope"></i>
+                            <div>
+                                <h3>E-mail</h3>
+                                <p>contato@escoteiro.com</p>
+                            </div>
+                        </div>
+                        <div class="contact-info-card glass">
+                            <i class="fas fa-phone"></i>
+                            <div>
+                                <h3>Telefone</h3>
+                                <p>(61) 99999-9999<br>(61) 3333-3333</p>
+                            </div>
+                        </div>
+                        <div class="contact-info-card glass">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Horário de Atividades</h3>
+                                <p>Sábados: 14h30 às 18h</p>
+                            </div>
+                        </div>
+                        <div class="contact-info-card glass">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <h3>Localização</h3>
+                                <p>SHIS QI 3 - s/n sn, DF, 71605-500</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-card glass">
-                    <i class="fas fa-envelope"></i>
-                    <h3>E-mail</h3>
-                    <p>contato@escoteiro.com</p>
-                </div>
-                <div class="info-card glass">
-                    <i class="fas fa-clock"></i>
-                    <h3>Sábados</h3>
-                    <p>14:30h às 18h</p>
-                </div>
-            </div>
 
-            <div class="contact-form glass">
-                <h2 class="text-center" style="margin-bottom: 32px;">Envie uma Mensagem</h2>
-                <form id="contactForm">
-                    <div class="form-group">
-                        <label for="name">Nome</label>
-                        <input type="text" id="name" placeholder="Seu nome completo" required>
+                <div class="contact-form-column">
+                    <h2 class="contact-column-title">Envie uma Mensagem</h2>
+                    <div class="contact-form glass">
+                        <form id="contactForm" novalidate>
+                            <div class="form-group">
+                                <label for="name">Nome Completo *</label>
+                                <input type="text" id="name" placeholder="Seu nome" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">E-mail *</label>
+                                <input type="email" id="email" placeholder="seu@email.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="subject">Assunto *</label>
+                                <input type="text" id="subject" placeholder="Dúvida sobre atividades">
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Mensagem *</label>
+                                <textarea id="message" rows="6" placeholder="Escreva sua mensagem aqui..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary contact-submit">Enviar Mensagem</button>
+                        </form>
+                        <p id="contactFeedback" class="form-feedback" role="status" aria-live="polite"></p>
                     </div>
-                    <div class="form-group">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" placeholder="seuemail@exemplo.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="subject">Assunto</label>
-                        <input type="text" id="subject" placeholder="Como podemos ajudar?">
-                    </div>
-                    <div class="form-group">
-                        <label for="message">Mensagem</label>
-                        <textarea id="message" rows="5" placeholder="Sua mensagem aqui..." required></textarea>
-                    </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary">Enviar Agora</button>
-                    </div>
-                </form>
+                </div>
             </div>
 
             <div class="map-wrapper">
@@ -152,14 +215,20 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section">
-                    <h3>GEAR 9º DF</h3>
-                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
+                <div class="footer-section footer-brand">
+                    <div class="footer-brand-head">
+                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
+                        <div>
+                            <h3>GEAR 9º DF</h3>
+                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
+                        </div>
+                    </div>
+                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
                     <div class="social-links">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
                         <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
                                 class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -180,7 +249,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 GEAR 9º DF. Todos os direitos reservados. Design by Gustavo.</p>
+                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site: <strong>Gustavo</strong> e <strong>Yan</strong>.</p>
             </div>
         </div>
     </footer>
@@ -189,3 +258,7 @@
 </body>
 
 </html>
+
+
+
+

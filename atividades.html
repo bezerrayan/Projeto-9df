@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -10,6 +10,63 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
+    <style>
+        .activities-section .features-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .activity-card-item {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+            padding: 24px;
+        }
+
+        .activity-card-item h2 {
+            font-size: 1.6rem;
+            margin: 0;
+        }
+
+        .activity-card-item .feature-image {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .activity-card-item .feature-image img {
+            width: 100%;
+            height: 230px;
+            object-fit: cover;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        .activity-card-item p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.55;
+            margin: 0;
+            min-height: 112px;
+        }
+
+        .activities-section.alt {
+            padding-top: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .activities-section .features-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1100px) {
+            .activities-section .features-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -99,39 +156,33 @@
                 liderança e espírito de equipe,sempre com aventura, amizade e diversão.
             </p>
             <div class="features-grid">
-                <div class="feature-card glass">
-
+                <div class="feature-card glass activity-card-item">
                     <h2>Acampamentos</h2>
-                    <br>
                     <div class="feature-image">
-                        <img src="images/hero2.webp" alt="Especialidade de Primeiros Socorros" class="responsive-image">
-                    </div><br>
+                        <img src="images/hero2.webp" alt="Acampamento escoteiro em atividade de campo" class="responsive-image">
+                    </div>
                     <p>
                         Vivência intensa na natureza, aprendendo autonomia,
                         culinária mateira e trabalho em equipe sob as estrelas.
                     </p>
                 </div>
 
-                <div class="feature-card glass">
-
+                <div class="feature-card glass activity-card-item">
                     <h2>Trilhas</h2>
-                    <br>
                     <div class="feature-image">
-                        <img src="cla.jpg" alt="Especialidade de Primeiros Socorros" class="responsive-image">
-                    </div><br>
+                        <img src="cla.jpg" alt="Escoteiros em trilha ao ar livre" class="responsive-image">
+                    </div>
                     <p>
                         Exploração de novos caminhos, desenvolvendo orientação,
                         resistência física e respeito pelo meio ambiente.
                     </p>
                 </div>
 
-                <div class="feature-card glass">
-
+                <div class="feature-card glass activity-card-item">
                     <h2>Fogueiras</h2>
-                    <br>
                     <div class="feature-image">
-                        <img src="images/hero1.webp" alt="Especialidade de Primeiros Socorros" class="responsive-image">
-                    </div><br>
+                        <img src="images/hero1.webp" alt="Fogueira escoteira em momento de integração" class="responsive-image">
+                    </div>
 
                     <p>
                         Momentos de integração, canções tradicionais e reflexões
@@ -148,19 +199,12 @@
             <h2 class="section-title">Aprender fazendo</h2>
 
             <div class="features-grid">
-                <div class="feature-card glass">
-
-
-
-
+                <div class="feature-card glass activity-card-item">
                     <h2>Especialidades</h2>
-                    <br>
-
                     <div class="feature-image">
-                        <img src="images/logo_escoteiros.jpg" alt="Especialidade de Primeiros Socorros"
+                        <img src="images/logo_escoteiros.jpg" alt="Jovens em atividade de especialidades escoteiras"
                             class="responsive-image">
-                    </div><br>
-
+                    </div>
 
                     <p>
                         Desenvolvimento de habilidades em áreas como primeiros socorros,
@@ -168,12 +212,11 @@
                     </p>
                 </div>
 
-                <div class="feature-card glass">
+                <div class="feature-card glass activity-card-item">
                     <h2>Liderança</h2>
-                    <br>
                     <div class="feature-image">
                         <img src="images/photo_4909301671674973021_x.jpg" alt="Liderança" class="responsive-image">
-                    </div><br>
+                    </div>
 
                     <p>
                         Atividades práticas que ensinam responsabilidade,
@@ -181,12 +224,11 @@
                     </p>
                 </div>
 
-                <div class="feature-card glass">
+                <div class="feature-card glass activity-card-item">
                     <h2>Conquistas</h2>
-                    <br>
                     <div class="feature-image">
                         <img src="images/photo_4909301671674973017_y.jpg" alt="Conquistas" class="responsive-image">
-                    </div><br>
+                    </div>
                     <p>
                         Progressão pessoal por meio de desafios que estimulam
                         o crescimento individual e coletivo.
@@ -217,14 +259,20 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section">
-                    <h3>GEAR 9º DF</h3>
-                    <p>Sempre Alerta para Servir! Formando os líderes de amanhã através da aventura e do serviço.</p>
+                <div class="footer-section footer-brand">
+                    <div class="footer-brand-head">
+                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
+                        <div>
+                            <h3>GEAR 9º DF</h3>
+                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
+                        </div>
+                    </div>
+                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
                     <div class="social-links">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
                         <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
                                 class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -245,7 +293,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 GEAR 9º DF. Todos os direitos reservados. Design by Gustavo.</p>
+                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site: <strong>Gustavo</strong> e <strong>Yan</strong>.</p>
             </div>
         </div>
     </footer>
@@ -254,3 +302,7 @@
 </body>
 
 </html>
+
+
+
+
