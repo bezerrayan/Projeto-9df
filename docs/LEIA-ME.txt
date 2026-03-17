@@ -1,0 +1,11 @@
+Coloque nesta pasta os PDFs oficiais do grupo para alimentar a pagina documentos.html.
+
+Arquivos esperados:
+- regimento-interno.pdf
+- ficha-inscricao.pdf
+- autorizacao-atividades.pdf
+- calendario-anual.pdf
+- lista-material-acampamento.pdf
+- autorizacao-uso-imagem.pdf
+
+Voce pode substituir este arquivo por documentos reais quando quiser.

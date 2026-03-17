@@ -970,7 +970,8 @@ h2 em {
 
 .feature-grid,
 .activity-grid,
-.project-grid {
+.project-grid,
+.docs-grid {
     display: grid;
     gap: 20px;
 }
@@ -1174,6 +1175,100 @@ h2 em {
 
 .project-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.docs-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.doc-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 24px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.doc-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.doc-card-head .info-icon {
+    background: var(--blue-050);
+    color: var(--blue-500);
+}
+
+.doc-card-head h3 {
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+}
+
+.doc-card-head p {
+    margin: 0;
+    color: var(--text);
+}
+
+.doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.doc-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--blue-050);
+    color: var(--blue-600);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.doc-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.docs-note {
+    margin-top: 28px;
+    padding: 24px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.docs-note h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.docs-note p {
+    margin: 0 0 12px;
+    color: var(--text);
+}
+
+.docs-note ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--text);
+}
+
+.docs-note code {
+    font-family: Consolas, monospace;
+    color: var(--blue-700);
 }
 
 .project-head {
@@ -1415,7 +1510,8 @@ h2 em {
 @media (max-width: 1080px) {
     .feature-grid,
     .activity-grid,
-    .project-grid {
+    .project-grid,
+    .docs-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -1505,8 +1601,13 @@ h2 em {
         order: initial;
     }
 
-    .gallery-grid {
+    .gallery-grid,
+    .docs-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .doc-actions {
+        justify-content: stretch;
     }
 }
 
@@ -1530,7 +1631,8 @@ h2 em {
     .feature-grid,
     .activity-grid,
     .project-grid,
-    .gallery-grid {
+    .gallery-grid,
+    .docs-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1563,7 +1665,8 @@ h2 em {
 
     .button-row,
     .chip-row,
-    .filter-row {
+    .filter-row,
+    .doc-actions {
         flex-direction: column;
     }
 }
