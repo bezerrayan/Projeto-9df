@@ -1414,6 +1414,7 @@ textarea {
 .contact-card-list {
     display: grid;
     gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .contact-card {
@@ -1476,6 +1477,35 @@ textarea {
     margin: 12px 0 0;
     color: var(--blue-700);
     font-weight: 700;
+}
+
+.contact-note {
+    margin: 14px 0 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.65;
+}
+
+.contact-draft {
+    margin-top: 18px;
+    display: grid;
+    gap: 8px;
+}
+
+.contact-draft label {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--blue-800);
+}
+
+.contact-draft textarea {
+    width: 100%;
+    border: 1.5px dashed rgba(8, 23, 45, 0.12);
+    border-radius: 16px;
+    background: #f8fbff;
+    padding: 14px 16px;
+    color: var(--ink);
+    resize: vertical;
 }
 
 .map-card {
@@ -1812,6 +1842,10 @@ textarea {
     .media-card,
     .hero-photo-frame {
         aspect-ratio: 4 / 3;
+    }
+
+    .contact-card-list {
+        grid-template-columns: 1fr;
     }
 }
 

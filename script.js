@@ -72,14 +72,14 @@ function setupCalendar() {
     const events = [
         { date: '2026-01-01', title: 'Dia Mundial da Paz', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-01-08', title: 'Falecimento de Baden-Powell (1941 - Nyeri, Quênia)', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-01-12', endDate: '2026-02-12', title: 'Curso Avançado Escotista e Dirigente (EAD)', type: 'grupo', label: 'Curso' },
         { date: '2026-01-24', endDate: '2026-01-25', title: 'Acampamento de Férias Escoteiro (Pioneirias)', type: 'grupo', label: 'Grupo' },
         { date: '2026-01-25', title: 'Encontro Nacional de Núcleos Regionais (Remoto)', type: 'regional', label: 'Regional' },
-        { date: '2026-01-12', endDate: '2026-02-12', title: 'Curso Avançado Escotista e Dirigente (EAD)', type: 'grupo', label: 'Curso' },
         { date: '2026-02-07', title: 'INDABA de Abertura', type: 'grupo', label: 'Grupo' },
         { date: '2026-02-14', endDate: '2026-02-17', title: 'Curso Avançado Escotista e Dirigente (presencial - Carnaval)', type: 'grupo', label: 'Curso' },
         { date: '2026-02-16', endDate: '2026-02-17', title: 'Carnaval', type: 'feriado', label: 'Feriado' },
         { date: '2026-02-21', endDate: '2026-02-22', title: 'Reunião do Conselho de Administração Nacional (Remoto)', type: 'regional', label: 'Regional' },
-        { date: '2026-02-21', endDate: '2026-02-22', title: 'Reunião da Comissão de Ética e Disciplina Nacional (A definir)', type: 'regional', label: 'Regional' },
+        { date: '2026-02-21', endDate: '2026-02-22', title: 'Reunião da Comissão de Ética e Disciplina Nacional', type: 'regional', label: 'Regional' },
         { date: '2026-02-21', title: 'Retorno das atividades GEARSF', type: 'grupo', label: 'Grupo' },
         { date: '2026-02-21', title: '1ª chamada de novos escoteiros e reunião com responsáveis', type: 'grupo', label: 'Grupo' },
         { date: '2026-02-22', title: 'Dia do Fundador (Nascimento de Baden-Powell)', type: 'comemorativo', label: 'Comemorativo' },
@@ -89,10 +89,10 @@ function setupCalendar() {
         { date: '2026-03-09', endDate: '2026-03-27', title: 'Curso Preliminar (EAD)', type: 'grupo', label: 'Curso' },
         { date: '2026-03-13', title: 'Emissão do Parecer da Auditoria Externa', type: 'regional', label: 'Regional' },
         { date: '2026-03-14', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
-        { date: '2026-03-14', title: '4º Congresso Regional Escoteiro', type: 'grupo', label: 'Regional' },
-        { date: '2026-03-14', title: 'Fórum de Jovens Líderes', type: 'grupo', label: 'Regional' },
-        { date: '2026-03-14', title: 'Fóruns dos Ramos', type: 'grupo', label: 'Regional' },
-        { date: '2026-03-15', title: 'Assembleia Regional', type: 'grupo', label: 'Regional' },
+        { date: '2026-03-14', title: '4º Congresso Regional Escoteiro', type: 'regional', label: 'Regional' },
+        { date: '2026-03-14', title: 'Fórum de Jovens Líderes', type: 'regional', label: 'Regional' },
+        { date: '2026-03-14', title: 'Fóruns dos Ramos', type: 'regional', label: 'Regional' },
+        { date: '2026-03-15', title: 'Assembleia Regional', type: 'regional', label: 'Regional' },
         { date: '2026-03-16', title: 'Reunião da Comissão Fiscal Nacional', type: 'regional', label: 'Regional' },
         { date: '2026-03-17', title: 'Divulgação das Demonstrações Contábeis 2025', type: 'regional', label: 'Regional' },
         { date: '2026-03-21', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
@@ -144,14 +144,14 @@ function setupCalendar() {
         { date: '2026-06-20', title: '35º MUTECO (atividade de grupo)', type: 'grupo', label: 'Grupo' },
         { date: '2026-06-27', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-06-27', endDate: '2026-06-28', title: 'Encerramento do 1º semestre', type: 'grupo', label: 'Grupo' },
-        { date: '2026-06-27', endDate: '2026-06-28', title: 'ARDIS (Acampamento Regional Sênior)', type: 'grupo', label: 'Regional' },
+        { date: '2026-06-27', endDate: '2026-06-28', title: 'ARDIS (Acampamento Regional Sênior)', type: 'regional', label: 'Regional' },
         { date: '2026-06-29', title: 'Dia do Pioneiro', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-07-04', title: 'INDABA de Avaliação e início do recesso', type: 'grupo', label: 'Grupo' },
         { date: '2026-07-11', title: 'Recesso Escoteiro', type: 'grupo', label: 'Grupo' },
         { date: '2026-07-13', title: 'Nascimento de Caio Vianna Martins', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-07-18', title: 'Recesso', type: 'grupo', label: 'Grupo' },
-        { date: '2026-07-18', title: 'Congresso Regional de Educação Não-Formal', type: 'grupo', label: 'Regional' },
-        { date: '2026-07-18', endDate: '2026-07-22', title: 'Moot Nacional Pioneiro', type: 'grupo', label: 'Nacional' },
+        { date: '2026-07-18', title: 'Congresso Regional de Educação Não-Formal', type: 'regional', label: 'Regional' },
+        { date: '2026-07-18', endDate: '2026-07-22', title: 'Moot Nacional Pioneiro', type: 'regional', label: 'Nacional' },
         { date: '2026-07-25', title: 'Retorno das atividades', type: 'grupo', label: 'Grupo' },
         { date: '2026-07-25', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-07-25', title: '1ª chamada de novos membros', type: 'grupo', label: 'Grupo' },
@@ -169,18 +169,18 @@ function setupCalendar() {
         { date: '2026-08-14', endDate: '2026-08-16', title: 'AeroMosquito Show', type: 'grupo', label: 'Grupo' },
         { date: '2026-08-15', endDate: '2026-08-16', title: 'Reunião do Conselho de Administração Nacional', type: 'regional', label: 'Regional' },
         { date: '2026-08-15', endDate: '2026-08-16', title: 'Grande Jogo Naval', type: 'regional', label: 'Regional' },
-        { date: '2026-08-15', endDate: '2026-08-16', title: 'Encontro Regional de Jovens Líderes', type: 'grupo', label: 'Regional' },
+        { date: '2026-08-15', endDate: '2026-08-16', title: 'Encontro Regional de Jovens Líderes', type: 'regional', label: 'Regional' },
         { date: '2026-08-22', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-08-29', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-08-29', title: '68º aniversário do Escotismo no DF', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-08-29', endDate: '2026-08-30', title: '6ª Atividade Nacional de Radioescotismo', type: 'regional', label: 'Regional' },
-        { date: '2026-08-29', endDate: '2026-08-30', title: 'Grande Jogo Naval', type: 'grupo', label: 'Regional' },
-        { date: '2026-08-29', endDate: '2026-08-30', title: 'Radioescotismo (Echolink/DMR)', type: 'grupo', label: 'Regional' },
-        { date: '2026-09-01', title: 'Encontro do 1º Grupo de Gilwell', type: 'grupo', label: 'Regional' },
+        { date: '2026-08-29', endDate: '2026-08-30', title: 'Grande Jogo Naval', type: 'regional', label: 'Regional' },
+        { date: '2026-08-29', endDate: '2026-08-30', title: 'Radioescotismo (Echolink/DMR)', type: 'regional', label: 'Regional' },
+        { date: '2026-09-01', title: 'Encontro do 1º Grupo de Gilwell', type: 'regional', label: 'Regional' },
         { date: '2026-09-01', endDate: '2026-09-30', title: '28º Mutirão Nacional de Ação Comunitária', type: 'regional', label: 'Regional' },
         { date: '2026-09-05', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-09-05', endDate: '2026-09-07', title: 'Laboratório Técnico do Programa Educativo', type: 'regional', label: 'Regional' },
-        { date: '2026-09-05', endDate: '2026-09-07', title: 'Moot Regional Pioneiro', type: 'grupo', label: 'Regional' },
+        { date: '2026-09-05', endDate: '2026-09-07', title: 'Moot Regional Pioneiro', type: 'regional', label: 'Regional' },
         { date: '2026-09-07', title: 'Independência do Brasil', type: 'feriado', label: 'Feriado' },
         { date: '2026-09-12', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-09-14', endDate: '2026-11-02', title: 'Curso Preliminar (EAD)', type: 'grupo', label: 'Curso' },
@@ -191,7 +191,7 @@ function setupCalendar() {
         { date: '2026-09-21', title: 'Dia Internacional da Paz', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-09-26', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-09-26', endDate: '2026-09-27', title: 'Reunião do Conselho Consultivo', type: 'regional', label: 'Regional' },
-        { date: '2026-09-26', endDate: '2026-09-27', title: '49ª Jan-Bra', type: 'grupo', label: 'Regional' },
+        { date: '2026-09-26', endDate: '2026-09-27', title: '49ª Jan-Bra', type: 'regional', label: 'Regional' },
         { date: '2026-09-30', title: 'Divulgação dos Calendários Regionais 2027', type: 'regional', label: 'Regional' },
         { date: '2026-10-01', endDate: '2026-11-06', title: 'Curso Intermediário (EAD)', type: 'grupo', label: 'Curso' },
         { date: '2026-10-03', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
@@ -217,10 +217,10 @@ function setupCalendar() {
         { date: '2026-11-20', title: 'Dia da Consciência Negra', type: 'feriado', label: 'Feriado' },
         { date: '2026-11-20', endDate: '2026-11-22', title: 'Encontro Nacional de Jovens Líderes (João Pessoa - PB)', type: 'regional', label: 'Regional' },
         { date: '2026-11-21', title: 'Atividades das Seções', type: 'grupo', label: 'Grupo' },
-        { date: '2026-11-21', endDate: '2026-11-22', title: 'Vigília Regional Pioneira', type: 'grupo', label: 'Regional' },
+        { date: '2026-11-21', endDate: '2026-11-22', title: 'Vigília Regional Pioneira', type: 'regional', label: 'Regional' },
         { date: '2026-11-27', endDate: '2026-11-29', title: 'Acampamento de Grupo (encerramento do ano)', type: 'grupo', label: 'Grupo' },
         { date: '2026-11-30', title: 'Dia do Evangélico', type: 'feriado', label: 'Feriado' },
-        { date: '2026-12-03', title: 'Encontro Regional de Formadores', type: 'grupo', label: 'Regional' },
+        { date: '2026-12-03', title: 'Encontro Regional de Formadores', type: 'regional', label: 'Regional' },
         { date: '2026-12-05', title: 'INDABA de Encerramento', type: 'grupo', label: 'Grupo' },
         { date: '2026-12-05', title: 'Dia Internacional do Voluntariado', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-12-25', title: 'Natal', type: 'feriado', label: 'Feriado' }
@@ -330,9 +330,6 @@ function setupCalendar() {
         for (let day = 1; day <= lastDay.getDate(); day += 1) {
             const cell = document.createElement('div');
             const currentDate = new Date(currentYear, currentMonth, day);
-            const currentEvents = events.filter(function (event) {
-                return eventCoversDate(event, currentDate);
-            });
             const highlightedEvents = events.filter(function (event) {
                 return shouldHighlightDate(event, currentDate);
             });
@@ -439,6 +436,8 @@ function setupContactForm() {
     }
 
     const feedback = document.getElementById('contactFeedback');
+    const draftWrapper = document.getElementById('contactDraftWrapper');
+    const draftField = document.getElementById('contactDraft');
 
     form.addEventListener('submit', function (event) {
         event.preventDefault();
@@ -449,13 +448,30 @@ function setupContactForm() {
         const message = document.getElementById('message').value.trim();
 
         if (!name || !email || !message) {
-            feedback.textContent = 'Preencha nome, e-mail e mensagem antes de enviar.';
+            feedback.textContent = 'Preencha nome, e-mail e mensagem antes de continuar.';
             return;
         }
 
-        const body = encodeURIComponent('Nome: ' + name + '\nE-mail: ' + email + '\n\n' + message);
-        window.location.href = 'mailto:contato@escoteiro.com?subject=' + encodeURIComponent(subject) + '&body=' + body;
-        feedback.textContent = 'Seu aplicativo de e-mail foi aberto para concluir o envio.';
-        form.reset();
+        const draft =
+            'Nome: ' + name + '\n' +
+            'E-mail para retorno: ' + email + '\n' +
+            'Assunto: ' + subject + '\n\n' +
+            message;
+
+        if (draftField && draftWrapper) {
+            draftField.value = draft;
+            draftWrapper.hidden = false;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(draft).then(function () {
+                feedback.textContent = 'Mensagem copiada. Agora você pode encaminhá-la ao grupo pelos canais disponíveis.';
+            }).catch(function () {
+                feedback.textContent = 'Não foi possível copiar automaticamente. Use o campo abaixo para copiar manualmente.';
+            });
+            return;
+        }
+
+        feedback.textContent = 'Use o campo abaixo para copiar sua mensagem manualmente.';
     });
 }
