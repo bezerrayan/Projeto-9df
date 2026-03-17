@@ -134,8 +134,8 @@ textarea {
 .brand-mark,
 .info-icon,
 .mini-icon {
-    width: 42px;
-    height: 42px;
+    width: 52px;
+    height: 52px;
     display: grid;
     place-items: center;
     border-radius: 14px;
@@ -151,7 +151,7 @@ textarea {
 .brand-mark img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 0;
 }
 
@@ -1637,6 +1637,19 @@ textarea {
 @media (max-width: 640px) {
     .shell {
         width: min(calc(100% - 28px), var(--shell));
+    }
+
+    .brand {
+        gap: 8px;
+    }
+
+    .brand-mark {
+        width: 44px;
+        height: 44px;
+    }
+
+    .brand-text {
+        display: none;
     }
 
     .section,
