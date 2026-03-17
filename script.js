@@ -260,6 +260,23 @@ function setupCalendar() {
         return targetDate >= startDate && targetDate <= endDate;
     }
 
+    function shouldHighlightDate(event, targetDate) {
+        const startDate = new Date(event.date + 'T00:00:00');
+
+        if (!event.endDate) {
+            return targetDate.getTime() === startDate.getTime();
+        }
+
+        const endDate = new Date(event.endDate + 'T00:00:00');
+        const diffDays = Math.round((endDate - startDate) / 86400000) + 1;
+
+        if (diffDays <= 4) {
+            return eventCoversDate(event, targetDate);
+        }
+
+        return targetDate.getTime() === startDate.getTime();
+    }
+
     function renderEvents() {
         const monthlyEvents = events
             .filter(function (event) {
@@ -316,6 +333,9 @@ function setupCalendar() {
             const currentEvents = events.filter(function (event) {
                 return eventCoversDate(event, currentDate);
             });
+            const highlightedEvents = events.filter(function (event) {
+                return shouldHighlightDate(event, currentDate);
+            });
 
             cell.className = 'calendar-day';
             cell.textContent = String(day);
@@ -332,13 +352,13 @@ function setupCalendar() {
                 cell.classList.add('today');
             }
 
-            if (currentEvents.length > 0) {
+            if (highlightedEvents.length > 0) {
                 cell.classList.add('has-event');
-                if (currentEvents.some(function (event) { return event.type === 'feriado'; })) {
+                if (highlightedEvents.some(function (event) { return event.type === 'feriado'; })) {
                     cell.classList.add('has-holiday');
-                } else if (currentEvents.some(function (event) { return event.type === 'comemorativo'; })) {
+                } else if (highlightedEvents.some(function (event) { return event.type === 'comemorativo'; })) {
                     cell.classList.add('has-commemorative');
-                } else if (currentEvents.some(function (event) { return event.type === 'regional'; })) {
+                } else if (highlightedEvents.some(function (event) { return event.type === 'regional'; })) {
                     cell.classList.add('has-regional');
                 }
             }

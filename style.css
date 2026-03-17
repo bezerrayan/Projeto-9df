@@ -858,14 +858,17 @@ h2 em {
 .event-list {
     list-style: none;
     display: grid;
-    gap: 10px;
+    gap: 8px;
     padding: 0;
     margin: 20px 0 0;
+    max-height: 540px;
+    overflow: auto;
+    padding-right: 6px;
 }
 
 .event-list li {
-    padding: 14px;
-    border-radius: 16px;
+    padding: 12px;
+    border-radius: 14px;
     border: 1px solid var(--line);
     background: #f8fbff;
 }
@@ -873,9 +876,10 @@ h2 em {
 .event-meta {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 6px;
-    font-size: 0.78rem;
+    margin-bottom: 4px;
+    font-size: 0.72rem;
     color: var(--muted);
 }
 
@@ -918,12 +922,23 @@ h2 em {
 .event-title {
     color: var(--blue-900);
     font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1.35;
 }
 
 .event-list .empty {
     color: var(--muted);
     background: transparent;
     border-style: dashed;
+}
+
+.event-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.event-list::-webkit-scrollbar-thumb {
+    background: rgba(10, 82, 168, 0.22);
+    border-radius: 999px;
 }
 
 .cta-band {
