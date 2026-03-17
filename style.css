@@ -557,6 +557,7 @@ h2 em {
     text-align: center;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     padding-top: 20px;
+    min-width: 0;
 }
 
 .hero-stats strong {
@@ -1600,6 +1601,7 @@ textarea {
 
     .hero-layout {
         padding-top: 56px;
+        gap: 24px;
     }
 
     .hero-copy {
@@ -1617,6 +1619,7 @@ textarea {
 
     .hero-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
     }
 
     .branch-row.reverse .branch-media,
@@ -1631,6 +1634,11 @@ textarea {
 
     .doc-actions {
         justify-content: stretch;
+    }
+
+    .media-card,
+    .hero-photo-frame {
+        aspect-ratio: 4 / 3;
     }
 }
 
@@ -1662,6 +1670,10 @@ textarea {
         font-size: 2.6rem;
     }
 
+    .hero-copy p {
+        font-size: 0.96rem;
+    }
+
     .hero-stats,
     .branch-strip,
     .feature-grid,
@@ -1687,6 +1699,24 @@ textarea {
 
     .hero-media {
         display: grid;
+        gap: 12px;
+    }
+
+    .hero-stats {
+        padding-top: 8px;
+    }
+
+    .hero-stats div {
+        padding-top: 16px;
+    }
+
+    .hero-stats strong {
+        font-size: 2rem;
+    }
+
+    .hero-stats span {
+        font-size: 0.68rem;
+        line-height: 1.4;
     }
 
     .panel,
