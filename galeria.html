@@ -1,181 +1,83 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeria - GEAR 9º DF</title>
-    <meta name="description"
-        content="Explore os momentos inesquecíveis registrados no Grupo Escoteiro do Ar Salgado Filho 9º DF.">
-    <link rel="stylesheet" href="style.css">
+    <title>Galeria | GEAR 9º DF</title>
+    <meta name="description" content="Veja fotos de acampamentos, atividades, eventos e ações sociais do GEAR 9º DF.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
-    <style>
-        .gallery-filter {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 48px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 10px 24px;
-            border-radius: 980px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: var(--bg-white);
-            color: var(--text-main);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9rem;
-        }
-
-        .filter-btn.active,
-        .filter-btn:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .gallery-item.hidden {
-            display: none;
-        }
-    </style>
 </head>
-
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container navbar">
-            <div class="nav-wrapper">
-                <a href="index.html" class="logo">
-                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
-                    <span>GEAR 9º DF</span>
-                </a>
-                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Início</a></li>
-                    <li><a href="sobre.html">Sobre</a></li>
-                    <li><a href="atividades.html">Atividades</a></li>
-                    <li><a href="galeria.html" class="active">Galeria</a></li>
-                    <li><a href="ramo.html">Ramos</a></li>
-                    <li><a href="projetos.html">Projetos</a></li>
-                    <li><a href="contato.html">Contato</a></li>
-                </ul>
-            </div>
+    <header class="site-header">
+        <div class="shell nav-shell">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"><i class="fas fa-compass"></i></span>
+                <span class="brand-text">GEAR <em>9º DF</em></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="index.html">Início</a>
+                <a href="sobre.html">Sobre</a>
+                <a href="atividades.html">Atividades</a>
+                <a href="galeria.html" class="active">Galeria</a>
+                <a href="ramo.html">Ramos</a>
+                <a href="projetos.html">Projetos</a>
+                <a href="contato.html" class="nav-cta">Contato</a>
+            </nav>
         </div>
     </header>
 
-    <!-- Page Header -->
-    <header class="page-header">
-        <div class="container">
-            <h1>Galeria</h1>
-            <p>Memórias que duram para sempre.</p>
-        </div>
-    </header>
+    <main>
+        <section class="page-hero centered page-hero-light">
+            <div class="shell narrow">
+                <div class="eyebrow">Momentos que ficam</div>
+                <h1>Galeria</h1>
+                <p>Memórias que duram para sempre.</p>
+            </div>
+        </section>
 
-    <!-- Gallery Section -->
-    <section class="gallery-section">
-        <div class="container">
-            <div class="gallery-filter">
-                <button class="filter-btn active" data-filter="all">Todas</button>
-                <button class="filter-btn" data-filter="acampamento">Acampamentos</button>
-                <button class="filter-btn" data-filter="atividade">Atividades</button>
-                <button class="filter-btn" data-filter="evento">Eventos</button>
-                <button class="filter-btn" data-filter="comunidade">Ações Sociais</button>
+        <section class="section section-soft">
+            <div class="shell">
+                <div class="filter-row">
+                    <button class="filter-btn active" type="button" data-filter="all">Todas</button>
+                    <button class="filter-btn" type="button" data-filter="acampamento">Acampamentos</button>
+                    <button class="filter-btn" type="button" data-filter="atividade">Atividades</button>
+                    <button class="filter-btn" type="button" data-filter="evento">Eventos</button>
+                    <button class="filter-btn" type="button" data-filter="comunidade">Ações Sociais</button>
+                </div>
+                <div class="gallery-grid">
+                    <article class="gallery-item wide tall" data-category="acampamento"><img src="images/landing.png" alt="Acampamento do grupo" class="cover-image"></article>
+                    <article class="gallery-item" data-category="atividade"><img src="cla.jpg" alt="Atividade do grupo" class="cover-image"></article>
+                    <article class="gallery-item" data-category="evento"><img src="images/higiene/photo_4958569241523630116_y.jpg" alt="Evento do grupo" class="cover-image"></article>
+                    <article class="gallery-item" data-category="comunidade"><img src="images/mult_verde/DSC08677.JPG" alt="Ação social do grupo" class="cover-image"></article>
+                    <article class="gallery-item" data-category="acampamento"><img src="images/mult_verde/DSC08726.JPG" alt="Acampamento em campo" class="cover-image"></article>
+                    <article class="gallery-item wide" data-category="atividade"><img src="images/photo_4909301671674973021_x.jpg" alt="Atividade escoteira em equipe" class="cover-image"></article>
+                    <article class="gallery-item" data-category="comunidade"><img src="images/doa_toys/photo_4909301671674973014_y.jpg" alt="Doação de brinquedos" class="cover-image"></article>
+                    <article class="gallery-item" data-category="evento"><img src="images/higiene/photo_4909301671674972985_y.jpg" alt="Campanha de higiene" class="cover-image"></article>
+                    <article class="gallery-item" data-category="acampamento"><img src="images/mult_verde/DSC08692.JPG" alt="Acampamento com equipe" class="cover-image"></article>
+                </div>
             </div>
+        </section>
+    </main>
 
-            <div class="gallery-grid">
-                <!-- Items with placeholders if real images are missing -->
-                <div class="gallery-item glass" data-category="acampamento">
-                    <img src="images/landing.png" alt="Acampamento"
-                        onerror="this.src='https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <div class="gallery-item glass" data-category="atividade">
-                    <img src="cla.jpg" alt="Atividade"
-                        onerror="this.src='https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <div class="gallery-item glass" data-category="evento">
-                    <img src="images/higiene/photo_4958569241523630116_y.jpg" alt="Evento"
-                        onerror="this.src='https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <div class="gallery-item glass" data-category="comunidade">
-                    <img src="images/mult_verde/DSC08677.JPG" alt="Ação Social"
-                        onerror="this.src='https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <!-- Repeat for more items -->
-                <div class="gallery-item glass" data-category="acampamento">
-                    <img src="images/mult_verde/DSC08726.JPG" alt="Acampamento"
-                        onerror="this.src='https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <div class="gallery-item glass" data-category="atividade">
-                    <img src="images/photo_4909301671674973021_x.jpg" alt="Atividade"
-                        onerror="this.src='https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <div class="gallery-item glass" data-category="comunidade">
-                    <img src="images/doa_toys/photo_4909301671674973014_y.jpg" alt="Evento"
-                        onerror="this.src='https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80'">
-                </div>
-                <div class="gallery-item glass" data-category="comunidade">
-                    <img src="images/higiene/photo_4909301671674972985_y.jpg" alt="Ação Social"
-                        onerror="this.src='https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=800&q=80'">
-                </div>
-            </div>
+    <footer class="site-footer">
+        <div class="shell footer-grid">
+            <div><div class="footer-brand"><span class="brand-mark"><i class="fas fa-compass"></i></span><div><strong>GEAR 9º DF</strong><span>Grupo Escoteiro do Ar Salgado Filho</span></div></div><p class="footer-text">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p></div>
+            <div><h4>Navegação</h4><ul class="footer-links"><li><a href="sobre.html">Sobre Nós</a></li><li><a href="atividades.html">Atividades</a></li><li><a href="ramo.html">Ramos</a></li><li><a href="projetos.html">Projetos</a></li></ul></div>
+            <div><h4>Contato</h4><ul class="footer-links footer-info"><li><i class="fas fa-map-marker-alt"></i>SHIS QI 3 - s/n, Brasília - DF</li><li><i class="fas fa-envelope"></i>contato@escoteiro.com</li></ul></div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section footer-brand">
-                    <div class="footer-brand-head">
-                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
-                        <div>
-                            <h3>GEAR 9º DF</h3>
-                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
-                        </div>
-                    </div>
-                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
-                                class="fab fa-instagram"></i></a>
-                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h4>Navegação</h4>
-                    <ul>
-                        <li><a href="sobre.html">Sobre Nós</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Onde Estamos</h4>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
-                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site: <strong>Gustavo</strong> e <strong>Yan</strong>.</p>
-            </div>
-        </div>
+        <div class="shell footer-bottom">© <span class="current-year">2026</span> GEAR 9º DF — Feito com dedicação por <strong>Gustavo</strong> e <strong>Yan</strong>.</div>
     </footer>
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
-
-

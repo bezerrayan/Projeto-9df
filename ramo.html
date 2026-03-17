@@ -1,419 +1,110 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramos - GEAR 9º DF</title>
-    <meta name="description"
-        content="Conheça os ramos do escotismo no GEAR 9º DF: Filhotes, Lobinhos, Escoteiros, Seniores e Pioneiros.">
-    <link rel="stylesheet" href="style.css">
+    <title>Ramos | GEAR 9º DF</title>
+    <meta name="description" content="Conheça os ramos Filhotes, Lobinhos, Escoteiros, Seniores e Pioneiros do GEAR 9º DF.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
-    <style>
-        .branches-list {
-            display: grid;
-            gap: 22px;
-        }
-
-        .branch-card {
-            border-radius: 24px;
-            padding: 18px;
-            overflow: hidden;
-        }
-
-        .branch-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-
-        .branch-header h3 {
-            font-size: 1.45rem;
-            line-height: 1.2;
-        }
-
-        .branch-age {
-            font-weight: 700;
-            color: #1f4ac6;
-            display: inline-block;
-            padding: 6px 11px;
-            background: rgba(58, 125, 255, 0.14);
-            border: 1px solid rgba(58, 125, 255, 0.25);
-            border-radius: 999px;
-            font-size: 0.74rem;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        .branch-media {
-            position: relative;
-            margin-bottom: 14px;
-        }
-
-        .branch-photo-main {
-            width: 100%;
-            border-radius: 16px;
-            aspect-ratio: 16/10;
-            object-fit: cover;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .branch-symbol {
-            position: absolute;
-            right: 10px;
-            bottom: 10px;
-            width: clamp(68px, 20vw, 84px);
-            height: clamp(68px, 20vw, 84px);
-            border-radius: 16px;
-            background: transparent;
-            border: none;
-            display: grid;
-            place-items: center;
-            padding: 0;
-            overflow: hidden;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
-        }
-
-        .branch-symbol img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            border-radius: 14px;
-            border: none;
-            background: transparent;
-        }
-
-        .branch-thumbs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .branch-thumb {
-            width: 100%;
-            border-radius: 12px;
-            aspect-ratio: 4/3;
-            object-fit: cover;
-        }
-
-        .branch-copy p {
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            font-size: 0.96rem;
-            line-height: 1.55;
-        }
-
-        .branch-copy {
-            max-width: 620px;
-        }
-
-        .branch-bullets {
-            list-style: none;
-            display: grid;
-            gap: 7px;
-        }
-
-        .branch-bullets li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .branch-bullets i {
-            color: var(--primary);
-            font-size: 0.78rem;
-            flex-shrink: 0;
-        }
-
-        @media (min-width: 900px) {
-            .branch-card {
-                padding: 24px;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 22px;
-                align-items: center;
-            }
-
-            .branch-media-wrap {
-                order: 1;
-            }
-
-            .branch-content {
-                order: 2;
-                width: 100%;
-                max-width: 640px;
-                margin: 0 auto;
-            }
-
-            .branch-header h3 {
-                font-size: 1.8rem;
-            }
-
-            .branch-header {
-                justify-content: flex-start;
-                gap: 12px;
-                flex-wrap: wrap;
-            }
-
-            .branch-thumb {
-                aspect-ratio: 16/10;
-            }
-
-            .branch-symbol {
-                width: 90px;
-                height: 90px;
-            }
-        }
-    </style>
 </head>
-
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container navbar">
-            <div class="nav-wrapper">
-                <a href="index.html" class="logo">
-                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
-                    <span>GEAR 9º DF</span>
-                </a>
-                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Início</a></li>
-                    <li><a href="sobre.html">Sobre</a></li>
-                    <li><a href="atividades.html">Atividades</a></li>
-                    <li><a href="galeria.html">Galeria</a></li>
-                    <li><a href="ramo.html" class="active">Ramos</a></li>
-                    <li><a href="projetos.html">Projetos</a></li>
-                    <li><a href="contato.html">Contato</a></li>
-                </ul>
-            </div>
+    <header class="site-header header-dark">
+        <div class="shell nav-shell">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"><i class="fas fa-compass"></i></span>
+                <span class="brand-text">GEAR <em>9º DF</em></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="index.html">Início</a>
+                <a href="sobre.html">Sobre</a>
+                <a href="atividades.html">Atividades</a>
+                <a href="galeria.html">Galeria</a>
+                <a href="ramo.html" class="active">Ramos</a>
+                <a href="projetos.html">Projetos</a>
+                <a href="contato.html" class="nav-cta">Contato</a>
+            </nav>
         </div>
     </header>
 
-    <!-- Page Header -->
-    <header class="page-header">
-        <h1>Nossos Ramos</h1>
-        <p>Atividades adaptadas para cada fase do desenvolvimento.</p>
+    <main>
+        <section class="page-hero page-hero-dark centered">
+            <div class="shell narrow">
+                <div class="eyebrow eyebrow-light">Jornada escoteira</div>
+                <h1>Nossos ramos</h1>
+                <p>Atividades adaptadas para cada fase do desenvolvimento e da autonomia de cada jovem.</p>
+            </div>
+        </section>
 
-    </header>
-
-    <!-- Branches Section -->
-    <section class="branches-section">
-        <div class="container">
-            <div class="branches-list">
-                <article class="branch-card glass">
-                    <div class="branch-media-wrap">
-                        <div class="branch-media">
-                            <img class="branch-photo-main" src="images/hero1.webp" alt="Jovens do ramo Filhotes em atividade">
-                            <div class="branch-symbol">
-                                <img src="images/logo_filhotes.jpg" alt="Símbolo do ramo Filhotes">
-                            </div>
-                        </div>
-                        <div class="branch-thumbs">
-                            <img class="branch-thumb" src="images/photo_4909301671674973017_y.jpg" alt="Filhotes em dinâmica de grupo">
-                            <img class="branch-thumb" src="images/photo_4909301671674973021_x.jpg" alt="Filhotes em atividade coletiva">
-                        </div>
+        <section class="section">
+            <div class="shell stack-large">
+                <article class="branch-row">
+                    <div class="branch-media">
+                        <div class="branch-main"><img src="images/hero1.webp" alt="Filhotes em atividade" class="cover-image"></div>
+                        <div class="branch-badge"><img src="images/logo_filhotes.jpg" alt="Símbolo dos Filhotes" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/photo_4909301671674973017_y.jpg" alt="Filhotes em dinâmica" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/photo_4909301671674973021_x.jpg" alt="Filhotes em grupo" class="cover-image"></div>
                     </div>
-                    <div class="branch-content">
-                        <div class="branch-header">
-                            <h3>Filhotes</h3>
-                            <span class="branch-age">5 a 7 anos</span>
-                        </div>
-                        <div class="branch-copy">
-                            <p>Primeiros passos no escotismo com acolhimento, descobertas e atividades pensadas para aprender brincando.</p>
-                            <p>Nessa fase, a criança fortalece confiança, convivência e autonomia em encontros leves e dinâmicos.</p>
-                            <ul class="branch-bullets">
-                                <li><i class="fas fa-check-circle"></i> Jogos cooperativos e integração em grupo</li>
-                                <li><i class="fas fa-check-circle"></i> Histórias e atividades de valores escoteiros</li>
-                                <li><i class="fas fa-check-circle"></i> Experiências ao ar livre com segurança</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div class="branch-copy"><span class="pill">5 a 7 anos</span><h2>Filhotes</h2><p>Primeiros passos no escotismo com acolhimento, descobertas e atividades pensadas para aprender brincando.</p><ul><li><i class="fas fa-check-circle"></i>Jogos cooperativos e integração em grupo</li><li><i class="fas fa-check-circle"></i>Histórias e valores escoteiros</li><li><i class="fas fa-check-circle"></i>Experiências ao ar livre com segurança</li></ul></div>
                 </article>
-
-                <article class="branch-card glass">
-                    <div class="branch-media-wrap">
-                        <div class="branch-media">
-                            <img class="branch-photo-main" src="cla.jpg" alt="Lobinhos em atividade ao ar livre">
-                            <div class="branch-symbol">
-                                <img src="images/logo_lobinhos.jpg" alt="Símbolo do ramo Lobinhos">
-                            </div>
-                        </div>
-                        <div class="branch-thumbs">
-                            <img class="branch-thumb" src="images/photo_4909301671674973021_x.jpg" alt="Lobinhos em momento de integração">
-                            <img class="branch-thumb" src="images/mult_verde/photo_4909301671674973015_y.jpg" alt="Lobinhos em ação ao ar livre">
-                        </div>
+                <article class="branch-row reverse">
+                    <div class="branch-media">
+                        <div class="branch-main"><img src="cla.jpg" alt="Lobinhos em atividade" class="cover-image"></div>
+                        <div class="branch-badge"><img src="images/logo_lobinhos.jpg" alt="Símbolo dos Lobinhos" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/photo_4909301671674973021_x.jpg" alt="Lobinhos em integração" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/mult_verde/photo_4909301671674973015_y.jpg" alt="Lobinhos ao ar livre" class="cover-image"></div>
                     </div>
-                    <div class="branch-content">
-                        <div class="branch-header">
-                            <h3>Lobinhos</h3>
-                            <span class="branch-age">7 a 10 anos</span>
-                        </div>
-                        <div class="branch-copy">
-                            <p>Na alcateia, crianças desenvolvem responsabilidade, amizade e autonomia com o lema “Melhor Possível”.</p>
-                            <p>As atividades estimulam iniciativa e respeito ao grupo, mantendo o lado lúdico como motor do aprendizado.</p>
-                            <ul class="branch-bullets">
-                                <li><i class="fas fa-check-circle"></i> Jogos, canções e aprendizagem pela ação</li>
-                                <li><i class="fas fa-check-circle"></i> Acantonamentos e trilhas leves</li>
-                                <li><i class="fas fa-check-circle"></i> Boas ações e cooperação no dia a dia</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div class="branch-copy"><span class="pill">7 a 10 anos</span><h2>Lobinhos</h2><p>Na alcateia, as crianças desenvolvem responsabilidade, amizade e autonomia com o lema “Melhor Possível”.</p><ul><li><i class="fas fa-check-circle"></i>Jogos, canções e aprendizagem pela ação</li><li><i class="fas fa-check-circle"></i>Acantonamentos e trilhas leves</li><li><i class="fas fa-check-circle"></i>Boas ações e cooperação</li></ul></div>
                 </article>
-
-                <article class="branch-card glass">
-                    <div class="branch-media-wrap">
-                        <div class="branch-media">
-                            <img class="branch-photo-main" src="images/hero2.webp" alt="Escoteiros em vivência de campo">
-                            <div class="branch-symbol">
-                                <img src="images/logo_escoteiros.jpg" alt="Símbolo do ramo Escoteiros">
-                            </div>
-                        </div>
-                        <div class="branch-thumbs">
-                            <img class="branch-thumb" src="images/mult_verde/photo_4909301671674973015_y.jpg" alt="Escoteiros em atividade de serviço">
-                            <img class="branch-thumb" src="images/mult_verde/DSC08677.JPG" alt="Escoteiros em atividade de equipe">
-                        </div>
+                <article class="branch-row">
+                    <div class="branch-media">
+                        <div class="branch-main"><img src="images/hero2.webp" alt="Escoteiros em acampamento" class="cover-image"></div>
+                        <div class="branch-badge"><img src="images/logo_escoteiros.jpg" alt="Símbolo dos Escoteiros" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/mult_verde/DSC08726.JPG" alt="Escoteiros em campo" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/mult_verde/DSC08692.JPG" alt="Escoteiros em ação" class="cover-image"></div>
                     </div>
-                    <div class="branch-content">
-                        <div class="branch-header">
-                            <h3>Escoteiros</h3>
-                            <span class="branch-age">10 a 15 anos</span>
-                        </div>
-                        <div class="branch-copy">
-                            <p>No sistema de patrulhas, o jovem assume responsabilidades reais e cresce em técnica e liderança.</p>
-                            <p>É o ramo em que teoria e prática andam juntas, com desafios progressivos e espírito de equipe.</p>
-                            <ul class="branch-bullets">
-                                <li><i class="fas fa-check-circle"></i> Acampamentos, pioneirias e desafios de campo</li>
-                                <li><i class="fas fa-check-circle"></i> Técnicas mateiras e orientação</li>
-                                <li><i class="fas fa-check-circle"></i> Liderança prática com autonomia crescente</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div class="branch-copy"><span class="pill">10 a 15 anos</span><h2>Escoteiros</h2><p>No sistema de patrulhas, o jovem assume responsabilidades reais e cresce em técnica, serviço e liderança.</p><ul><li><i class="fas fa-check-circle"></i>Acampamentos, pioneirias e desafios de campo</li><li><i class="fas fa-check-circle"></i>Técnicas mateiras e orientação</li><li><i class="fas fa-check-circle"></i>Liderança prática com autonomia crescente</li></ul></div>
                 </article>
-
-                <article class="branch-card glass">
-                    <div class="branch-media-wrap">
-                        <div class="branch-media">
-                            <img class="branch-photo-main" src="images/mult_verde/DSC08726.JPG" alt="Seniores em atividade de campo">
-                            <div class="branch-symbol">
-                                <img src="images/logo_senior.jpg" alt="Símbolo do ramo Sênior">
-                            </div>
-                        </div>
-                        <div class="branch-thumbs">
-                            <img class="branch-thumb" src="images/mult_verde/DSC08692.JPG" alt="Equipe senior em desafio técnico">
-                            <img class="branch-thumb" src="images/mult_verde/DSC08677.JPG" alt="Seniores em dinâmica de liderança">
-                        </div>
+                <article class="branch-row reverse">
+                    <div class="branch-media">
+                        <div class="branch-main"><img src="images/photo_4909301671674973021_x.jpg" alt="Seniores em atividade" class="cover-image"></div>
+                        <div class="branch-badge"><img src="images/logo_senior.jpg" alt="Símbolo dos Seniores" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/higiene/photo_4909301671674972982_y.jpg" alt="Seniores em projeto" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/higiene/photo_4909301671674972986_y.jpg" alt="Seniores em ação" class="cover-image"></div>
                     </div>
-                    <div class="branch-content">
-                        <div class="branch-header">
-                            <h3>Seniores</h3>
-                            <span class="branch-age">15 a 18 anos</span>
-                        </div>
-                        <div class="branch-copy">
-                            <p>Fase de superação com desafios mais intensos, protagonismo juvenil e preparação para a vida adulta.</p>
-                            <p>Os jovens planejam e executam projetos mais complexos, desenvolvendo maturidade e responsabilidade.</p>
-                            <ul class="branch-bullets">
-                                <li><i class="fas fa-check-circle"></i> Expedições e técnicas avançadas</li>
-                                <li><i class="fas fa-check-circle"></i> Projetos de impacto social</li>
-                                <li><i class="fas fa-check-circle"></i> Maturidade, disciplina e visão crítica</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div class="branch-copy"><span class="pill">15 a 18 anos</span><h2>Seniores</h2><p>Fase de superação com desafios mais intensos, protagonismo juvenil e preparação para a vida adulta.</p><ul><li><i class="fas fa-check-circle"></i>Expedições e técnicas avançadas</li><li><i class="fas fa-check-circle"></i>Projetos de impacto social</li><li><i class="fas fa-check-circle"></i>Maturidade, disciplina e visão crítica</li></ul></div>
                 </article>
-
-                <article class="branch-card glass">
-                    <div class="branch-media-wrap">
-                        <div class="branch-media">
-                            <img class="branch-photo-main" src="images/doa_toys/photo_4909301671674973014_y.jpg" alt="Pioneiros em ação social">
-                            <div class="branch-symbol">
-                                <img src="images/logo_pioneiros.jpg" alt="Símbolo do ramo Pioneiros">
-                            </div>
-                        </div>
-                        <div class="branch-thumbs">
-                            <img class="branch-thumb" src="images/higiene/photo_4909301671674972985_y.jpg" alt="Pioneiros em atividade comunitária">
-                            <img class="branch-thumb" src="images/doa_toys/photo_4909301671674973010_y.jpg" alt="Pioneiros em campanha solidária">
-                        </div>
+                <article class="branch-row">
+                    <div class="branch-media">
+                        <div class="branch-main"><img src="images/doa_toys/photo_4909301671674973013_y.jpg" alt="Pioneiros em ação social" class="cover-image"></div>
+                        <div class="branch-badge"><img src="images/logo_pioneiros.jpg" alt="Símbolo dos Pioneiros" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/doa_toys/photo_4909301671674973012_y.jpg" alt="Pioneiros em organização de projeto" class="cover-image"></div>
+                        <div class="branch-thumb"><img src="images/doa_toys/photo_4909301671674973011_y.jpg" alt="Pioneiros em atividade" class="cover-image"></div>
                     </div>
-                    <div class="branch-content">
-                        <div class="branch-header">
-                            <h3>Pioneiros</h3>
-                            <span class="branch-age">18 a 22 anos</span>
-                        </div>
-                        <div class="branch-copy">
-                            <p>Ramo de jovens adultos com foco em projeto de vida, serviço ao próximo e liderança com propósito.</p>
-                            <p>Além de apoiar o grupo, os pioneiros atuam em ações concretas na comunidade e na formação de novas lideranças.</p>
-                            <ul class="branch-bullets">
-                                <li><i class="fas fa-check-circle"></i> Mutirões e ações sociais contínuas</li>
-                                <li><i class="fas fa-check-circle"></i> Gestão de projetos e equipes</li>
-                                <li><i class="fas fa-check-circle"></i> Liderança servidora na comunidade</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div class="branch-copy"><span class="pill">18 a 22 anos</span><h2>Pioneiros</h2><p>Ramo de jovens adultos com foco em projeto de vida, serviço ao próximo e liderança com propósito.</p><ul><li><i class="fas fa-check-circle"></i>Mutirões e ações sociais contínuas</li><li><i class="fas fa-check-circle"></i>Gestão de projetos e equipes</li><li><i class="fas fa-check-circle"></i>Liderança servidora na comunidade</li></ul></div>
                 </article>
             </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell footer-grid">
+            <div><div class="footer-brand"><span class="brand-mark"><i class="fas fa-compass"></i></span><div><strong>GEAR 9º DF</strong><span>Grupo Escoteiro do Ar Salgado Filho</span></div></div><p class="footer-text">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p></div>
+            <div><h4>Navegação</h4><ul class="footer-links"><li><a href="sobre.html">Sobre Nós</a></li><li><a href="atividades.html">Atividades</a></li><li><a href="galeria.html">Galeria</a></li><li><a href="projetos.html">Projetos</a></li></ul></div>
+            <div><h4>Contato</h4><ul class="footer-links footer-info"><li><i class="fas fa-map-marker-alt"></i>SHIS QI 3 - s/n, Brasília - DF</li><li><i class="fas fa-envelope"></i>contato@escoteiro.com</li></ul></div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section footer-brand">
-                    <div class="footer-brand-head">
-                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
-                        <div>
-                            <h3>GEAR 9º DF</h3>
-                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
-                        </div>
-                    </div>
-                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
-                                class="fab fa-instagram"></i></a>
-                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h4>Navegação</h4>
-                    <ul>
-                        <li><a href="sobre.html">Sobre Nós</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Onde Estamos</h4>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
-                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site: <strong>Gustavo</strong> e <strong>Yan</strong>.</p>
-            </div>
-        </div>
+        <div class="shell footer-bottom">© <span class="current-year">2026</span> GEAR 9º DF — Feito com dedicação por <strong>Gustavo</strong> e <strong>Yan</strong>.</div>
     </footer>
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
-
-

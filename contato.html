@@ -1,264 +1,90 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contato - GEAR 9º DF</title>
-    <meta name="description"
-        content="Entre em contato com o Grupo Escoteiro do Ar Salgado Filho 9º DF. Envie sua mensagem ou visite-nos.">
-    <link rel="stylesheet" href="style.css">
+    <title>Contato | GEAR 9º DF</title>
+    <meta name="description" content="Entre em contato com o GEAR 9º DF para dúvidas, visitas ou inscrições.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
-    <style>
-        .contact-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 28px;
-            align-items: start;
-        }
-
-        .contact-column-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            letter-spacing: -0.02em;
-            text-transform: uppercase;
-            font-weight: 800;
-        }
-
-        .contact-info-list {
-            display: grid;
-            gap: 14px;
-        }
-
-        .contact-info-card {
-            padding: 20px 18px;
-            border-radius: 18px;
-            display: grid;
-            grid-template-columns: 38px 1fr;
-            gap: 12px;
-            align-items: start;
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        .contact-info-card i {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-top: 2px;
-        }
-
-        .contact-info-card h3 {
-            font-size: 1rem;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-
-        .contact-info-card p {
-            color: var(--text-secondary);
-            margin: 0;
-            line-height: 1.55;
-        }
-
-        .contact-form {
-            padding: 24px;
-            border-radius: 24px;
-        }
-
-        .contact-form label {
-            font-weight: 600;
-        }
-
-        .map-wrapper {
-            width: 100%;
-            height: 360px;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin-top: 30px;
-        }
-
-        .map-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .contact-submit {
-            width: 100%;
-            margin-top: 6px;
-        }
-
-        @media (min-width: 980px) {
-            .contact-layout {
-                grid-template-columns: 1fr 1fr;
-                gap: 36px;
-            }
-
-            .contact-column-title {
-                font-size: 2.2rem;
-            }
-        }
-    </style>
 </head>
-
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container navbar">
-            <div class="nav-wrapper">
-                <a href="index.html" class="logo">
-                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
-                    <span>GEAR 9º DF</span>
-                </a>
-                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Início</a></li>
-                    <li><a href="sobre.html">Sobre</a></li>
-                    <li><a href="atividades.html">Atividades</a></li>
-                    <li><a href="galeria.html">Galeria</a></li>
-                    <li><a href="ramo.html">Ramos</a></li>
-                    <li><a href="projetos.html">Projetos</a></li>
-                    <li><a href="contato.html" class="active">Contato</a></li>
-                </ul>
+    <header class="site-header">
+        <div class="shell nav-shell">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"><i class="fas fa-compass"></i></span>
+                <span class="brand-text">GEAR <em>9º DF</em></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="index.html">Início</a>
+                <a href="sobre.html">Sobre</a>
+                <a href="atividades.html">Atividades</a>
+                <a href="galeria.html">Galeria</a>
+                <a href="ramo.html">Ramos</a>
+                <a href="projetos.html">Projetos</a>
+                <a href="contato.html" class="nav-cta active">Contato</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero centered page-hero-light">
+            <div class="shell narrow">
+                <div class="eyebrow">Fale com a gente</div>
+                <h1>Fale Conosco</h1>
+                <p>Dúvidas, visitas ou inscrições? Estamos aqui para você.</p>
             </div>
-        </div>
-    </header>
+        </section>
 
-    <!-- Page Header -->
-    <header class="page-header">
-        <div class="container">
-            <h1>Fale Conosco ⚜</h1>
-            <p>Dúvidas, visitas ou inscrições? Estamos aqui para você.</p>
-        </div>
-    </header>
-
-    <!-- Contact Info & Form -->
-    <section class="contact-section">
-        <div class="container">
-            <div class="contact-layout">
-                <div class="contact-info-column">
-                    <h2 class="contact-column-title">Informações de Contato</h2>
-                    <div class="contact-info-list">
-                        <div class="contact-info-card glass">
-                            <i class="fas fa-envelope"></i>
-                            <div>
-                                <h3>E-mail</h3>
-                                <p>contato@escoteiro.com</p>
-                            </div>
-                        </div>
-                        <div class="contact-info-card glass">
-                            <i class="fas fa-phone"></i>
-                            <div>
-                                <h3>Telefone</h3>
-                                <p>(61) 99999-9999<br>(61) 3333-3333</p>
-                            </div>
-                        </div>
-                        <div class="contact-info-card glass">
-                            <i class="fas fa-clock"></i>
-                            <div>
-                                <h3>Horário de Atividades</h3>
-                                <p>Sábados: 14h30 às 18h</p>
-                            </div>
-                        </div>
-                        <div class="contact-info-card glass">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <div>
-                                <h3>Localização</h3>
-                                <p>SHIS QI 3 - s/n sn, DF, 71605-500</p>
-                            </div>
-                        </div>
+        <section class="section section-soft">
+            <div class="shell contact-grid">
+                <div>
+                    <h2 class="section-title left small">Informações de contato</h2>
+                    <div class="contact-card-list">
+                        <article class="contact-card"><span class="info-icon"><i class="fas fa-envelope"></i></span><div><h3>E-mail</h3><p>contato@escoteiro.com</p></div></article>
+                        <article class="contact-card"><span class="info-icon"><i class="fas fa-phone"></i></span><div><h3>Telefone</h3><p>(61) 99999-9999<br>(61) 3333-3333</p></div></article>
+                        <article class="contact-card"><span class="info-icon"><i class="fas fa-clock"></i></span><div><h3>Horário de atividades</h3><p>Sábados: 14h30 às 18h</p></div></article>
+                        <article class="contact-card"><span class="info-icon"><i class="fas fa-map-marker-alt"></i></span><div><h3>Localização</h3><p>SHIS QI 3 - s/n, Brasília - DF, 71605-500</p></div></article>
                     </div>
                 </div>
-
-                <div class="contact-form-column">
-                    <h2 class="contact-column-title">Envie uma Mensagem</h2>
-                    <div class="contact-form glass">
-                        <form id="contactForm" novalidate>
-                            <div class="form-group">
-                                <label for="name">Nome Completo *</label>
-                                <input type="text" id="name" placeholder="Seu nome" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">E-mail *</label>
-                                <input type="email" id="email" placeholder="seu@email.com" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="subject">Assunto *</label>
-                                <input type="text" id="subject" placeholder="Dúvida sobre atividades">
-                            </div>
-                            <div class="form-group">
-                                <label for="message">Mensagem *</label>
-                                <textarea id="message" rows="6" placeholder="Escreva sua mensagem aqui..." required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary contact-submit">Enviar Mensagem</button>
-                        </form>
+                <div>
+                    <h2 class="section-title left small">Envie uma mensagem</h2>
+                    <form id="contactForm" class="contact-form-panel" novalidate>
+                        <div class="form-field"><label for="name">Nome completo *</label><input id="name" type="text" placeholder="Seu nome" required></div>
+                        <div class="form-field"><label for="email">E-mail *</label><input id="email" type="email" placeholder="seu@email.com" required></div>
+                        <div class="form-field"><label for="subject">Assunto</label><input id="subject" type="text" placeholder="Dúvida sobre atividades"></div>
+                        <div class="form-field"><label for="message">Mensagem *</label><textarea id="message" rows="6" placeholder="Escreva sua mensagem aqui..." required></textarea></div>
+                        <button type="submit" class="btn btn-primary form-submit">Enviar mensagem <i class="fas fa-paper-plane"></i></button>
                         <p id="contactFeedback" class="form-feedback" role="status" aria-live="polite"></p>
-                    </div>
+                    </form>
                 </div>
             </div>
+            <div class="shell">
+                <div class="map-card">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1174.457906812632!2d-47.91537940693096!3d-15.860278512150789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a231a2e2e4b73%3A0x5a5d391493d52c5!2sGrupo%20Escoteiro%20do%20Ar%20Salgado%20Filho%20-%209%C2%BA%20DF!5e0!3m2!1spt-BR!2sbr!4v1762867049849!5m2!1spt-BR!2sbr" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </section>
+    </main>
 
-            <div class="map-wrapper">
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1174.457906812632!2d-47.91537940693096!3d-15.860278512150789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a231a2e2e4b73%3A0x5a5d391493d52c5!2sGrupo%20Escoteiro%20do%20Ar%20Salgado%20Filho%20-%209%C2%BA%20DF!5e0!3m2!1spt-BR!2sbr!4v1762867049849!5m2!1spt-BR!2sbr"
-                    allowfullscreen="" loading="lazy"></iframe>
-            </div>
+    <footer class="site-footer">
+        <div class="shell footer-grid">
+            <div><div class="footer-brand"><span class="brand-mark"><i class="fas fa-compass"></i></span><div><strong>GEAR 9º DF</strong><span>Grupo Escoteiro do Ar Salgado Filho</span></div></div><p class="footer-text">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p></div>
+            <div><h4>Navegação</h4><ul class="footer-links"><li><a href="sobre.html">Sobre Nós</a></li><li><a href="atividades.html">Atividades</a></li><li><a href="galeria.html">Galeria</a></li><li><a href="ramo.html">Ramos</a></li></ul></div>
+            <div><h4>Contato</h4><ul class="footer-links footer-info"><li><i class="fas fa-map-marker-alt"></i>SHIS QI 3 - s/n, Brasília - DF</li><li><i class="fas fa-envelope"></i>contato@escoteiro.com</li></ul></div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section footer-brand">
-                    <div class="footer-brand-head">
-                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
-                        <div>
-                            <h3>GEAR 9º DF</h3>
-                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
-                        </div>
-                    </div>
-                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
-                                class="fab fa-instagram"></i></a>
-                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h4>Navegação</h4>
-                    <ul>
-                        <li><a href="sobre.html">Sobre Nós</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Onde Estamos</h4>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
-                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site: <strong>Gustavo</strong> e <strong>Yan</strong>.</p>
-            </div>
-        </div>
+        <div class="shell footer-bottom">© <span class="current-year">2026</span> GEAR 9º DF — Feito com dedicação por <strong>Gustavo</strong> e <strong>Yan</strong>.</div>
     </footer>
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
-
-

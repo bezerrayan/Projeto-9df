@@ -1,241 +1,234 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grupo Escoteiro do Ar Salgado Filho 9º DF</title>
-    <meta name="description"
-        content="Bem-vindo ao Grupo Escoteiro do Ar Salgado Filho 9º DF. Sempre Alerta para Servir!">
-    <link rel="stylesheet" href="style.css">
+    <title>GEAR 9º DF | Grupo Escoteiro do Ar Salgado Filho</title>
+    <meta name="description" content="No GEAR 9º DF, jovens vivem aventuras reais, constroem amizades e desenvolvem caráter para a vida toda.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
 </head>
-
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container navbar">
-            <div class="nav-wrapper">
-                <a href="index.html" class="logo">
-                    <img src="images/logo_9df.png" alt="Logo" class="logo-img" />
-                    <span>GEAR 9º DF</span>
-                </a>
-                <button class="menu-toggle" aria-label="Menu" aria-expanded="false">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <ul class="nav-menu">
-                    <li><a href="index.html" class="active">Início</a></li>
-                    <li><a href="sobre.html">Sobre</a></li>
+    <header class="site-header header-dark">
+        <div class="shell nav-shell">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"><i class="fas fa-compass"></i></span>
+                <span class="brand-text">GEAR <em>9º DF</em></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="index.html" class="active">Início</a>
+                <a href="sobre.html">Sobre</a>
+                <a href="atividades.html">Atividades</a>
+                <a href="galeria.html">Galeria</a>
+                <a href="ramo.html">Ramos</a>
+                <a href="projetos.html">Projetos</a>
+                <a href="contato.html" class="nav-cta">Contato</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-home">
+            <div class="hero-pattern"></div>
+            <div class="hero-glow"></div>
+            <div class="shell hero-layout">
+                <div class="hero-copy">
+                    <div class="eyebrow eyebrow-light">Fundado em 1971 • Brasília, DF</div>
+                    <h1>Aprender <em>fazendo.</em><br>Crescer <em>vivendo.</em></h1>
+                    <p>No GEAR 9º DF, jovens vivem aventuras reais, constroem amizades e forjam caráter para a vida toda.</p>
+                    <div class="hero-motto">Sempre Alerta para Servir</div>
+                    <div class="button-row">
+                        <a href="sobre.html" class="btn btn-primary">Conheça o grupo</a>
+                        <a href="atividades.html" class="btn btn-ghost">O que fazemos</a>
+                    </div>
+                </div>
+                <div class="hero-media">
+                    <div class="hero-photo-frame">
+                        <img src="images/landing.png" alt="Escoteiros do GEAR 9º DF reunidos em atividade" class="cover-image">
+                    </div>
+                    <div class="floating-card floating-light">
+                        <strong>+50</strong>
+                        <span>Anos de história</span>
+                    </div>
+                    <div class="floating-card floating-blue">
+                        <i class="fas fa-trophy"></i>
+                        <span>Bicampeões da Olimpíada do Ar</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-stats shell">
+                <div><strong>5</strong><span>Ramos ativos</span></div>
+                <div><strong>100+</strong><span>Jovens formados</span></div>
+                <div><strong>1971</strong><span>Fundação</span></div>
+                <div><strong>∞</strong><span>Aventuras</span></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="shell two-col">
+                <div>
+                    <div class="section-label"><i class="fas fa-heart"></i> Nossa missão</div>
+                    <h2 class="section-title left">Mais que um grupo, <em>uma família.</em></h2>
+                    <p class="section-text">O Escotismo é um movimento educacional que, por meio de atividades variadas e desafiadoras, incentiva jovens a assumirem seu próprio desenvolvimento.</p>
+                    <p class="section-text">Com base na Promessa e na Lei Escoteira, cada jovem cresce com caráter, responsabilidade, liderança e espírito de serviço.</p>
+                    <div class="chip-row">
+                        <span class="chip"><i class="fas fa-check-circle"></i>Liderança</span>
+                        <span class="chip"><i class="fas fa-check-circle"></i>Serviço</span>
+                        <span class="chip"><i class="fas fa-check-circle"></i>Aventura</span>
+                        <span class="chip"><i class="fas fa-check-circle"></i>Caráter</span>
+                    </div>
+                    <a href="sobre.html" class="btn btn-outline">Nossa história <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="media-card">
+                    <img src="cla.jpg" alt="Membros do grupo em atividade" class="cover-image">
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-soft">
+            <div class="shell">
+                <div class="section-head">
+                    <div class="eyebrow">Jornada escoteira</div>
+                    <h2>Cada idade, <em>uma grande aventura</em></h2>
+                    <p>Do primeiro passo como Filhote aos projetos do Pioneiro, cada ramo tem uma identidade própria.</p>
+                </div>
+                <div class="branch-strip">
+                    <a href="ramo.html" class="mini-card"><span class="mini-icon"><i class="fas fa-seedling"></i></span><small>5–7 anos</small><strong>Filhotes</strong></a>
+                    <a href="ramo.html" class="mini-card"><span class="mini-icon"><i class="fas fa-paw"></i></span><small>7–10 anos</small><strong>Lobinhos</strong></a>
+                    <a href="ramo.html" class="mini-card"><span class="mini-icon"><i class="fas fa-campground"></i></span><small>10–15 anos</small><strong>Escoteiros</strong></a>
+                    <a href="ramo.html" class="mini-card"><span class="mini-icon"><i class="fas fa-mountain"></i></span><small>15–18 anos</small><strong>Seniores</strong></a>
+                    <a href="ramo.html" class="mini-card"><span class="mini-icon"><i class="fas fa-hands-helping"></i></span><small>18–22 anos</small><strong>Pioneiros</strong></a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="shell">
+                <div class="section-head">
+                    <div class="eyebrow">O que fazemos</div>
+                    <h2>Aventura com <em>propósito</em></h2>
+                </div>
+                <div class="bento-grid">
+                    <article class="bento-card bento-tall">
+                        <img src="images/hero2.webp" alt="Acampamento escoteiro ao ar livre" class="cover-image">
+                        <div class="bento-copy">
+                            <strong><i class="fas fa-campground"></i>Acampamentos</strong>
+                            <p>Vivência intensa na natureza com autonomia, técnica e trabalho em equipe.</p>
+                        </div>
+                    </article>
+                    <article class="bento-card">
+                        <img src="images/hero1.webp" alt="Fogueira escoteira" class="cover-image">
+                        <div class="bento-copy"><strong><i class="fas fa-fire"></i>Fogueiras</strong></div>
+                    </article>
+                    <article class="bento-card">
+                        <img src="cla.jpg" alt="Trilha em atividade escoteira" class="cover-image">
+                        <div class="bento-copy"><strong><i class="fas fa-hiking"></i>Trilhas</strong></div>
+                    </article>
+                    <article class="bento-card">
+                        <img src="images/photo_4909301671674973021_x.jpg" alt="Atividade de liderança" class="cover-image">
+                        <div class="bento-copy"><strong><i class="fas fa-tools"></i>Especialidades</strong></div>
+                    </article>
+                    <article class="bento-extra">
+                        <i class="fas fa-plus-circle"></i>
+                        <p>Pioneirias, ações sociais, liderança e muito mais.</p>
+                        <a href="atividades.html" class="btn btn-white btn-small">Ver tudo</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-soft">
+            <div class="shell">
+                <div class="section-head compact">
+                    <div class="eyebrow">Agenda</div>
+                    <h2>Calendário do <em>grupo</em></h2>
+                    <p>Atividades todo sábado, das 14h30 às 18h, com eventos especiais ao longo do ano.</p>
+                </div>
+                <div class="calendar-layout" data-group-calendar>
+                    <article class="panel">
+                        <div class="calendar-header">
+                            <button type="button" class="calendar-nav" data-cal-prev aria-label="Mês anterior"><i class="fas fa-chevron-left"></i></button>
+                            <h3 data-cal-month></h3>
+                            <button type="button" class="calendar-nav" data-cal-next aria-label="Próximo mês"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+                        </div>
+                        <div class="calendar-grid" data-cal-grid></div>
+                        <div class="calendar-legend">
+                            <span><i class="dot dot-saturday"></i>Atividade regular</span>
+                            <span><i class="dot dot-group"></i>Evento do grupo</span>
+                            <span><i class="dot dot-regional"></i>Evento regional</span>
+                        </div>
+                    </article>
+                    <article class="panel">
+                        <h3 class="panel-title">Eventos do mês</h3>
+                        <p class="panel-note">A lista abaixo destaca as datas especiais além da atividade regular de sábado.</p>
+                        <ul class="event-list" data-cal-events></ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-band">
+            <div class="shell cta-layout">
+                <div>
+                    <h2>Pronto para a <em>aventura?</em></h2>
+                    <p>Venha conhecer o GEAR 9º DF. Aqui sempre há espaço para mais um escoteiro.</p>
+                </div>
+                <div class="button-row">
+                    <a href="contato.html" class="btn btn-white">Quero me juntar ao grupo</a>
+                    <a href="galeria.html" class="btn btn-ghost">Ver galeria</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell footer-grid">
+            <div>
+                <div class="footer-brand">
+                    <span class="brand-mark"><i class="fas fa-compass"></i></span>
+                    <div><strong>GEAR 9º DF</strong><span>Grupo Escoteiro do Ar Salgado Filho</span></div>
+                </div>
+                <p class="footer-text">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.</p>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="https://www.instagram.com/gear9df/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4>Navegação</h4>
+                <ul class="footer-links">
+                    <li><a href="sobre.html">Sobre Nós</a></li>
                     <li><a href="atividades.html">Atividades</a></li>
                     <li><a href="galeria.html">Galeria</a></li>
                     <li><a href="ramo.html">Ramos</a></li>
                     <li><a href="projetos.html">Projetos</a></li>
-                    <li><a href="contato.html">Contato</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Onde Estamos</h4>
+                <ul class="footer-links footer-info">
+                    <li><i class="fas fa-map-marker-alt"></i>SHIS QI 3 - s/n, Brasília - DF</li>
+                    <li><i class="fas fa-clock"></i>Sábados: 14h30–18h</li>
+                    <li><i class="fas fa-envelope"></i>contato@escoteiro.com</li>
                 </ul>
             </div>
         </div>
-    </header>
-    <!-- Hero Section -->
-    <section class="hero" data-hero-images="images/landing.png">
-
-        <div class="hero-slider">
-            <img src="images/landing.png" alt="Escoteiros em atividade ao ar livre" class="hero-slide active">
-        </div>
-
-        <div class="hero-content">
-            <h1 class="hero-title">
-                Aprender fazendo. <br>
-                Crescer vivendo.
-            </h1>
-
-            <p class="hero-subtitle">
-                No GEAR 9º DF, jovens vivem aventuras, constroem amizades
-                e desenvolvem valores para a vida toda.
-                <br><strong>Sempre Alerta para Servir.</strong>
-            </p>
-
-            <div class="hero-btns">
-                <a href="sobre.html" class="btn btn-primary">Conheça nosso grupo</a>
-                <a href="atividades.html" class="btn btn-secondary">O que fazemos</a>
-            </div>
-
-        </div>
-    </section>
-
-
-    <!-- About Preview -->
-    <section class="about-preview">
-        <div class="container content-wrapper">
-            <div class="about-content">
-                <div class="about-text">
-                    <h2>Mais que um Grupo, uma Família</h2>
-                    <p>O Escotismo é um movimento educacional que, por meio de atividades variadas e atraentes,
-                        incentiva os jovens a assumirem seu próprio desenvolvimento.</p>
-                    <p>Através de um sistema de valores baseado na Promessa e na Lei Escoteira, os jovens são
-                        incentivados a desenvolverem seu caráter.</p>
-
-                </div>
-                <div class="about-image">
-                    <img src="cla.jpg" alt="Scouts in action" class="responsive-image">
-                </div>
-
-            </div><br>
-            <a href="sobre.html" class="btn btn-primary mt-4">Conheça Nossa História</a>
-        </div>
-    </section>
-
-    <section class="about-preview">
-        <div class="container content-wrapper">
-            <div class="about-content">
-                <div class="about-text">
-                    <h2>Cada idade, uma grande aventura</h2>
-                    <p>No Escotismo, cada jovem vive experiências pensadas para sua fase da vida.
-                        Dos primeiros passos como Lobinho até os grandes desafios do Ramo Sênior,
-                        todos crescem aprendendo, fazendo e convivendo.</p>
-
-                    <p>Descubra em qual ramo você ou seu filho pode viver essa jornada.</p>
-
-                </div>
-                <div class="about-image">
-                    <img src="images/hero1.webp" alt="Scouts in action" class="responsive-image">
-                </div>
-            </div><br>
-            <a href="ramo.html" class="btn btn-primary mt-4">Conhecer os Ramos</a>
-        </div>
-    </section>
-
-    <!-- Activities Preview -->
-    <div class="container">
-        <h2 class="section-title">O que fazemos</h2>
-        <div class="activities-grid">
-            <div class="activity-card glass">
-                <br>
-                <div class="feature-image">
-                    <img src="images/mult_verde/photo_4909301671674973015_y.jpg"
-                        alt="Especialidade de Primeiros Socorros" class="responsive-image">
-                </div><br>
-
-                <h3>Acampamentos</h3>
-            </div>
-            <div class="activity-card glass">
-                <div class="feature-image">
-                    <img src="images/hero1.webp" alt="Especialidade de Primeiros Socorros" class="responsive-image">
-                </div><br>
-                <h3>Fogueiras</h3>
-            </div>
-            <div class="activity-card glass">
-                <div class="feature-image">
-                    <img src="cla.jpg" alt="Especialidade de Primeiros Socorros" class="responsive-image">
-                </div><br>
-                <h3>Trilhas</h3>
-            </div>
-
-        </div>
-        <div class="text-center mt-4 d-flex justify-content-center">
-            <a href="atividades.html" class="btn btn-secondary">Ver todas as atividades</a>
-        </div>
-        <br><br>
-    </div>
-
-    <section class="calendar-section">
-        <div class="container">
-            <h2 class="section-title">Calendário do Grupo</h2>
-            <p class="section-subtitle calendar-subtitle">
-                Atividades regulares todos os sábados (14h30 às 18h) e eventos especiais do grupo e regionais.
-            </p>
-            <div class="calendar-layout" data-group-calendar>
-                <article class="calendar-panel glass">
-                    <div class="calendar-header">
-                        <button class="calendar-nav" type="button" data-cal-prev aria-label="Mês anterior">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <h3 data-cal-month></h3>
-                        <button class="calendar-nav" type="button" data-cal-next aria-label="Próximo mês">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                    <div class="calendar-weekdays">
-                        <span>Dom</span>
-                        <span>Seg</span>
-                        <span>Ter</span>
-                        <span>Qua</span>
-                        <span>Qui</span>
-                        <span>Sex</span>
-                        <span>Sáb</span>
-                    </div>
-                    <div class="calendar-grid" data-cal-grid></div>
-                    <div class="calendar-legend">
-                        <span><i class="dot dot-saturday"></i> Atividade regular (sábado)</span>
-                        <span><i class="dot dot-group"></i> Evento do grupo</span>
-                        <span><i class="dot dot-regional"></i> Evento regional</span>
-                    </div>
-                </article>
-
-                <article class="calendar-panel glass">
-                    <h3 class="calendar-events-title">Eventos do mês</h3>
-                    <p class="calendar-note">
-                        Todo sábado há atividade regular do GEAR 9º DF. A lista abaixo mostra eventos especiais.
-                    </p>
-                    <ul class="calendar-events-list" data-cal-events></ul>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section footer-brand">
-                    <div class="footer-brand-head">
-                        <img src="images/logo_9df.png" alt="Logo GEAR 9º DF" class="footer-brand-logo" />
-                        <div>
-                            <h3>GEAR 9º DF</h3>
-                            <p class="footer-brand-tag">Grupo Escoteiro do Ar Salgado Filho</p>
-                        </div>
-                    </div>
-                    <p class="footer-slogan">Sempre Alerta para Servir. Aventura, liderança e serviço em cada jornada.
-                    </p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F"
-                            target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i
-                                class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/gear9df/" aria-label="Instagram"><i
-                                class="fab fa-instagram"></i></a>
-                        <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F"
-                            target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i
-                                class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h4>Navegação</h4>
-                    <ul>
-                        <li><a href="sobre.html">Sobre Nós</a></li>
-                        <li><a href="atividades.html">Atividades</a></li>
-                        <li><a href="galeria.html">Galeria</a></li>
-                        <li><a href="ramo.html">Ramos</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Onde Estamos</h4>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> SHIS QI 3 - s/n sn, DF, 71605-500</li>
-                        <li><i class="fas fa-envelope"></i> contato@escoteiro.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <span class="current-year">2024</span> GEAR 9º DF. Responsáveis pelo site:
-                    <strong>Gustavo</strong> e <strong>Yan</strong>.
-                </p>
-            </div>
-        </div>
+        <div class="shell footer-bottom">© <span class="current-year">2026</span> GEAR 9º DF — Feito com dedicação por <strong>Gustavo</strong> e <strong>Yan</strong>.</div>
     </footer>
 
     <script src="script.js"></script>
 </body>
-
 </html>
