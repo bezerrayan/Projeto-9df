@@ -71,69 +71,158 @@ function setupCalendar() {
 
     const events = [
         { date: '2026-01-01', title: 'Dia Mundial da Paz', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-01-08', title: 'Falecimento de Baden-Powell (1941 - Nyeri, Qu\u00EAnia)', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-01-25', title: 'Encontro Nacional de N\u00FAcleos Regionais (Remoto)', type: 'nacional', label: 'Nacional' },
+        { date: '2026-01-08', title: 'Falecimento de Baden-Powell (1941 - Nyeri, Quênia)', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-01-24', endDate: '2026-01-25', title: 'Acampamento de Férias Escoteiro (Pioneirias)', type: 'grupo', label: 'Grupo' },
+        { date: '2026-01-25', title: 'Encontro Nacional de Núcleos Regionais (Remoto)', type: 'regional', label: 'Regional' },
+        { date: '2026-01-12', endDate: '2026-02-12', title: 'Curso Avançado Escotista e Dirigente (EAD)', type: 'grupo', label: 'Curso' },
+        { date: '2026-02-07', title: 'INDABA de Abertura', type: 'grupo', label: 'Grupo' },
+        { date: '2026-02-14', endDate: '2026-02-17', title: 'Curso Avançado Escotista e Dirigente (presencial - Carnaval)', type: 'grupo', label: 'Curso' },
         { date: '2026-02-16', endDate: '2026-02-17', title: 'Carnaval', type: 'feriado', label: 'Feriado' },
-        { date: '2026-02-21', endDate: '2026-02-22', title: 'Reuni\u00E3o do Conselho de Administra\u00E7\u00E3o Nacional (Remoto)', type: 'nacional', label: 'Nacional' },
-        { date: '2026-02-21', endDate: '2026-02-22', title: 'Reuni\u00E3o da Comiss\u00E3o de \u00C9tica e Disciplina Nacional (A definir)', type: 'nacional', label: 'Nacional' },
-        { date: '2026-02-22', title: 'Dia do Fundador (Nascimento de Baden-Powell - 1857)', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-02-28', title: 'Encerramento do exerc\u00EDcio de 2025 e entrega dos balan\u00E7os', type: 'nacional', label: 'Administrativo' },
-        { date: '2026-03-13', title: 'Emiss\u00E3o do Parecer da Auditoria Externa', type: 'nacional', label: 'Administrativo' },
-        { date: '2026-03-16', title: 'Reuni\u00E3o da Comiss\u00E3o Fiscal Nacional', type: 'nacional', label: 'Nacional' },
-        { date: '2026-03-17', title: 'Divulga\u00E7\u00E3o das Demonstra\u00E7\u00F5es Cont\u00E1beis 2025', type: 'nacional', label: 'Administrativo' },
-        { date: '2026-04-03', title: 'Sexta-Feira da Paix\u00E3o', type: 'feriado', label: 'Feriado' },
-        { date: '2026-04-11', endDate: '2026-04-26', title: 'Semana Escoteira (inclui CQWS - Radioescotismo)', type: 'nacional', label: 'Nacional' },
-        { date: '2026-04-18', endDate: '2026-06-14', title: 'Mutir\u00E3o Nacional de Doa\u00E7\u00E3o de Sangue e REDOME', type: 'nacional', label: 'Mobiliza\u00E7\u00E3o' },
-        { date: '2026-04-18', title: '12\u00BA Grande Jogo A\u00E9reo', type: 'nacional', label: 'Evento' },
-        { date: '2026-04-18', endDate: '2026-04-21', title: '31\u00BA Congresso Escoteiro Nacional', type: 'nacional', label: 'Nacional' },
-        { date: '2026-04-18', endDate: '2026-04-21', title: '32\u00AA Assembleia Escoteira Nacional', type: 'nacional', label: 'Nacional' },
-        { date: '2026-04-18', endDate: '2026-04-21', title: 'Reuni\u00F5es dos Conselhos de Administra\u00E7\u00E3o e Consultivo', type: 'nacional', label: 'Nacional' },
-        { date: '2026-04-18', endDate: '2026-04-21', title: '31\u00BA F\u00F3rum de Jovens L\u00EDderes', type: 'nacional', label: 'Nacional' },
+        { date: '2026-02-21', endDate: '2026-02-22', title: 'Reunião do Conselho de Administração Nacional (Remoto)', type: 'regional', label: 'Regional' },
+        { date: '2026-02-21', endDate: '2026-02-22', title: 'Reunião da Comissão de Ética e Disciplina Nacional (A definir)', type: 'regional', label: 'Regional' },
+        { date: '2026-02-21', title: 'Retorno das atividades GEARSF', type: 'grupo', label: 'Grupo' },
+        { date: '2026-02-21', title: '1ª chamada de novos escoteiros e reunião com responsáveis', type: 'grupo', label: 'Grupo' },
+        { date: '2026-02-22', title: 'Dia do Fundador (Nascimento de Baden-Powell)', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-02-28', title: 'Encerramento do exercício de 2025 e entrega dos balanços', type: 'regional', label: 'Regional' },
+        { date: '2026-02-28', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-03-07', title: 'Abertura Regional (UEBDF)', type: 'regional', label: 'Regional' },
+        { date: '2026-03-09', endDate: '2026-03-27', title: 'Curso Preliminar (EAD)', type: 'grupo', label: 'Curso' },
+        { date: '2026-03-13', title: 'Emissão do Parecer da Auditoria Externa', type: 'regional', label: 'Regional' },
+        { date: '2026-03-14', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-03-14', title: '4º Congresso Regional Escoteiro', type: 'grupo', label: 'Regional' },
+        { date: '2026-03-14', title: 'Fórum de Jovens Líderes', type: 'grupo', label: 'Regional' },
+        { date: '2026-03-14', title: 'Fóruns dos Ramos', type: 'grupo', label: 'Regional' },
+        { date: '2026-03-15', title: 'Assembleia Regional', type: 'grupo', label: 'Regional' },
+        { date: '2026-03-16', title: 'Reunião da Comissão Fiscal Nacional', type: 'regional', label: 'Regional' },
+        { date: '2026-03-17', title: 'Divulgação das Demonstrações Contábeis 2025', type: 'regional', label: 'Regional' },
+        { date: '2026-03-21', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-03-21', title: 'Assembleia de Grupo', type: 'grupo', label: 'Grupo' },
+        { date: '2026-03-21', title: '2ª chamada de novos membros', type: 'grupo', label: 'Grupo' },
+        { date: '2026-03-28', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-03-28', title: 'Curso Preliminar (presencial)', type: 'grupo', label: 'Curso' },
+        { date: '2026-04-03', title: 'Sexta-feira Santa', type: 'feriado', label: 'Feriado' },
+        { date: '2026-04-04', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-04-11', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-04-11', title: '3ª chamada de novos membros', type: 'grupo', label: 'Grupo' },
+        { date: '2026-04-11', endDate: '2026-04-26', title: 'Semana Escoteira', type: 'grupo', label: 'Grupo' },
+        { date: '2026-04-18', endDate: '2026-06-14', title: 'Mutirão Nacional de Doação de Sangue e REDOME', type: 'regional', label: 'Regional' },
+        { date: '2026-04-18', title: '10º Grande Jogo Aéreo (grupo)', type: 'grupo', label: 'Grupo' },
+        { date: '2026-04-18', title: '12º Grande Jogo Aéreo', type: 'regional', label: 'Regional' },
+        { date: '2026-04-18', endDate: '2026-04-21', title: '31º Congresso Escoteiro Nacional', type: 'regional', label: 'Regional' },
+        { date: '2026-04-18', endDate: '2026-04-21', title: '32ª Assembleia Escoteira Nacional', type: 'regional', label: 'Regional' },
+        { date: '2026-04-18', endDate: '2026-04-21', title: 'Reuniões dos Conselhos de Administração e Consultivo', type: 'regional', label: 'Regional' },
+        { date: '2026-04-18', endDate: '2026-04-21', title: '31º Fórum de Jovens Líderes', type: 'regional', label: 'Regional' },
         { date: '2026-04-21', title: 'Tiradentes', type: 'feriado', label: 'Feriado' },
         { date: '2026-04-23', title: 'Dia do Escoteiro', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-04-28', title: 'Dia do Escoteiro do Ar e Dia da Educa\u00E7\u00E3o', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-05-01', title: 'Dia do Trabalhador', type: 'feriado', label: 'Feriado' },
-        { date: '2026-05-01', endDate: '2026-05-31', title: '10\u00BA EducA\u00E7\u00E3o Escoteira', type: 'nacional', label: 'Programa' },
-        { date: '2026-05-09', title: 'Encontro Nacional de Seguran\u00E7a da Informa\u00E7\u00E3o (Evento 1)', type: 'nacional', label: 'Nacional' },
-        { date: '2026-05-09', title: 'Semin\u00E1rio de Di\u00E1logo Inter-religioso', type: 'nacional', label: 'Semin\u00E1rio' },
-        { date: '2026-06-01', endDate: '2026-06-30', title: '35\u00BA Mutir\u00E3o Nacional de A\u00E7\u00E3o Ecol\u00F3gica', type: 'nacional', label: 'Mobiliza\u00E7\u00E3o' },
+        { date: '2026-04-25', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-04-25', endDate: '2026-04-26', title: 'Curso CATAr (Técnicas do Ar - Adulto)', type: 'grupo', label: 'Curso' },
+        { date: '2026-04-28', title: 'Dia do Escoteiro do Ar e Dia da Educação', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-05-01', title: 'Dia do Trabalho', type: 'feriado', label: 'Feriado' },
+        { date: '2026-05-01', endDate: '2026-05-31', title: '10º EducAção Escoteira', type: 'regional', label: 'Regional' },
+        { date: '2026-05-02', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-04', endDate: '2026-05-29', title: 'Curso Intermediário (EAD)', type: 'grupo', label: 'Curso' },
+        { date: '2026-05-09', title: 'Encontro Nacional de Segurança da Informação (Evento 1)', type: 'regional', label: 'Regional' },
+        { date: '2026-05-09', title: 'Seminário de Diálogo Inter-religioso', type: 'regional', label: 'Regional' },
+        { date: '2026-05-09', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-16', endDate: '2026-05-17', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-16', endDate: '2026-05-17', title: 'ERTE + Jogo da Cidade', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-22', endDate: '2026-05-23', title: 'Festa Junina', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-23', endDate: '2026-05-24', title: 'Arepio', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-30', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-05-30', endDate: '2026-05-31', title: 'Curso Intermediário (presencial)', type: 'grupo', label: 'Curso' },
+        { date: '2026-06-01', endDate: '2026-06-30', title: '35º Mutirão Nacional de Ação Ecológica', type: 'regional', label: 'Regional' },
         { date: '2026-06-04', title: 'Corpus Christi', type: 'feriado', label: 'Feriado' },
-        { date: '2026-06-04', endDate: '2026-06-07', title: 'Capacita\u00E7\u00F5es Estrat\u00E9gicas Nacionais', type: 'nacional', label: 'Capacita\u00E7\u00E3o' },
+        { date: '2026-06-04', endDate: '2026-06-07', title: 'Capacitações Estratégicas Nacionais', type: 'regional', label: 'Regional' },
         { date: '2026-06-05', title: 'Dia Mundial do Meio Ambiente', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-06-06', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-06-11', title: 'Dia do Escoteiro do Mar', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-06-14', title: 'Anivers\u00E1rio do Escotismo no Brasil (116 anos - 1910)', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-06-18', title: 'Dia do S\u00EAnior', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-06-20', endDate: '2026-06-21', title: '14\u00BA Scout\u2019s Field Day (Radioescotismo)', type: 'nacional', label: 'Evento' },
+        { date: '2026-06-13', endDate: '2026-06-14', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-06-13', endDate: '2026-06-14', title: 'Bivaque do Ramo Filhotes', type: 'grupo', label: 'Grupo' },
+        { date: '2026-06-14', title: 'Fundação do Escotismo no Brasil (1910)', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-06-18', title: 'Dia do Sênior', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-06-20', endDate: '2026-06-21', title: '14º Scout’s Field Day (Radioescotismo)', type: 'regional', label: 'Regional' },
+        { date: '2026-06-20', title: '35º MUTECO (atividade de grupo)', type: 'grupo', label: 'Grupo' },
+        { date: '2026-06-27', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-06-27', endDate: '2026-06-28', title: 'Encerramento do 1º semestre', type: 'grupo', label: 'Grupo' },
+        { date: '2026-06-27', endDate: '2026-06-28', title: 'ARDIS (Acampamento Regional Sênior)', type: 'grupo', label: 'Regional' },
         { date: '2026-06-29', title: 'Dia do Pioneiro', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-07-04', title: 'INDABA de Avaliação e início do recesso', type: 'grupo', label: 'Grupo' },
+        { date: '2026-07-11', title: 'Recesso Escoteiro', type: 'grupo', label: 'Grupo' },
         { date: '2026-07-13', title: 'Nascimento de Caio Vianna Martins', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-07-18', endDate: '2026-07-22', title: 'Moot Nacional Pioneiro', type: 'nacional', label: 'Evento' },
-        { date: '2026-07-31', title: 'Divulga\u00E7\u00E3o do Calend\u00E1rio Nacional 2027', type: 'nacional', label: 'Administrativo' },
-        { date: '2026-08-01', title: 'Dia do Escotismo (Acampamento de Brownsea - 1907)', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-08-01', endDate: '2026-08-31', title: '9\u00BA Dia do Amigo', type: 'nacional', label: 'Campanha' },
-        { date: '2026-08-04', title: 'Webn\u00E1rio Regime Disciplinar da UEB (Remoto)', type: 'nacional', label: 'Webn\u00E1rio' },
+        { date: '2026-07-18', title: 'Recesso', type: 'grupo', label: 'Grupo' },
+        { date: '2026-07-18', title: 'Congresso Regional de Educação Não-Formal', type: 'grupo', label: 'Regional' },
+        { date: '2026-07-18', endDate: '2026-07-22', title: 'Moot Nacional Pioneiro', type: 'grupo', label: 'Nacional' },
+        { date: '2026-07-25', title: 'Retorno das atividades', type: 'grupo', label: 'Grupo' },
+        { date: '2026-07-25', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-07-25', title: '1ª chamada de novos membros', type: 'grupo', label: 'Grupo' },
+        { date: '2026-07-25', title: 'Bivaque de férias (festival de comida mateira)', type: 'grupo', label: 'Grupo' },
+        { date: '2026-07-31', title: 'Divulgação do Calendário Nacional 2027', type: 'regional', label: 'Regional' },
+        { date: '2026-08-01', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-08-01', title: '2ª chamada de novos membros', type: 'grupo', label: 'Grupo' },
+        { date: '2026-08-01', title: 'Dia do Escotismo', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-08-01', endDate: '2026-08-31', title: '9º Dia do Amigo', type: 'regional', label: 'Regional' },
+        { date: '2026-08-04', title: 'Webnário Regime Disciplinar da UEB (Remoto)', type: 'regional', label: 'Regional' },
         { date: '2026-08-06', title: 'Dia Interamericano do Escotista', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-08-08', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-08-08', title: '3ª chamada de novos membros', type: 'grupo', label: 'Grupo' },
         { date: '2026-08-12', title: 'Dia Internacional da Juventude', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-08-15', endDate: '2026-08-16', title: 'Reuni\u00E3o do Conselho de Administra\u00E7\u00E3o Nacional', type: 'nacional', label: 'Nacional' },
-        { date: '2026-08-15', endDate: '2026-08-16', title: 'Grande Jogo Naval', type: 'nacional', label: 'Evento' },
-        { date: '2026-08-29', endDate: '2026-08-30', title: '6\u00AA Atividade Nacional de Radioescotismo', type: 'nacional', label: 'Evento' },
-        { date: '2026-09-07', title: 'Independ\u00EAncia do Brasil', type: 'feriado', label: 'Feriado' },
-        { date: '2026-09-01', endDate: '2026-09-30', title: '28\u00BA Mutir\u00E3o Nacional de A\u00E7\u00E3o Comunit\u00E1ria', type: 'nacional', label: 'Mobiliza\u00E7\u00E3o' },
-        { date: '2026-09-05', endDate: '2026-09-07', title: 'Laborat\u00F3rio T\u00E9cnico do Programa Educativo', type: 'nacional', label: 'Forma\u00E7\u00E3o' },
-        { date: '2026-09-19', title: 'Encontro Nacional de Seguran\u00E7a da Informa\u00E7\u00E3o (Evento 2)', type: 'nacional', label: 'Nacional' },
-        { date: '2026-09-19', endDate: '2026-09-20', title: 'Encontro Nacional de Comunica\u00E7\u00E3o', type: 'nacional', label: 'Nacional' },
+        { date: '2026-08-14', endDate: '2026-08-16', title: 'AeroMosquito Show', type: 'grupo', label: 'Grupo' },
+        { date: '2026-08-15', endDate: '2026-08-16', title: 'Reunião do Conselho de Administração Nacional', type: 'regional', label: 'Regional' },
+        { date: '2026-08-15', endDate: '2026-08-16', title: 'Grande Jogo Naval', type: 'regional', label: 'Regional' },
+        { date: '2026-08-15', endDate: '2026-08-16', title: 'Encontro Regional de Jovens Líderes', type: 'grupo', label: 'Regional' },
+        { date: '2026-08-22', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-08-29', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-08-29', title: '68º aniversário do Escotismo no DF', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-08-29', endDate: '2026-08-30', title: '6ª Atividade Nacional de Radioescotismo', type: 'regional', label: 'Regional' },
+        { date: '2026-08-29', endDate: '2026-08-30', title: 'Grande Jogo Naval', type: 'grupo', label: 'Regional' },
+        { date: '2026-08-29', endDate: '2026-08-30', title: 'Radioescotismo (Echolink/DMR)', type: 'grupo', label: 'Regional' },
+        { date: '2026-09-01', title: 'Encontro do 1º Grupo de Gilwell', type: 'grupo', label: 'Regional' },
+        { date: '2026-09-01', endDate: '2026-09-30', title: '28º Mutirão Nacional de Ação Comunitária', type: 'regional', label: 'Regional' },
+        { date: '2026-09-05', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-09-05', endDate: '2026-09-07', title: 'Laboratório Técnico do Programa Educativo', type: 'regional', label: 'Regional' },
+        { date: '2026-09-05', endDate: '2026-09-07', title: 'Moot Regional Pioneiro', type: 'grupo', label: 'Regional' },
+        { date: '2026-09-07', title: 'Independência do Brasil', type: 'feriado', label: 'Feriado' },
+        { date: '2026-09-12', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-09-14', endDate: '2026-11-02', title: 'Curso Preliminar (EAD)', type: 'grupo', label: 'Curso' },
+        { date: '2026-09-19', title: 'Encontro Nacional de Segurança da Informação (Evento 2)', type: 'regional', label: 'Regional' },
+        { date: '2026-09-19', endDate: '2026-09-20', title: 'Encontro Nacional de Comunicação', type: 'regional', label: 'Regional' },
+        { date: '2026-09-19', title: '28º MUTCOM (grupo)', type: 'grupo', label: 'Grupo' },
         { date: '2026-09-20', title: 'Dia Mundial da Limpeza', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-09-21', title: 'Dia Internacional da Paz', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-09-26', endDate: '2026-09-27', title: 'Reuni\u00E3o do Conselho Consultivo', type: 'nacional', label: 'Nacional' },
-        { date: '2026-09-30', title: 'Divulga\u00E7\u00E3o dos Calend\u00E1rios Regionais 2027', type: 'nacional', label: 'Administrativo' },
+        { date: '2026-09-26', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-09-26', endDate: '2026-09-27', title: 'Reunião do Conselho Consultivo', type: 'regional', label: 'Regional' },
+        { date: '2026-09-26', endDate: '2026-09-27', title: '49ª Jan-Bra', type: 'grupo', label: 'Regional' },
+        { date: '2026-09-30', title: 'Divulgação dos Calendários Regionais 2027', type: 'regional', label: 'Regional' },
+        { date: '2026-10-01', endDate: '2026-11-06', title: 'Curso Intermediário (EAD)', type: 'grupo', label: 'Curso' },
+        { date: '2026-10-03', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-10-03', title: 'Curso Preliminar (presencial)', type: 'grupo', label: 'Curso' },
         { date: '2026-10-04', title: 'Dia do Lobinho', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-10-12', title: 'Dia da Padroeira do Brasil (Nossa Senhora Aparecida)', type: 'feriado', label: 'Feriado' },
-        { date: '2026-10-16', endDate: '2026-10-18', title: 'JOTA/JOTI (Jamboree do Ar e Internet)', type: 'nacional', label: 'Evento' },
-        { date: '2026-10-17', endDate: '2026-10-18', title: 'Reuni\u00E3o do Conselho de Administra\u00E7\u00E3o Nacional', type: 'nacional', label: 'Nacional' },
-        { date: '2026-10-17', endDate: '2026-10-18', title: 'Encontro Nacional das Comiss\u00F5es de \u00C9tica Regionais', type: 'nacional', label: 'Nacional' },
+        { date: '2026-10-10', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-10-12', title: 'Nossa Senhora Aparecida', type: 'feriado', label: 'Feriado' },
+        { date: '2026-10-16', endDate: '2026-10-18', title: 'JOTA/JOTI', type: 'grupo', label: 'Grupo' },
+        { date: '2026-10-16', endDate: '2026-10-18', title: 'JOTA/JOTI (Jamboree do Ar e Internet)', type: 'regional', label: 'Regional' },
+        { date: '2026-10-17', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-10-17', endDate: '2026-10-18', title: 'Reunião do Conselho de Administração Nacional', type: 'regional', label: 'Regional' },
+        { date: '2026-10-17', endDate: '2026-10-18', title: 'Encontro Nacional das Comissões de Ética Regionais', type: 'regional', label: 'Regional' },
+        { date: '2026-10-17', title: '55º aniversário do grupo GEARSF', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-10-24', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-10-31', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
         { date: '2026-11-02', title: 'Finados', type: 'feriado', label: 'Feriado' },
-        { date: '2026-11-04', title: 'Anivers\u00E1rio da Uni\u00E3o dos Escoteiros do Brasil (102 anos - 1924)', type: 'comemorativo', label: 'Comemorativo' },
-        { date: '2026-11-15', title: 'Proclama\u00E7\u00E3o da Rep\u00FAblica', type: 'feriado', label: 'Feriado' },
-        { date: '2026-11-20', endDate: '2026-11-22', title: 'Encontro Nacional de Jovens L\u00EDderes (Jo\u00E3o Pessoa - PB)', type: 'nacional', label: 'Nacional' },
+        { date: '2026-11-04', title: '102 anos da UEB', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-11-04', title: 'Aniversário da União dos Escoteiros do Brasil (102 anos - 1924)', type: 'comemorativo', label: 'Comemorativo' },
+        { date: '2026-11-07', title: 'Atividade das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-11-07', endDate: '2026-11-08', title: 'Curso Intermediário (presencial)', type: 'grupo', label: 'Curso' },
+        { date: '2026-11-14', title: 'Atividades das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-11-15', title: 'Proclamação da República', type: 'feriado', label: 'Feriado' },
+        { date: '2026-11-20', title: 'Dia da Consciência Negra', type: 'feriado', label: 'Feriado' },
+        { date: '2026-11-20', endDate: '2026-11-22', title: 'Encontro Nacional de Jovens Líderes (João Pessoa - PB)', type: 'regional', label: 'Regional' },
+        { date: '2026-11-21', title: 'Atividades das Seções', type: 'grupo', label: 'Grupo' },
+        { date: '2026-11-21', endDate: '2026-11-22', title: 'Vigília Regional Pioneira', type: 'grupo', label: 'Regional' },
+        { date: '2026-11-27', endDate: '2026-11-29', title: 'Acampamento de Grupo (encerramento do ano)', type: 'grupo', label: 'Grupo' },
+        { date: '2026-11-30', title: 'Dia do Evangélico', type: 'feriado', label: 'Feriado' },
+        { date: '2026-12-03', title: 'Encontro Regional de Formadores', type: 'grupo', label: 'Regional' },
+        { date: '2026-12-05', title: 'INDABA de Encerramento', type: 'grupo', label: 'Grupo' },
+        { date: '2026-12-05', title: 'Dia Internacional do Voluntariado', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-12-25', title: 'Natal', type: 'feriado', label: 'Feriado' }
     ];
 
@@ -143,17 +232,13 @@ function setupCalendar() {
     const prevBtn = calendarRoot.querySelector('[data-cal-prev]');
     const nextBtn = calendarRoot.querySelector('[data-cal-next]');
     const months = [
-        'Janeiro', 'Fevereiro', 'Mar\u00E7o', 'Abril', 'Maio', 'Junho',
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
         'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
     const today = new Date();
     let currentMonth = today.getMonth();
     let currentYear = today.getFullYear();
-
-    function dateKey(year, month, day) {
-        return year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-    }
 
     function formatDateRange(event) {
         const start = event.date.split('-').map(Number);
@@ -195,7 +280,7 @@ function setupCalendar() {
         if (monthlyEvents.length === 0) {
             const empty = document.createElement('li');
             empty.className = 'empty';
-            empty.textContent = 'Sem eventos especiais cadastrados para este m\u00EAs.';
+            empty.textContent = 'Sem eventos especiais cadastrados para este mês.';
             eventsList.appendChild(empty);
             return;
         }
@@ -253,6 +338,8 @@ function setupCalendar() {
                     cell.classList.add('has-holiday');
                 } else if (currentEvents.some(function (event) { return event.type === 'comemorativo'; })) {
                     cell.classList.add('has-commemorative');
+                } else if (currentEvents.some(function (event) { return event.type === 'regional'; })) {
+                    cell.classList.add('has-regional');
                 }
             }
 
@@ -346,19 +433,9 @@ function setupContactForm() {
             return;
         }
 
-        const body = [
-            'Nome: ' + name,
-            'E-mail: ' + email,
-            '',
-            'Mensagem:',
-            message
-        ].join('\n');
-
-        window.location.href = 'mailto:contato@escoteiro.com?subject=' +
-            encodeURIComponent(subject) +
-            '&body=' +
-            encodeURIComponent(body);
-
-        feedback.textContent = 'Abrimos seu aplicativo de e-mail para finalizar o envio.';
+        const body = encodeURIComponent('Nome: ' + name + '\nE-mail: ' + email + '\n\n' + message);
+        window.location.href = 'mailto:contato@escoteiro.com?subject=' + encodeURIComponent(subject) + '&body=' + body;
+        feedback.textContent = 'Seu aplicativo de e-mail foi aberto para concluir o envio.';
+        form.reset();
     });
 }
