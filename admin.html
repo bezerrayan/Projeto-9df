@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin | GEAR 9º DF</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { margin: 0; background: #f2f7ff; }
+        .admin-app { min-height: 100vh; display: grid; grid-template-columns: 320px minmax(0, 1fr); }
+        .admin-sidebar { background: #0d2342; color: #fff; padding: 28px 22px; display: grid; gap: 22px; align-content: start; }
+        .admin-brand strong { display: block; font-size: 1.15rem; }
+        .admin-brand span { display: block; opacity: .72; font-size: .84rem; margin-top: 6px; }
+        .admin-sidebar label { display: grid; gap: 7px; font-weight: 700; font-size: .88rem; }
+        .admin-sidebar select { width: 100%; border: none; border-radius: 14px; padding: 14px; font: 700 .95rem/1.3 'Syne', sans-serif; }
+        .admin-sidebar .btn { justify-content: center; }
+        .admin-main { padding: 28px; display: grid; gap: 20px; }
+        .admin-topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .admin-topbar h1 { margin: 0; font-size: 2rem; }
+        .admin-sub { color: var(--muted); margin-top: 6px; }
+        .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .admin-grid { display: grid; gap: 18px; grid-template-columns: 1.15fr .85fr; align-items: start; }
+        .admin-panel { background: #fff; border: 1px solid rgba(13,45,90,.08); border-radius: 26px; box-shadow: 0 18px 40px rgba(13,45,90,.08); padding: 22px; display: grid; gap: 18px; }
+        .admin-panel h2 { margin: 0; font-size: 1.2rem; }
+        .admin-panel p { margin: 0; color: var(--muted); }
+        .editor-block { display: grid; gap: 12px; }
+        .editor-block details { border: 1px solid rgba(13,45,90,.08); border-radius: 18px; padding: 12px 14px; background: #fbfdff; }
+        .editor-block summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+        .editor-meta { margin-top: 4px; font-size: .76rem; color: var(--muted); word-break: break-all; }
+        .editor-field { display: grid; gap: 7px; margin-top: 12px; }
+        .editor-field label { font-weight: 700; font-size: .84rem; color: var(--ink); }
+        .editor-field input, .editor-field textarea, .editor-field select { width: 100%; border: 1px solid rgba(13,45,90,.12); border-radius: 12px; padding: 11px 13px; font: 500 .9rem/1.5 'Syne', sans-serif; }
+        .editor-field textarea { min-height: 96px; resize: vertical; }
+        .editor-toggle { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+        .editor-toggle input { width: 18px; height: 18px; }
+        .extra-list { display: grid; gap: 10px; }
+        .extra-item { display: grid; gap: 8px; border: 1px solid rgba(13,45,90,.08); border-radius: 18px; padding: 12px 14px; background: #fbfdff; }
+        .preview-card iframe { width: 100%; min-height: 720px; border: none; border-radius: 20px; background: #fff; }
+        .status-line { min-height: 22px; font-size: .9rem; color: var(--blue-700); }
+        .code-box { min-height: 180px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+        @media (max-width: 1080px) { .admin-app { grid-template-columns: 1fr; } .admin-grid { grid-template-columns: 1fr; } .preview-card iframe { min-height: 520px; } }
+    </style>
+</head>
+<body>
+    <div class="admin-app">
+        <aside class="admin-sidebar">
+            <div class="admin-brand">
+                <strong>GEAR 9º DF</strong>
+                <span>Painel administrativo completo</span>
+            </div>
+
+            <label>
+                Página editada
+                <select id="pageSelect"></select>
+            </label>
+
+            <a class="btn btn-light" id="openPageLink" href="index.html" target="_blank" rel="noopener noreferrer">Abrir página</a>
+            <button class="btn btn-ghost" id="logoutButton" type="button">Sair</button>
+        </aside>
+
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <div>
+                    <h1>Painel de conteúdo</h1>
+                    <div class="admin-sub">Edite textos, imagens, visibilidade e seções extras sem mexer no HTML manualmente.</div>
+                </div>
+                <div class="admin-actions">
+                    <button class="btn btn-outline" id="resetPageButton" type="button">Resetar página</button>
+                    <button class="btn btn-outline" id="copyJsonButton" type="button">Copiar JSON</button>
+                    <button class="btn btn-primary" id="saveButton" type="button">Salvar alterações</button>
+                </div>
+            </div>
+
+            <div class="status-line" id="statusLine"></div>
+
+            <div class="admin-grid">
+                <section class="admin-panel">
+                    <div>
+                        <h2>Editor</h2>
+                        <p>O painel lê a estrutura real da página escolhida e gera os campos editáveis automaticamente.</p>
+                    </div>
+
+                    <div class="editor-block">
+                        <h3>Textos</h3>
+                        <div id="textEditor"></div>
+                    </div>
+
+                    <div class="editor-block">
+                        <h3>Imagens</h3>
+                        <div id="imageEditor"></div>
+                    </div>
+
+                    <div class="editor-block">
+                        <h3>Seções</h3>
+                        <div id="sectionEditor"></div>
+                    </div>
+
+                    <div class="editor-block">
+                        <h3>Seções extras</h3>
+                        <div class="extra-list" id="extraList"></div>
+                        <div class="editor-field"><label>Título</label><input type="text" id="extraTitle"></div>
+                        <div class="editor-field"><label>Texto</label><textarea id="extraText"></textarea></div>
+                        <div class="editor-field"><label>Botão</label><input type="text" id="extraButtonLabel"></div>
+                        <div class="editor-field"><label>Link do botão</label><input type="text" id="extraButtonHref" placeholder="contato.html ou https://..."></div>
+                        <div class="editor-field"><label>Imagem</label><input type="text" id="extraImageSrc" placeholder="images/sua-foto.jpg"></div>
+                        <div class="editor-field"><label>ALT da imagem</label><input type="text" id="extraImageAlt"></div>
+                        <div class="editor-field"><label>Tom visual</label><select id="extraTone"><option value="plain">Claro</option><option value="soft">Suave</option><option value="dark">Escuro</option></select></div>
+                        <button class="btn btn-primary" id="addExtraButton" type="button">Adicionar seção</button>
+                    </div>
+
+                    <div class="editor-block">
+                        <h3>JSON do conteúdo</h3>
+                        <textarea class="code-box" id="jsonField"></textarea>
+                    </div>
+                </section>
+
+                <section class="admin-panel preview-card">
+                    <div>
+                        <h2>Preview</h2>
+                        <p>Após salvar, o preview recarrega usando o conteúdo salvo no servidor.</p>
+                    </div>
+                    <iframe id="previewFrame" src="index.html"></iframe>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

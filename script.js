@@ -478,60 +478,11 @@ function setupContactForm() {
     });
 }
 
-var ADMIN_STORAGE_KEY = 'gear9df-admin-data-v1';
+var SITE_CONTENT_CACHE = null;
 
 function getCurrentPageName() {
     var name = window.location.pathname.split('/').pop();
     return name || 'index.html';
-}
-
-function loadAdminState() {
-    try {
-        var raw = localStorage.getItem(ADMIN_STORAGE_KEY);
-        if (!raw) {
-            return { pages: {} };
-        }
-        var parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object') {
-            return { pages: {} };
-        }
-        if (!parsed.pages || typeof parsed.pages !== 'object') {
-            parsed.pages = {};
-        }
-        return parsed;
-    } catch (error) {
-        return { pages: {} };
-    }
-}
-
-function saveAdminState(state) {
-    localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(state));
-}
-
-function ensurePageState(state, pageName) {
-    if (!state.pages[pageName]) {
-        state.pages[pageName] = {
-            text: {},
-            images: {},
-            sections: {},
-            extras: []
-        };
-    }
-
-    if (!state.pages[pageName].text) {
-        state.pages[pageName].text = {};
-    }
-    if (!state.pages[pageName].images) {
-        state.pages[pageName].images = {};
-    }
-    if (!state.pages[pageName].sections) {
-        state.pages[pageName].sections = {};
-    }
-    if (!Array.isArray(state.pages[pageName].extras)) {
-        state.pages[pageName].extras = [];
-    }
-
-    return state.pages[pageName];
 }
 
 function buildAdminPath(element, root) {
@@ -681,92 +632,104 @@ function renderAdminExtraSections(root, pageState) {
     });
 }
 
+function ensurePageState(state, pageName) {
+    if (!state.pages) {
+        state.pages = {};
+    }
+
+    if (!state.pages[pageName]) {
+        state.pages[pageName] = {
+            text: {},
+            images: {},
+            sections: {},
+            extras: []
+        };
+    }
+
+    if (!state.pages[pageName].text) {
+        state.pages[pageName].text = {};
+    }
+    if (!state.pages[pageName].images) {
+        state.pages[pageName].images = {};
+    }
+    if (!state.pages[pageName].sections) {
+        state.pages[pageName].sections = {};
+    }
+    if (!Array.isArray(state.pages[pageName].extras)) {
+        state.pages[pageName].extras = [];
+    }
+
+    return state.pages[pageName];
+}
+
+function loadAdminState() {
+    return SITE_CONTENT_CACHE || { pages: {} };
+}
+
+function fetchSiteContent() {
+    return fetch('/api/site-content', { credentials: 'same-origin' })
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('site-content-unavailable');
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            SITE_CONTENT_CACHE = data;
+            return data;
+        })
+        .catch(function () {
+            SITE_CONTENT_CACHE = { pages: {} };
+            return SITE_CONTENT_CACHE;
+        });
+}
+
 function applyAdminContent() {
     var root = document.querySelector('main');
     if (!root) {
         return;
     }
 
-    var state = loadAdminState();
-    var pageName = getCurrentPageName();
-    var pageState = ensurePageState(state, pageName);
+    fetchSiteContent().then(function (state) {
+        var pageName = getCurrentPageName();
+        var pageState = ensurePageState(state, pageName);
 
-    getEditableTextNodes(root).forEach(function (entry) {
-        if (Object.prototype.hasOwnProperty.call(pageState.text, entry.key)) {
-            writeEditableText(entry.element, pageState.text[entry.key]);
-        }
+        getEditableTextNodes(root).forEach(function (entry) {
+            if (Object.prototype.hasOwnProperty.call(pageState.text, entry.key)) {
+                writeEditableText(entry.element, pageState.text[entry.key]);
+            }
+        });
+
+        getEditableImages(root).forEach(function (entry) {
+            var imageOverride = pageState.images[entry.key];
+            if (!imageOverride) {
+                return;
+            }
+
+            if (imageOverride.src) {
+                entry.element.setAttribute('src', imageOverride.src);
+            }
+            if (typeof imageOverride.alt === 'string') {
+                entry.element.setAttribute('alt', imageOverride.alt);
+            }
+        });
+
+        getEditableSections(root).forEach(function (entry) {
+            var sectionOverride = pageState.sections[entry.key];
+            entry.element.hidden = !!(sectionOverride && sectionOverride.hidden);
+        });
+
+        renderAdminExtraSections(root, pageState);
     });
-
-    getEditableImages(root).forEach(function (entry) {
-        var imageOverride = pageState.images[entry.key];
-        if (!imageOverride) {
-            return;
-        }
-
-        if (imageOverride.src) {
-            entry.element.setAttribute('src', imageOverride.src);
-        }
-        if (typeof imageOverride.alt === 'string') {
-            entry.element.setAttribute('alt', imageOverride.alt);
-        }
-    });
-
-    getEditableSections(root).forEach(function (entry) {
-        var sectionOverride = pageState.sections[entry.key];
-        entry.element.hidden = !!(sectionOverride && sectionOverride.hidden);
-    });
-
-    renderAdminExtraSections(root, pageState);
 }
 
 function setupAdminShortcut() {
     window.addEventListener('keydown', function (event) {
         if (event.ctrlKey && event.shiftKey && event.key === '9') {
             event.preventDefault();
-            var url = new URL(window.location.href);
-            if (url.searchParams.get('gearadmin') === '1') {
-                url.searchParams.delete('gearadmin');
-            } else {
-                url.searchParams.set('gearadmin', '1');
-            }
-            window.location.href = url.toString();
+            window.location.href = '/admin?page=' + encodeURIComponent(getCurrentPageName());
         }
     });
-}
-
-function injectAdminStyles() {
-    if (document.getElementById('gearAdminStyles')) {
-        return;
-    }
-
-    var style = document.createElement('style');
-    style.id = 'gearAdminStyles';
-    style.textContent =
-        '.admin-launch{position:fixed;right:18px;bottom:18px;z-index:1100;border:none;border-radius:999px;padding:12px 16px;background:#0d2d5a;color:#fff;font:700 14px/1 Syne,sans-serif;box-shadow:0 12px 30px rgba(0,0,0,.2);cursor:pointer}' +
-        '.admin-shell{position:fixed;top:0;right:0;width:min(430px,100vw);height:100vh;z-index:1200;background:#f7fbff;border-left:1px solid rgba(13,45,90,.12);box-shadow:-20px 0 60px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}' +
-        '.admin-shell.open{transform:translateX(0)}' +
-        '.admin-head{padding:18px 18px 12px;background:#0d2d5a;color:#fff;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}' +
-        '.admin-head strong{display:block;font-size:1rem}' +
-        '.admin-head span{display:block;font-size:.8rem;opacity:.8;margin-top:4px}' +
-        '.admin-close{border:none;background:rgba(255,255,255,.14);color:#fff;border-radius:10px;padding:8px 10px;cursor:pointer}' +
-        '.admin-body{padding:16px 16px 28px;overflow:auto;display:grid;gap:14px}' +
-        '.admin-card{background:#fff;border:1px solid rgba(13,45,90,.08);border-radius:18px;padding:14px;display:grid;gap:12px;box-shadow:0 8px 24px rgba(13,45,90,.06)}' +
-        '.admin-card h3{margin:0;font-size:1rem}' +
-        '.admin-note{margin:0;color:#516073;font-size:.84rem;line-height:1.55}' +
-        '.admin-field{display:grid;gap:6px}' +
-        '.admin-field label,.admin-card summary{font-weight:700;color:#10284b;cursor:pointer}' +
-        '.admin-field input,.admin-field textarea,.admin-field select{width:100%;border:1px solid rgba(13,45,90,.14);border-radius:12px;padding:10px 12px;font:500 13px/1.5 Syne,sans-serif;background:#fff}' +
-        '.admin-field textarea{min-height:88px;resize:vertical}' +
-        '.admin-list{display:grid;gap:10px;max-height:320px;overflow:auto;padding-right:4px}' +
-        '.admin-item{border:1px solid rgba(13,45,90,.1);border-radius:14px;padding:10px;display:grid;gap:8px;background:#fbfdff}' +
-        '.admin-item small{color:#6b7a8d;font-size:.76rem}' +
-        '.admin-row{display:flex;gap:8px;flex-wrap:wrap}' +
-        '.admin-row button{border:none;border-radius:999px;padding:10px 12px;background:#1e79e7;color:#fff;font:700 12px/1 Syne,sans-serif;cursor:pointer}' +
-        '.admin-row .ghost{background:#e8f1ff;color:#0d2d5a}' +
-        '.admin-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px}' +
-        '.admin-json{min-height:120px}' +
-        '@media (max-width: 640px){.admin-launch{right:12px;bottom:12px}.admin-shell{width:100vw}}';
-    document.head.appendChild(style);
 }
 
 function setupAdminMode() {
@@ -776,255 +739,5 @@ function setupAdminMode() {
     if (params.get('gearadmin') !== '1') {
         return;
     }
-
-    var root = document.querySelector('main');
-    if (!root) {
-        return;
-    }
-
-    injectAdminStyles();
-
-    var pageName = getCurrentPageName();
-    var state = loadAdminState();
-    var pageState = ensurePageState(state, pageName);
-    var textTargets = getEditableTextNodes(root);
-    var imageTargets = getEditableImages(root);
-    var sectionTargets = getEditableSections(root);
-
-    var panel = document.createElement('aside');
-    panel.className = 'admin-shell open';
-    panel.innerHTML =
-        '<div class="admin-head">' +
-        '<div><strong>Modo administrador</strong><span>' + pageName + ' · acesso oculto por ?gearadmin=1</span></div>' +
-        '<button type="button" class="admin-close">Fechar</button>' +
-        '</div>' +
-        '<div class="admin-body">' +
-        '<section class="admin-card">' +
-        '<h3>Como funciona</h3>' +
-        '<p class="admin-note">Este painel edita a pagina atual no proprio navegador e salva no armazenamento local. Nao e autenticacao real. Para abrir ou fechar rapidamente, use Ctrl+Shift+9.</p>' +
-        '<div class="admin-row">' +
-        '<button type="button" data-admin-action="export">Exportar JSON</button>' +
-        '<button type="button" class="ghost" data-admin-action="reset-page">Resetar pagina</button>' +
-        '<button type="button" class="ghost" data-admin-action="reset-all">Resetar tudo</button>' +
-        '</div>' +
-        '</section>' +
-        '<details class="admin-card" open><summary>Textos editaveis (' + textTargets.length + ')</summary><div class="admin-list" data-admin-text-list></div></details>' +
-        '<details class="admin-card"><summary>Imagens (' + imageTargets.length + ')</summary><div class="admin-list" data-admin-image-list></div></details>' +
-        '<details class="admin-card"><summary>Secoes</summary><div class="admin-list" data-admin-section-list></div></details>' +
-        '<section class="admin-card">' +
-        '<h3>Adicionar secao personalizada</h3>' +
-        '<div class="admin-field"><label>Titulo</label><input type="text" data-extra-title></div>' +
-        '<div class="admin-field"><label>Texto</label><textarea data-extra-text></textarea></div>' +
-        '<div class="admin-field"><label>Botao</label><input type="text" data-extra-button-label></div>' +
-        '<div class="admin-field"><label>Link do botao</label><input type="text" data-extra-button-href placeholder="contato.html ou https://..."></div>' +
-        '<div class="admin-field"><label>Imagem (opcional)</label><input type="text" data-extra-image-src placeholder="images/sua-foto.jpg"></div>' +
-        '<div class="admin-field"><label>ALT da imagem</label><input type="text" data-extra-image-alt></div>' +
-        '<div class="admin-field"><label>Tom visual</label><select data-extra-tone><option value="plain">Claro</option><option value="soft">Suave</option><option value="dark">Escuro</option></select></div>' +
-        '<div class="admin-row"><button type="button" data-admin-action="add-extra">Adicionar secao</button></div>' +
-        '<div class="admin-list" data-admin-extra-list></div>' +
-        '</section>' +
-        '<section class="admin-card">' +
-        '<h3>Importar ou copiar configuracao</h3>' +
-        '<div class="admin-field"><label>JSON completo</label><textarea class="admin-json" data-admin-json></textarea></div>' +
-        '<div class="admin-row">' +
-        '<button type="button" data-admin-action="apply-json">Aplicar JSON</button>' +
-        '<button type="button" class="ghost" data-admin-action="copy-json">Copiar JSON</button>' +
-        '</div>' +
-        '</section>' +
-        '</div>';
-
-    document.body.appendChild(panel);
-
-    var launcher = document.createElement('button');
-    launcher.type = 'button';
-    launcher.className = 'admin-launch';
-    launcher.textContent = 'Administrador';
-    document.body.appendChild(launcher);
-
-    var closeButton = panel.querySelector('.admin-close');
-    closeButton.addEventListener('click', function () {
-        var url = new URL(window.location.href);
-        url.searchParams.delete('gearadmin');
-        window.location.href = url.toString();
-    });
-
-    launcher.addEventListener('click', function () {
-        panel.classList.toggle('open');
-    });
-
-    var textList = panel.querySelector('[data-admin-text-list]');
-    textTargets.forEach(function (entry) {
-        var item = document.createElement('div');
-        item.className = 'admin-item';
-        item.innerHTML =
-            '<label>' + entry.label + '</label>' +
-            '<small>' + entry.key + '</small>' +
-            '<textarea></textarea>';
-
-        var field = item.querySelector('textarea');
-        field.value = Object.prototype.hasOwnProperty.call(pageState.text, entry.key) ? pageState.text[entry.key] : readEditableText(entry.element);
-        field.addEventListener('input', function () {
-            var latestState = loadAdminState();
-            var latestPageState = ensurePageState(latestState, pageName);
-            latestPageState.text[entry.key] = field.value;
-            saveAdminState(latestState);
-            writeEditableText(entry.element, field.value);
-        });
-        textList.appendChild(item);
-    });
-
-    var imageList = panel.querySelector('[data-admin-image-list]');
-    imageTargets.forEach(function (entry) {
-        var imageOverride = pageState.images[entry.key] || {};
-        var item = document.createElement('div');
-        item.className = 'admin-item';
-        item.innerHTML =
-            '<label>' + entry.label + '</label>' +
-            '<small>' + entry.key + '</small>' +
-            '<div class="admin-field"><label>src</label><input type="text" value=""></div>' +
-            '<div class="admin-field"><label>alt</label><input type="text" value=""></div>';
-
-        var srcField = item.querySelectorAll('input')[0];
-        var altField = item.querySelectorAll('input')[1];
-        srcField.value = imageOverride.src || entry.element.getAttribute('src') || '';
-        altField.value = typeof imageOverride.alt === 'string' ? imageOverride.alt : (entry.element.getAttribute('alt') || '');
-
-        function saveImage() {
-            var latestState = loadAdminState();
-            var latestPageState = ensurePageState(latestState, pageName);
-            latestPageState.images[entry.key] = {
-                src: srcField.value.trim(),
-                alt: altField.value.trim()
-            };
-            saveAdminState(latestState);
-            if (srcField.value.trim()) {
-                entry.element.setAttribute('src', srcField.value.trim());
-            }
-            entry.element.setAttribute('alt', altField.value.trim());
-        }
-
-        srcField.addEventListener('change', saveImage);
-        altField.addEventListener('input', saveImage);
-        imageList.appendChild(item);
-    });
-
-    var sectionList = panel.querySelector('[data-admin-section-list]');
-    sectionTargets.forEach(function (entry) {
-        var sectionOverride = pageState.sections[entry.key] || {};
-        var item = document.createElement('div');
-        item.className = 'admin-item admin-toggle';
-        item.innerHTML =
-            '<div><label>' + entry.label + '</label><small>' + entry.key + '</small></div>' +
-            '<label><input type="checkbox"> Mostrar</label>';
-        var checkbox = item.querySelector('input');
-        checkbox.checked = !sectionOverride.hidden;
-        checkbox.addEventListener('change', function () {
-            var latestState = loadAdminState();
-            var latestPageState = ensurePageState(latestState, pageName);
-            latestPageState.sections[entry.key] = { hidden: !checkbox.checked };
-            saveAdminState(latestState);
-            entry.element.hidden = !checkbox.checked;
-        });
-        sectionList.appendChild(item);
-    });
-
-    var extraList = panel.querySelector('[data-admin-extra-list]');
-
-    function renderExtraList() {
-        var latestState = loadAdminState();
-        var latestPageState = ensurePageState(latestState, pageName);
-        extraList.innerHTML = '';
-
-        latestPageState.extras.forEach(function (extra) {
-            var item = document.createElement('div');
-            item.className = 'admin-item';
-            item.innerHTML =
-                '<label>' + (extra.title || 'Secao sem titulo') + '</label>' +
-                '<small>' + extra.id + '</small>' +
-                '<div class="admin-row"><button type="button">Remover</button></div>';
-
-            item.querySelector('button').addEventListener('click', function () {
-                var currentState = loadAdminState();
-                var currentPageState = ensurePageState(currentState, pageName);
-                currentPageState.extras = currentPageState.extras.filter(function (node) {
-                    return node.id !== extra.id;
-                });
-                saveAdminState(currentState);
-                renderAdminExtraSections(root, currentPageState);
-                renderExtraList();
-                syncJsonField();
-            });
-
-            extraList.appendChild(item);
-        });
-    }
-
-    function syncJsonField() {
-        panel.querySelector('[data-admin-json]').value = JSON.stringify(loadAdminState(), null, 2);
-    }
-
-    panel.querySelector('[data-admin-action="add-extra"]').addEventListener('click', function () {
-        var latestState = loadAdminState();
-        var latestPageState = ensurePageState(latestState, pageName);
-        latestPageState.extras.push({
-            id: 'extra-' + Date.now(),
-            title: panel.querySelector('[data-extra-title]').value.trim(),
-            text: panel.querySelector('[data-extra-text]').value.trim(),
-            buttonLabel: panel.querySelector('[data-extra-button-label]').value.trim(),
-            buttonHref: panel.querySelector('[data-extra-button-href]').value.trim(),
-            imageSrc: panel.querySelector('[data-extra-image-src]').value.trim(),
-            imageAlt: panel.querySelector('[data-extra-image-alt]').value.trim(),
-            tone: panel.querySelector('[data-extra-tone]').value
-        });
-        saveAdminState(latestState);
-        renderAdminExtraSections(root, latestPageState);
-        renderExtraList();
-        syncJsonField();
-    });
-
-    panel.querySelector('[data-admin-action="export"]').addEventListener('click', function () {
-        syncJsonField();
-        panel.querySelector('[data-admin-json]').focus();
-        panel.querySelector('[data-admin-json]').select();
-    });
-
-    panel.querySelector('[data-admin-action="copy-json"]').addEventListener('click', function () {
-        syncJsonField();
-        var jsonField = panel.querySelector('[data-admin-json]');
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(jsonField.value);
-            return;
-        }
-        jsonField.focus();
-        jsonField.select();
-        document.execCommand('copy');
-    });
-
-    panel.querySelector('[data-admin-action="apply-json"]').addEventListener('click', function () {
-        try {
-            var parsed = JSON.parse(panel.querySelector('[data-admin-json]').value);
-            if (!parsed.pages || typeof parsed.pages !== 'object') {
-                throw new Error('JSON invalido');
-            }
-            saveAdminState(parsed);
-            window.location.reload();
-        } catch (error) {
-            window.alert('Nao foi possivel aplicar o JSON. Revise a estrutura antes de salvar.');
-        }
-    });
-
-    panel.querySelector('[data-admin-action="reset-page"]').addEventListener('click', function () {
-        var latestState = loadAdminState();
-        delete latestState.pages[pageName];
-        saveAdminState(latestState);
-        window.location.reload();
-    });
-
-    panel.querySelector('[data-admin-action="reset-all"]').addEventListener('click', function () {
-        localStorage.removeItem(ADMIN_STORAGE_KEY);
-        window.location.reload();
-    });
-
-    renderExtraList();
-    syncJsonField();
+    window.location.href = '/admin?page=' + encodeURIComponent(getCurrentPageName());
 }
