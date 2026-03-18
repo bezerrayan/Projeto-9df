@@ -65,6 +65,20 @@
             line-height: 1.7;
         }
 
+        .admin-save-hint {
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(77, 161, 255, 0.12);
+            border: 1px solid rgba(77, 161, 255, 0.22);
+            color: #d7eaff;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
         .admin-badge {
             display: inline-flex;
             align-items: center;
@@ -287,6 +301,10 @@
             resize: vertical;
         }
 
+        .admin-search {
+            margin-bottom: 14px;
+        }
+
         .editor-toggle {
             display: flex;
             justify-content: space-between;
@@ -392,6 +410,7 @@
                     <div class="admin-badge"><i class="fas fa-shield-halved"></i> Painel administrativo</div>
                     <h1>Gerencie o conteúdo do site com clareza</h1>
                     <p>Escolha a página, ajuste o que precisa e salve. O painel foi organizado para quem não é técnico: menos estrutura, mais ação direta.</p>
+                    <div class="admin-save-hint"><i class="fas fa-wand-magic-sparkles"></i> Salvamento automático ativo enquanto você edita</div>
                 </div>
 
                 <div class="admin-header-controls">
@@ -469,6 +488,7 @@
                         <h2>Editar textos</h2>
                         <p>Abra um bloco, troque o conteúdo e siga para o próximo. Aqui ficam títulos, parágrafos, chamadas e botões.</p>
                     </div>
+                    <div class="editor-field admin-search"><label>Buscar texto</label><input type="text" id="textSearch" placeholder="Ex.: contato, história, botão..."></div>
                     <div class="editor-list" id="textEditor"></div>
                 </section>
 
@@ -477,6 +497,7 @@
                         <h2>Trocar imagens</h2>
                         <p>Informe o caminho da imagem e a descrição. A descrição ajuda acessibilidade e organização do conteúdo.</p>
                     </div>
+                    <div class="editor-field admin-search"><label>Buscar imagem</label><input type="text" id="imageSearch" placeholder="Ex.: logo, hero, galeria..."></div>
                     <div class="editor-list" id="imageEditor"></div>
                 </section>
 
@@ -485,6 +506,7 @@
                         <h2>Mostrar ou ocultar seções</h2>
                         <p>Use esta área para ligar ou desligar blocos inteiros da página sem precisar apagar conteúdo.</p>
                     </div>
+                    <div class="editor-field admin-search"><label>Buscar seção</label><input type="text" id="sectionSearch" placeholder="Ex.: hero, projetos, equipe..."></div>
                     <div class="editor-list" id="sectionEditor"></div>
                 </section>
 
@@ -514,6 +536,7 @@
 
                     <div class="admin-action-row">
                         <button class="btn btn-primary" id="saveButton" type="button">Salvar alterações</button>
+                        <button class="btn btn-outline" id="refreshPreviewButton" type="button">Atualizar preview</button>
                         <button class="btn btn-outline" id="copyJsonButton" type="button">Copiar configuração</button>
                         <button class="btn btn-outline" id="resetPageButton" type="button">Resetar página</button>
                     </div>

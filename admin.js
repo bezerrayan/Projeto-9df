@@ -1,6 +1,8 @@
 var ADMIN_STATE = { pages: {} };
 var ADMIN_PAGES = {};
 var CURRENT_PAGE = 'index.html';
+var AUTO_SAVE_TIMER = null;
+var IS_SAVING = false;
 var CURRENT_TARGETS = {
     texts: [],
     images: [],
@@ -86,6 +88,10 @@ function setupPageSelect() {
 
 function bindGlobalActions() {
     document.getElementById('saveButton').addEventListener('click', saveState);
+    document.getElementById('refreshPreviewButton').addEventListener('click', function () {
+        refreshPreview(true);
+        setStatus('Preview atualizado.');
+    });
     document.getElementById('copyJsonButton').addEventListener('click', copyJson);
     document.getElementById('resetPageButton').addEventListener('click', function () {
         delete ADMIN_STATE.pages[CURRENT_PAGE];
@@ -100,6 +106,9 @@ function bindGlobalActions() {
         window.location.href = '/login';
     });
     document.getElementById('addExtraButton').addEventListener('click', addExtraSection);
+    bindSearch('textSearch', 'textEditor');
+    bindSearch('imageSearch', 'imageEditor');
+    bindSearch('sectionSearch', 'sectionEditor');
 }
 
 function setupTabs() {
@@ -235,6 +244,7 @@ function renderTextEditor(pageName) {
         field.addEventListener('input', function () {
             pageState.text[entry.key] = field.value;
             syncJson();
+            queueAutoSave();
         });
 
         container.appendChild(details);
@@ -264,6 +274,7 @@ function renderImageEditor(pageName) {
             pageState.images[entry.key].src = inputs[0].value.trim();
             pageState.images[entry.key].alt = inputs[1].value.trim();
             syncJson();
+            queueAutoSave();
         }
 
         inputs[0].addEventListener('input', updateImage);
@@ -290,6 +301,7 @@ function renderSectionEditor(pageName) {
         checkbox.addEventListener('change', function () {
             pageState.sections[entry.key] = { hidden: !checkbox.checked };
             syncJson();
+            queueAutoSave();
         });
 
         container.appendChild(wrapper);
@@ -317,6 +329,7 @@ function renderExtraList(pageName) {
             updateSummary(pageName);
             syncJson();
             setStatus('Secao extra removida. Salve para publicar.');
+            queueAutoSave();
         });
 
         container.appendChild(card);
@@ -347,11 +360,17 @@ function addExtraSection() {
     renderExtraList(CURRENT_PAGE);
     updateSummary(CURRENT_PAGE);
     syncJson();
-    setStatus('Nova secao adicionada. Salve para publicar.');
+    setStatus('Nova secao adicionada. Salvando...');
+    queueAutoSave();
 }
 
-async function saveState() {
+async function saveState(isAutoSave) {
+    if (IS_SAVING) {
+        return;
+    }
+
     try {
+        IS_SAVING = true;
         var parsed = JSON.parse(document.getElementById('jsonField').value);
         ADMIN_STATE = parsed;
         var response = await fetch('/api/admin/content', {
@@ -366,10 +385,12 @@ async function saveState() {
         }
 
         updateSummary(CURRENT_PAGE);
-        setStatus('Alteracoes salvas no servidor.');
+        setStatus(isAutoSave ? 'Alteracoes salvas automaticamente.' : 'Alteracoes salvas no servidor.');
         refreshPreview(true);
     } catch (error) {
         setStatus('Nao foi possivel salvar. Revise os dados e tente novamente.', true);
+    } finally {
+        IS_SAVING = false;
     }
 }
 
@@ -391,6 +412,14 @@ function copyJson() {
 
 function syncJson() {
     document.getElementById('jsonField').value = JSON.stringify(ADMIN_STATE, null, 2);
+}
+
+function queueAutoSave() {
+    clearTimeout(AUTO_SAVE_TIMER);
+    setStatus('Alteracao em rascunho. Salvando...');
+    AUTO_SAVE_TIMER = setTimeout(function () {
+        saveState(true);
+    }, 700);
 }
 
 function updateSummary(pageName) {
@@ -415,6 +444,23 @@ function setStatus(message, isError) {
     var line = document.getElementById('statusLine');
     line.textContent = message;
     line.style.color = isError ? '#ff6b6b' : '#4da1ff';
+}
+
+function bindSearch(inputId, containerId) {
+    var input = document.getElementById(inputId);
+    var container = document.getElementById(containerId);
+
+    if (!input || !container) {
+        return;
+    }
+
+    input.addEventListener('input', function () {
+        var term = input.value.trim().toLowerCase();
+        Array.from(container.children).forEach(function (item) {
+            var text = item.textContent.toLowerCase();
+            item.style.display = !term || text.indexOf(term) !== -1 ? '' : 'none';
+        });
+    });
 }
 
 function escapeHtml(value) {
