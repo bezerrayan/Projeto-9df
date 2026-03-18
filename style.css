@@ -38,6 +38,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 body {
@@ -46,7 +47,6 @@ body {
     color: var(--ink);
     background: var(--white);
     line-height: 1.6;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -317,7 +317,7 @@ h2 em {
     margin: 0;
 }
 
-.section-text + .section-text {
+.section-text+.section-text {
     margin-top: 14px;
 }
 
@@ -397,8 +397,7 @@ h2 em {
     overflow: hidden;
 }
 
-.hero-pattern,
-.hero-glow {
+.hero-pattern {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -409,13 +408,7 @@ h2 em {
     background-size: 34px 34px;
 }
 
-.hero-glow {
-    inset: auto -180px -180px auto;
-    width: 560px;
-    height: 560px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 113, 227, 0.35), transparent 70%);
-}
+
 
 .hero-layout,
 .page-hero-grid,
@@ -434,11 +427,11 @@ h2 em {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.two-col.reverse > :first-child {
+.two-col.reverse> :first-child {
     order: 2;
 }
 
-.two-col.reverse > :last-child {
+.two-col.reverse> :last-child {
     order: 1;
 }
 
@@ -497,10 +490,6 @@ h2 em {
 .hero-photo-frame,
 .media-card {
     box-shadow: var(--shadow-lg);
-}
-
-.hero-photo-frame {
-    aspect-ratio: 4 / 5;
 }
 
 .floating-card {
@@ -1732,6 +1721,7 @@ textarea {
 }
 
 @media (max-width: 1080px) {
+
     .feature-grid,
     .activity-grid,
     .project-grid,
