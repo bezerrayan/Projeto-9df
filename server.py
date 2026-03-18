@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import sqlite3
 from functools import wraps
 
@@ -14,6 +15,9 @@ CONTENT_PATH = os.path.join(BASE_DIR, "site_content.json")
 
 PORT = 5000
 HOST = "0.0.0.0"
+ALLOWED_IMAGE_EXTENSIONS = {".webp", ".jpg", ".jpeg", ".png", ".svg"}
+MAX_IMAGE_BYTES = 2 * 1024 * 1024
+LINUX_SAFE_IMAGE_RE = re.compile(r"^images/[a-z0-9/_-]+\.(webp|jpg|jpeg|png|svg)$")
 
 PUBLIC_PAGES = {
     "index.html",
@@ -137,9 +141,60 @@ def sanitize_content_payload(payload):
 
     admin_panel = payload.get("adminPanel", {})
     if isinstance(admin_panel, dict):
-        cleaned["adminPanel"] = admin_panel
+        cleaned["adminPanel"] = sanitize_admin_panel(admin_panel)
 
     return cleaned
+
+
+def sanitize_admin_panel(admin_panel):
+    cleaned = dict(admin_panel)
+    photos = cleaned.get("photos", [])
+    if isinstance(photos, list):
+        validated_photos = []
+        for photo in photos:
+            validated_photos.append(validate_gallery_photo(photo))
+        cleaned["photos"] = validated_photos
+    return cleaned
+
+
+def validate_gallery_photo(photo):
+    if not isinstance(photo, dict):
+        raise ValueError("invalid_gallery_photo:item inválido")
+
+    src = str(photo.get("src") or "").strip().replace("\\", "/")
+    title = str(photo.get("title") or "").strip()
+    category = str(photo.get("category") or "").strip()
+    caption = str(photo.get("caption") or title).strip()
+
+    if not title or not src:
+        raise ValueError("invalid_gallery_photo:título e caminho são obrigatórios")
+
+    if not LINUX_SAFE_IMAGE_RE.fullmatch(src):
+        raise ValueError("invalid_gallery_photo:use images/ com minúsculas, sem espaço e sem acento")
+
+    _, extension = os.path.splitext(src)
+    if extension.lower() not in ALLOWED_IMAGE_EXTENSIONS:
+        raise ValueError("invalid_gallery_photo:formato não permitido")
+
+    full_path = os.path.normpath(os.path.join(BASE_DIR, src))
+    images_root = os.path.normpath(os.path.join(BASE_DIR, "images"))
+
+    if not full_path.startswith(images_root + os.sep):
+        raise ValueError("invalid_gallery_photo:caminho fora da pasta images")
+
+    if not os.path.isfile(full_path):
+        raise ValueError("invalid_gallery_photo:arquivo não encontrado")
+
+    if os.path.getsize(full_path) > MAX_IMAGE_BYTES:
+        raise ValueError("invalid_gallery_photo:arquivo acima de 2 MB")
+
+    return {
+        "id": str(photo.get("id") or "").strip(),
+        "title": title,
+        "category": category or "atividade",
+        "caption": caption,
+        "src": src,
+    }
 
 
 @app.route("/login")
@@ -209,7 +264,10 @@ def api_admin_content():
 @login_required
 def api_admin_content_save():
     payload = request.get_json(silent=True)
-    cleaned = sanitize_content_payload(payload)
+    try:
+        cleaned = sanitize_content_payload(payload)
+    except ValueError as error:
+        return jsonify({"ok": False, "error": str(error)}), 400
     save_content(cleaned)
     return jsonify({"ok": True})
 
