@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    applyAdminContent();
     setupMenu();
     setupHeaderShadow();
     setupYear();
@@ -6,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupGalleryFilter();
     setupProjectToggles();
     setupContactForm();
+    setupAdminMode();
 });
 
 function setupMenu() {
@@ -474,4 +476,268 @@ function setupContactForm() {
 
         feedback.textContent = 'Use o campo abaixo para copiar sua mensagem manualmente.';
     });
+}
+
+var SITE_CONTENT_CACHE = null;
+
+function getCurrentPageName() {
+    var name = window.location.pathname.split('/').pop();
+    return name || 'index.html';
+}
+
+function buildAdminPath(element, root) {
+    var parts = [];
+    var current = element;
+
+    while (current && current !== root) {
+        var tag = current.tagName.toLowerCase();
+        var index = 1;
+        var sibling = current.previousElementSibling;
+
+        while (sibling) {
+            if (sibling.tagName === current.tagName) {
+                index += 1;
+            }
+            sibling = sibling.previousElementSibling;
+        }
+
+        parts.unshift(tag + ':nth-of-type(' + index + ')');
+        current = current.parentElement;
+    }
+
+    return parts.join(' > ');
+}
+
+function getEditableTextNodes(root) {
+    return Array.from(root.querySelectorAll('h1, h2, h3, h4, p, .eyebrow, .btn'))
+        .filter(function (node) {
+            if (!node.textContent || !node.textContent.trim()) {
+                return false;
+            }
+
+            if (node.closest('.admin-shell')) {
+                return false;
+            }
+
+            return true;
+        })
+        .map(function (node, index) {
+            return {
+                index: index,
+                key: buildAdminPath(node, root),
+                element: node,
+                label: node.tagName.toLowerCase() + ' - ' + node.textContent.trim().replace(/\s+/g, ' ').slice(0, 60)
+            };
+        });
+}
+
+function getEditableImages(root) {
+    return Array.from(root.querySelectorAll('img'))
+        .filter(function (node) {
+            return !node.closest('.admin-shell');
+        })
+        .map(function (node, index) {
+            return {
+                index: index,
+                key: buildAdminPath(node, root),
+                element: node,
+                label: 'Imagem ' + (index + 1) + ' - ' + (node.getAttribute('alt') || node.getAttribute('src') || 'sem descricao')
+            };
+        });
+}
+
+function getEditableSections(root) {
+    return Array.from(root.children)
+        .filter(function (node) {
+            return node.tagName === 'SECTION' && !node.classList.contains('admin-extra-section');
+        })
+        .map(function (node, index) {
+            var heading = node.querySelector('h1, h2, h3');
+            return {
+                index: index,
+                key: buildAdminPath(node, root),
+                element: node,
+                label: heading ? heading.textContent.trim() : 'Secao ' + (index + 1)
+            };
+        });
+}
+
+function readEditableText(node) {
+    if (node.classList.contains('btn')) {
+        var clone = node.cloneNode(true);
+        clone.querySelectorAll('i').forEach(function (icon) {
+            icon.remove();
+        });
+        return clone.textContent.trim();
+    }
+
+    return node.innerHTML.trim();
+}
+
+function writeEditableText(node, value) {
+    if (node.classList.contains('btn')) {
+        var icon = node.querySelector('i');
+        if (icon) {
+            var iconClone = icon.cloneNode(true);
+            node.innerHTML = '';
+            node.appendChild(document.createTextNode(value + ' '));
+            node.appendChild(iconClone);
+            return;
+        }
+
+        node.textContent = value;
+        return;
+    }
+
+    node.innerHTML = value;
+}
+
+function renderAdminExtraSections(root, pageState) {
+    Array.from(root.querySelectorAll('.admin-extra-section')).forEach(function (section) {
+        section.remove();
+    });
+
+    pageState.extras.forEach(function (extra) {
+        var section = document.createElement('section');
+        section.className = 'section admin-extra-section' + (extra.tone === 'soft' ? ' section-soft' : '') + (extra.tone === 'dark' ? ' cta-band' : '');
+
+        if (extra.tone === 'dark') {
+            section.innerHTML =
+                '<div class="shell cta-layout">' +
+                '<div>' +
+                '<div class="eyebrow light">Secao personalizada</div>' +
+                '<h2>' + (extra.title || 'Nova secao') + '</h2>' +
+                '<p>' + (extra.text || '') + '</p>' +
+                '</div>' +
+                '<div class="button-row">' +
+                (extra.buttonLabel && extra.buttonHref ? '<a href="' + extra.buttonHref + '" class="btn btn-light">' + extra.buttonLabel + '</a>' : '') +
+                '</div>' +
+                '</div>';
+        } else {
+            section.innerHTML =
+                '<div class="shell">' +
+                '<div class="split-layout">' +
+                '<div>' +
+                '<div class="eyebrow">Secao personalizada</div>' +
+                '<h2 class="section-title left">' + (extra.title || 'Nova secao') + '</h2>' +
+                '<p class="section-text">' + (extra.text || '') + '</p>' +
+                (extra.buttonLabel && extra.buttonHref ? '<div class="button-row"><a href="' + extra.buttonHref + '" class="btn btn-primary">' + extra.buttonLabel + '</a></div>' : '') +
+                '</div>' +
+                (extra.imageSrc ? '<div class="media-card"><img src="' + extra.imageSrc + '" alt="' + (extra.imageAlt || '') + '" class="cover-image" loading="lazy" decoding="async"></div>' : '') +
+                '</div>' +
+                '</div>';
+        }
+
+        root.appendChild(section);
+    });
+}
+
+function ensurePageState(state, pageName) {
+    if (!state.pages) {
+        state.pages = {};
+    }
+
+    if (!state.pages[pageName]) {
+        state.pages[pageName] = {
+            text: {},
+            images: {},
+            sections: {},
+            extras: []
+        };
+    }
+
+    if (!state.pages[pageName].text) {
+        state.pages[pageName].text = {};
+    }
+    if (!state.pages[pageName].images) {
+        state.pages[pageName].images = {};
+    }
+    if (!state.pages[pageName].sections) {
+        state.pages[pageName].sections = {};
+    }
+    if (!Array.isArray(state.pages[pageName].extras)) {
+        state.pages[pageName].extras = [];
+    }
+
+    return state.pages[pageName];
+}
+
+function loadAdminState() {
+    return SITE_CONTENT_CACHE || { pages: {} };
+}
+
+function fetchSiteContent() {
+    return fetch('/api/site-content', { credentials: 'same-origin' })
+        .then(function (response) {
+            if (!response.ok) {
+                throw new Error('site-content-unavailable');
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            SITE_CONTENT_CACHE = data;
+            return data;
+        })
+        .catch(function () {
+            SITE_CONTENT_CACHE = { pages: {} };
+            return SITE_CONTENT_CACHE;
+        });
+}
+
+function applyAdminContent() {
+    var root = document.querySelector('main');
+    if (!root) {
+        return;
+    }
+
+    fetchSiteContent().then(function (state) {
+        var pageName = getCurrentPageName();
+        var pageState = ensurePageState(state, pageName);
+
+        getEditableTextNodes(root).forEach(function (entry) {
+            if (Object.prototype.hasOwnProperty.call(pageState.text, entry.key)) {
+                writeEditableText(entry.element, pageState.text[entry.key]);
+            }
+        });
+
+        getEditableImages(root).forEach(function (entry) {
+            var imageOverride = pageState.images[entry.key];
+            if (!imageOverride) {
+                return;
+            }
+
+            if (imageOverride.src) {
+                entry.element.setAttribute('src', imageOverride.src);
+            }
+            if (typeof imageOverride.alt === 'string') {
+                entry.element.setAttribute('alt', imageOverride.alt);
+            }
+        });
+
+        getEditableSections(root).forEach(function (entry) {
+            var sectionOverride = pageState.sections[entry.key];
+            entry.element.hidden = !!(sectionOverride && sectionOverride.hidden);
+        });
+
+        renderAdminExtraSections(root, pageState);
+    });
+}
+
+function setupAdminShortcut() {
+    window.addEventListener('keydown', function (event) {
+        if (event.ctrlKey && event.shiftKey && event.key === '9') {
+            event.preventDefault();
+            window.location.href = '/admin?page=' + encodeURIComponent(getCurrentPageName());
+        }
+    });
+}
+
+function setupAdminMode() {
+    setupAdminShortcut();
+
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('gearadmin') !== '1') {
+        return;
+    }
+    window.location.href = '/admin?page=' + encodeURIComponent(getCurrentPageName());
 }

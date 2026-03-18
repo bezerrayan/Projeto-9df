@@ -27,6 +27,8 @@
     --radius-lg: 36px;
     --shell: 1200px;
     --nav-height: 78px;
+    --section-space: 84px;
+    --section-space-mobile: 68px;
     --transition: 180ms ease;
 }
 
@@ -235,7 +237,7 @@ textarea {
 }
 
 .section {
-    padding: 88px 0;
+    padding: var(--section-space) 0;
 }
 
 .section-soft {
@@ -931,7 +933,7 @@ h2 em {
 }
 
 .cta-band {
-    padding: 72px 0;
+    padding: var(--section-space) 0;
     background: linear-gradient(135deg, var(--blue-800) 0%, var(--blue-600) 100%);
     overflow: hidden;
 }
@@ -961,7 +963,7 @@ h2 em {
 }
 
 .page-hero {
-    padding: 82px 0;
+    padding: var(--section-space) 0;
 }
 
 .page-hero-dark {
@@ -1234,6 +1236,79 @@ h2 em {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.resource-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.resource-grid.compact-grid {
+    grid-template-columns: 1fr;
+}
+
+.resource-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 24px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.resource-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.resource-head .info-icon {
+    background: var(--blue-050);
+    color: var(--blue-500);
+}
+
+.resource-head h3 {
+    font-size: 1.14rem;
+    margin-bottom: 6px;
+}
+
+.resource-head p {
+    margin: 0;
+    color: var(--text);
+}
+
+.resource-list {
+    display: grid;
+    gap: 10px;
+    list-style: none;
+}
+
+.resource-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--blue-050);
+    color: var(--blue-800);
+    font-weight: 700;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.resource-list a:hover {
+    transform: translateY(-2px);
+    border-color: rgba(30, 121, 231, 0.25);
+    background: rgba(30, 121, 231, 0.12);
+}
+
+.resource-list a i:last-child {
+    color: var(--blue-500);
+    flex-shrink: 0;
+}
+
 .doc-card {
     display: flex;
     flex-direction: column;
@@ -1342,22 +1417,23 @@ textarea {
     min-height: 28px;
     padding: 0 10px;
     border-radius: 999px;
-    background: var(--blue-050);
-    color: var(--blue-600);
+    background: #e2efff;
+    color: var(--blue-800);
+    border: 1px solid rgba(10, 82, 168, 0.16);
     font-size: 0.72rem;
     font-weight: 800;
 }
 
 .project-body h4 {
     font-size: 1rem;
-    color: var(--blue-600);
+    color: var(--blue-700);
 }
 
 .project-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
-    color: var(--muted);
+    color: var(--blue-700);
     font-size: 0.86rem;
     font-weight: 700;
     margin-top: auto;
@@ -1366,13 +1442,17 @@ textarea {
 
 .project-toggle {
     min-height: 44px;
-    border: 1px solid var(--blue-100);
+    border: 1px solid rgba(10, 82, 168, 0.16);
     border-radius: 14px;
-    background: var(--blue-050);
+    background: #edf5ff;
     color: var(--blue-700);
     font-weight: 800;
     cursor: pointer;
     margin-top: 6px;
+}
+
+.project-toggle:hover {
+    background: #e2efff;
 }
 
 .project-details {
@@ -1394,6 +1474,18 @@ textarea {
     margin: 0;
     padding-left: 18px;
     color: var(--text);
+}
+
+.project-cta {
+    display: grid;
+    grid-template-columns: 1.2fr auto;
+    gap: 28px;
+    align-items: center;
+    padding: 28px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, #f5faff 0%, #e7f1ff 100%);
+    border: 1px solid rgba(10, 82, 168, 0.12);
+    box-shadow: var(--shadow-sm);
 }
 
 .contact-grid {
@@ -1725,6 +1817,7 @@ textarea {
     .feature-grid,
     .activity-grid,
     .project-grid,
+    .resource-grid,
     .docs-grid,
     .notice-grid,
     .journey-grid,
@@ -1825,6 +1918,10 @@ textarea {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .project-cta {
+        grid-template-columns: 1fr;
+    }
+
     .doc-actions {
         justify-content: stretch;
     }
@@ -1860,7 +1957,7 @@ textarea {
     .section,
     .page-hero,
     .cta-band {
-        padding: 68px 0;
+        padding: var(--section-space-mobile) 0;
     }
 
     .hero-copy h1 {
@@ -1876,6 +1973,7 @@ textarea {
     .feature-grid,
     .activity-grid,
     .project-grid,
+    .resource-grid,
     .gallery-grid,
     .docs-grid,
     .notice-grid,
