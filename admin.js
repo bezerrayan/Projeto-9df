@@ -1,484 +1,204 @@
-var ADMIN_STATE = { pages: {} };
-var ADMIN_PAGES = {};
-var CURRENT_PAGE = 'index.html';
-var AUTO_SAVE_TIMER = null;
-var IS_SAVING = false;
-var CURRENT_TARGETS = {
-    texts: [],
-    images: [],
-    sections: []
-};
+const PAGES=[["Principal","dashboard","fa-th-large","Dashboard"],["Principal","calendario","fa-calendar-alt","Calendário"],["Principal","galeria","fa-images","Galeria"],["Principal","projetos","fa-hands-helping","Projetos"],["Principal","ramos","fa-layer-group","Ramos"],["Principal","atividades","fa-star","Atividades"],["Principal","membros","fa-users","Membros"],["Conteúdo","sobre","fa-info-circle","Página Sobre"],["Conteúdo","contato","fa-map-marker-alt","Contato"],["Sistema","ia","fa-robot","Assistente IA"],["Sistema","config","fa-cog","Configurações"]];
+const MONTHS=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],MONTHS_SHORT=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],MEMBER_COLORS=[["#E6F1FB","#185FA5"],["#d1fae5","#065f46"],["#fef3c7","#92400e"],["#fee2e2","#991b1b"],["#ede9fe","#5b21b6"]];
+let STATE={pages:{},adminPanel:{}},PAGE="dashboard",BRANCH="filhotes",MONTH=2,YEAR=2026,SAVING=false,TOAST_TIMER=null;
 
-document.addEventListener('DOMContentLoaded', function () {
-    initializeAdmin();
-});
+document.addEventListener("DOMContentLoaded",init);
 
-async function initializeAdmin() {
-    var sessionResponse = await fetch('/api/auth/session', { credentials: 'same-origin' });
-    var sessionData = await sessionResponse.json();
-
-    if (!sessionData.authenticated) {
-        window.location.href = '/login?next=' + encodeURIComponent(getRequestedPage());
-        return;
-    }
-
-    var pagesResponse = await fetch('/api/admin/pages', { credentials: 'same-origin' });
-    var pagesData = await pagesResponse.json();
-    ADMIN_PAGES = pagesData.pages || {};
-
-    var contentResponse = await fetch('/api/admin/content', { credentials: 'same-origin' });
-    ADMIN_STATE = await contentResponse.json();
-    if (!ADMIN_STATE.pages) {
-        ADMIN_STATE.pages = {};
-    }
-
-    setupPageSelect();
-    bindGlobalActions();
-    setupTabs();
-    await loadPageEditor(CURRENT_PAGE);
+async function init(){
+  try{
+    const session=await (await fetch("/api/auth/session")).json();
+    if(!session.authenticated){window.location.href="/login";return;}
+    document.getElementById("admin-email-short").textContent=session.email||"Admin";
+    document.getElementById("logout-button").addEventListener("click",logout);
+    document.getElementById("save-btn").addEventListener("click",()=>save(false));
+    const content=await (await fetch("/api/admin/content")).json();
+    STATE=content&&typeof content==="object"?content:{pages:{},adminPanel:{}};
+    if(!STATE.pages||typeof STATE.pages!=="object")STATE.pages={};
+    ensureState();renderSidebar();renderPage(PAGE);
+  }catch(e){alert("Não foi possível carregar o painel.");}
 }
 
-function getRequestedPage() {
-    var params = new URLSearchParams(window.location.search);
-    return params.get('page') || 'index.html';
+function ensureState(){
+  const p=STATE.adminPanel||{};
+  p.events=Array.isArray(p.events)?p.events:[{id:id("ev"),date:"2026-03-07",title:"Abertura Regional",type:"regional",description:""},{id:id("ev"),date:"2026-03-14",title:"Atividade de seções",type:"grupo",description:""},{id:id("ev"),date:"2026-03-21",title:"Atividade das seções",type:"grupo",description:""},{id:id("ev"),date:"2026-03-28",title:"Atividade das seções",type:"grupo",description:""}];
+  p.photos=Array.isArray(p.photos)?p.photos:[{id:id("ph"),title:"Acampamento CENIPA 2025",category:"acampamento",caption:"Acampamento\nCENIPA 2025"},{id:id("ph"),title:"Trilha Chapada 2025",category:"atividade",caption:"Trilha\nChapada 2025"},{id:id("ph"),title:"Abertura Regional 2026",category:"evento",caption:"Abertura\nRegional 2026"},{id:id("ph"),title:"Mutirão Verde 2025",category:"comunidade",caption:"Mutirão\nVerde 2025"}];
+  p.projects=Array.isArray(p.projects)?p.projects:[{id:id("pr"),icon:"🌱",title:"Mutirão Verde",status:"ativo",meta:"#MeioAmbiente · #Comunidade · Nov 2025 · 40 participantes",description:"Reflorestar áreas degradadas e promover consciência ecológica na vizinhança.",progress:75},{id:id("pr"),icon:"🤝",title:"Campanha Higiene é Dignidade",status:"ativo",meta:"#Solidariedade · #Inverno · Jul 2025 · 60 participantes",description:"Coleta e distribuição de produtos de higiene para famílias em vulnerabilidade.",progress:90},{id:id("pr"),icon:"🎁",title:"Doação de Brinquedos da Alcateia",status:"planejado",meta:"#NatalSolidário · #Crianças · Dez 2025 · 25 participantes",description:"Levar a magia do Natal a crianças de uma creche carente.",progress:40}];
+  p.activities=Array.isArray(p.activities)?p.activities:[{id:id("at"),icon:"⛺",title:"Acampamentos",description:"Vivência intensa na natureza, autonomia e trabalho em equipe sob as estrelas."},{id:id("at"),icon:"🥾",title:"Trilhas",description:"Exploração de caminhos, orientação e respeito ao meio ambiente."},{id:id("at"),icon:"🔥",title:"Fogueiras",description:"Integração, canções e reflexões que fortalecem valores."},{id:id("at"),icon:"⭐",title:"Especialidades",description:"Habilidades em primeiros socorros, técnicas escoteiras e muito mais."}];
+  p.members=Array.isArray(p.members)?p.members:[{id:id("mb"),name:"Gustavo S.",branch:"Pioneiros",role:"Chefe",since:"2019",status:"ativo"},{id:id("mb"),name:"Yan F.",branch:"Seniores",role:"Chefe",since:"2020",status:"ativo"},{id:id("mb"),name:"Maria C.",branch:"Escoteiros",role:"Monitor",since:"2022",status:"ativo"},{id:id("mb"),name:"Pedro T.",branch:"Lobinhos",role:"Jovem",since:"2023",status:"ativo"}];
+  p.branches=p.branches||{filhotes:{name:"Filhotes",age:"5 a 7 anos",short:"Primeiros passos no escotismo com acolhimento, descobertas e atividades pensadas para aprender brincando.",long:"Nessa fase, a criança fortalece confiança, convivência e autonomia em encontros leves e dinâmicos.",bullets:["Jogos cooperativos e integração em grupo","Histórias e atividades de valores escoteiros","Experiências ao ar livre com segurança"]},lobinhos:{name:"Lobinhos",age:"7 a 10 anos",short:"Na alcateia, crianças desenvolvem responsabilidade, amizade e autonomia.",long:"As atividades estimulam iniciativa e respeito ao grupo, com aprendizagem pela ação.",bullets:["Jogos, canções e aprendizagem pela ação","Acantonamentos e trilhas leves","Boas ações e cooperação no dia a dia"]},escoteiros:{name:"Escoteiros",age:"10 a 15 anos",short:"No sistema de patrulhas, o jovem assume responsabilidades reais e cresce em técnica e liderança.",long:"Cada patrulha tem autonomia para planejar e executar suas atividades com orientação dos chefes.",bullets:["Acampamentos, pioneirias e desafios de campo","Técnicas mateiras e orientação","Liderança prática com autonomia crescente"]},seniores:{name:"Seniores",age:"15 a 18 anos",short:"Fase de superação com desafios mais intensos, protagonismo juvenil e preparação para a vida adulta.",long:"Os jovens assumem papel central na gestão das atividades e desenvolvem visão crítica do mundo.",bullets:["Expedições e técnicas avançadas","Projetos de impacto social","Maturidade, disciplina e visão crítica"]},pioneiros:{name:"Pioneiros",age:"18 a 22 anos",short:"Ramo de jovens adultos com foco em projeto de vida, serviço ao próximo e liderança com propósito.",long:"O Pioneiro é o escoteiro que escolheu continuar e liderar. Seu lema é servir.",bullets:["Mutirões e ações sociais contínuas","Gestão de projetos e equipes","Liderança servidora na comunidade"]}};
+  p.about=p.about||{worldTitle:"O Escotismo pelo mundo",worldText:"O Escotismo nasceu em 1907, na Inglaterra, idealizado por Robert Baden-Powell, com uma proposta simples e poderosa: educar jovens por meio da aventura, do trabalho em equipe e do aprendizado na prática.",worldComplement:"No Brasil, o Escotismo chegou em 1910 e contribui há mais de um século para a formação de cidadãos ativos e conscientes.",historyIntro:"O Grupo Escoteiro do Ar Salgado Filho 9º DF foi fundado em 17 de outubro de 1971, movido por um sonho ousado: unir o Escotismo à paixão pela aviação.",milestones:["1971 — Ano Base: estruturação do grupo e primeiras atividades regionais","1972 — Ano da Afirmação: identidade no contexto Escotismo e Aeronáutica","1974 — Ano da Consolidação: sede própria e crescimento em número e qualidade","Hoje — Bicampeões da Olimpíada Escoteira do Ar"]};
+  p.contact=p.contact||{email:"contato@escoteiro.com",phonePrimary:"(61) 99999-9999",phoneSecondary:"(61) 3333-3333",instagram:"@gear9df",schedule:"Sábados: 14h30 às 18h",address:"SHIS QI 3 - s/n",cep:"71605-500",cityState:"Brasília, DF",mapsSrc:"https://www.google.com/maps/embed"};
+  p.settings=p.settings||{shortName:"GEAR 9º DF",fullName:"Grupo Escoteiro do Ar Salgado Filho",motto:"Sempre Alerta para Servir",founded:"1971",slogan:"Passou, passou, passou um avião, e nele está escrito: Salgado Filho é amigão!",visibility:{gallery:true,projects:true,calendar:true,championBadge:true,contactForm:true}};
+  p.iaHistory=Array.isArray(p.iaHistory)?p.iaHistory:[];
+  STATE.adminPanel=p;
 }
 
-function ensurePageState(pageName) {
-    if (!ADMIN_STATE.pages[pageName]) {
-        ADMIN_STATE.pages[pageName] = {
-            text: {},
-            images: {},
-            sections: {},
-            extras: []
-        };
-    }
-
-    var page = ADMIN_STATE.pages[pageName];
-    if (!page.text) page.text = {};
-    if (!page.images) page.images = {};
-    if (!page.sections) page.sections = {};
-    if (!Array.isArray(page.extras)) page.extras = [];
-    return page;
+function renderSidebar(){
+  const nav=document.getElementById("sidebar-nav"); let section="";
+  nav.innerHTML=PAGES.map(([group,id,icon,title])=>{const head=group!==section?`<div class="sb-section">${group}</div>`:""; section=group; return `${head}<div class="sb-item${id===PAGE?" on":""}" data-page="${id}"><i class="fas ${icon}"></i><span>${title}</span></div>`;}).join("");
+  nav.querySelectorAll(".sb-item").forEach(item=>item.addEventListener("click",()=>{captureForms(); PAGE=item.dataset.page; renderSidebar(); renderPage(PAGE);}));
 }
 
-function setupPageSelect() {
-    var select = document.getElementById('pageSelect');
-    var requested = getRequestedPage();
-
-    Object.keys(ADMIN_PAGES).forEach(function (pageName) {
-        var option = document.createElement('option');
-        option.value = pageName;
-        option.textContent = ADMIN_PAGES[pageName];
-        select.appendChild(option);
-    });
-
-    CURRENT_PAGE = ADMIN_PAGES[requested] ? requested : 'index.html';
-    select.value = CURRENT_PAGE;
-    document.getElementById('openPageLink').href = CURRENT_PAGE;
-
-    select.addEventListener('change', function () {
-        CURRENT_PAGE = select.value;
-        document.getElementById('openPageLink').href = CURRENT_PAGE;
-        var url = new URL(window.location.href);
-        url.searchParams.set('page', CURRENT_PAGE);
-        history.replaceState({}, '', url.toString());
-        loadPageEditor(CURRENT_PAGE);
-    });
+function renderPage(page){
+  const meta=PAGES.find(item=>item[1]===page);
+  document.getElementById("topbar-title").textContent=meta?meta[3]:"Painel";
+  document.getElementById("content").innerHTML=template(page);
+  renderModals(); bindShared(); bindPage(page); setStatus("ready","Pronto");
 }
 
-function bindGlobalActions() {
-    document.getElementById('saveButton').addEventListener('click', saveState);
-    document.getElementById('refreshPreviewButton').addEventListener('click', function () {
-        refreshPreview(true);
-        setStatus('Preview atualizado.');
-    });
-    document.getElementById('copyJsonButton').addEventListener('click', copyJson);
-    document.getElementById('resetPageButton').addEventListener('click', function () {
-        delete ADMIN_STATE.pages[CURRENT_PAGE];
-        loadPageEditor(CURRENT_PAGE);
-        setStatus('Pagina resetada localmente. Salve para persistir.');
-    });
-    document.getElementById('logoutButton').addEventListener('click', async function () {
-        await fetch('/api/auth/logout', {
-            method: 'POST',
-            credentials: 'same-origin'
-        });
-        window.location.href = '/login';
-    });
-    document.getElementById('addExtraButton').addEventListener('click', addExtraSection);
-    document.querySelectorAll('[data-admin-save]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            saveState();
-        });
-    });
-    document.querySelectorAll('[data-admin-preview]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            refreshPreview(true);
-            setStatus('Preview atualizado.');
-        });
-    });
-    bindSearch('textSearch', 'textEditor');
-    bindSearch('imageSearch', 'imageEditor');
-    bindSearch('sectionSearch', 'sectionEditor');
+function template(page){
+  if(page==="dashboard") return dashboardTpl();
+  if(page==="calendario") return calendarioTpl();
+  if(page==="galeria") return galeriaTpl();
+  if(page==="projetos") return projetosTpl();
+  if(page==="ramos") return ramosTpl();
+  if(page==="atividades") return atividadesTpl();
+  if(page==="membros") return membrosTpl();
+  if(page==="sobre") return sobreTpl();
+  if(page==="contato") return contatoTpl();
+  if(page==="ia") return iaTpl();
+  if(page==="config") return configTpl();
+  return "";
 }
 
-function setupTabs() {
-    var tabs = document.querySelectorAll('[data-admin-tab]');
-    var panels = document.querySelectorAll('[data-admin-panel]');
-
-    tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-            var target = tab.getAttribute('data-admin-tab');
-
-            tabs.forEach(function (button) {
-                button.classList.toggle('active', button === tab);
-            });
-
-            panels.forEach(function (panel) {
-                panel.classList.toggle('active', panel.getAttribute('data-admin-panel') === target);
-            });
-        });
-    });
+function dashboardTpl(){
+  const activeMembers=STATE.adminPanel.members.filter(x=>x.status==="ativo").length;
+  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date); return d.getMonth()===MONTH&&d.getFullYear()===YEAR;});
+  const activeProjects=STATE.adminPanel.projects.filter(x=>x.status!=="concluido").length;
+  return `<div class="metrics">${metric("Membros ativos",activeMembers,"base do grupo")}${metric(`Eventos em ${MONTHS_SHORT[MONTH]}/${String(YEAR).slice(-2)}`,monthEvents.length,"agenda do mês")}${metric("Fotos na galeria",STATE.adminPanel.photos.length,"acervo atual")}${metric("Projetos ativos",activeProjects,"em andamento")}</div><div class="grid2"><div class="card"><div class="card-head"><h3><i class="fas fa-calendar-check" style="color:var(--b5);margin-right:6px"></i>Próximos eventos</h3><button class="btn btn-xs btn-ghost" data-nav-page="calendario">Ver todos</button></div>${dashEvents()}</div><div class="card"><div class="card-head"><h3><i class="fas fa-bolt" style="color:var(--b5);margin-right:6px"></i>Resumo rápido</h3></div>${act("Edite cada módulo e salve na própria área","fluxo intuitivo")}${act("O painel persiste em site_content.json","persistente")}${act("Calendário, galeria, projetos e membros já estão integrados","pronto para uso")}</div></div><div class="card"><div class="card-head"><h3><i class="fas fa-chart-bar" style="color:var(--b5);margin-right:6px"></i>Distribuição por ramo</h3></div>${branchMetrics()}</div>`;
 }
 
-async function loadPageEditor(pageName) {
-    CURRENT_PAGE = pageName;
-    ensurePageState(pageName);
-
-    var response = await fetch('/' + pageName, { credentials: 'same-origin' });
-    var html = await response.text();
-    var parser = new DOMParser();
-    var documentNode = parser.parseFromString(html, 'text/html');
-    var main = documentNode.querySelector('main');
-
-    if (!main) {
-        setStatus('Nao foi possivel ler a estrutura da pagina selecionada.', true);
-        return;
-    }
-
-    CURRENT_TARGETS.texts = getTextTargets(main);
-    CURRENT_TARGETS.images = getImageTargets(main);
-    CURRENT_TARGETS.sections = getSectionTargets(main);
-
-    renderTextEditor(pageName);
-    renderImageEditor(pageName);
-    renderSectionEditor(pageName);
-    renderExtraList(pageName);
-    updateSummary(pageName);
-    syncJson();
-    refreshPreview();
-    setStatus('Editor carregado para ' + (ADMIN_PAGES[pageName] || pageName) + '.');
+function calendarioTpl(){
+  return `<div class="grid2"><div class="card" style="margin-bottom:0"><div class="card-head"><h3 id="cal-month-lbl"></h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button><button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button></div></div><div class="cal-grid-wrap" id="cal-grid"></div><div style="display:flex;gap:12px;margin-top:12px;font-size:.72rem;color:var(--g400)"><span><i class="fas fa-circle" style="color:var(--b5);font-size:.45rem;margin-right:4px"></i>Grupo</span><span><i class="fas fa-circle" style="color:var(--success);font-size:.45rem;margin-right:4px"></i>Regional</span><span><i class="fas fa-circle" style="color:var(--warn);font-size:.45rem;margin-right:4px"></i>Nacional</span></div></div><div class="card" style="margin-bottom:0"><div class="card-head"><h3>Eventos de <span id="cal-month-short"></span></h3><button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button></div><div id="cal-events-panel" style="max-height:280px;overflow-y:auto"></div><div style="margin-top:12px"><button class="btn btn-primary" data-save-page="calendario"><i class="fas fa-save"></i> Salvar calendário</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-head"><h3>Todos os eventos</h3></div><table><thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="all-events-tbody"></tbody></table></div>`;
 }
 
-function buildPath(element, root) {
-    var parts = [];
-    var current = element;
-
-    while (current && current !== root) {
-        var tag = current.tagName.toLowerCase();
-        var index = 1;
-        var sibling = current.previousElementSibling;
-
-        while (sibling) {
-            if (sibling.tagName === current.tagName) {
-                index += 1;
-            }
-            sibling = sibling.previousElementSibling;
-        }
-
-        parts.unshift(tag + ':nth-of-type(' + index + ')');
-        current = current.parentElement;
-    }
-
-    return parts.join(' > ');
+function galeriaTpl(){
+  return `<div class="card"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="btn btn-primary" data-open-modal="modal-upload"><i class="fas fa-upload"></i> Adicionar fotos</button><div style="display:flex;gap:6px;flex-wrap:wrap" id="gal-filters">${filterBtn("all","Todas",true)}${filterBtn("acampamento","Acampamentos")}${filterBtn("atividade","Atividades")}${filterBtn("evento","Eventos")}${filterBtn("comunidade","Ações Sociais")}</div><span style="margin-left:auto;font-size:.78rem;color:var(--g600)" id="gal-count"></span><button class="btn btn-primary" data-save-page="galeria"><i class="fas fa-save"></i> Salvar galeria</button></div></div><div class="photo-grid" id="photo-grid" data-filter="all"></div>`;
 }
 
-function getTextTargets(root) {
-    return Array.from(root.querySelectorAll('h1, h2, h3, h4, p, .eyebrow, .btn')).filter(function (node) {
-        return node.textContent && node.textContent.trim();
-    }).map(function (node) {
-        return {
-            key: buildPath(node, root),
-            node: node,
-            label: node.tagName.toLowerCase() + ' - ' + node.textContent.trim().replace(/\s+/g, ' ').slice(0, 70)
-        };
-    });
+function projetosTpl(){ return `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-proj"><i class="fas fa-plus"></i> Novo projeto</button><button class="btn btn-primary" data-save-page="projetos"><i class="fas fa-save"></i> Salvar projetos</button></div><div id="projetos-container"></div>`; }
+function atividadesTpl(){ return `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-ativ"><i class="fas fa-plus"></i> Nova atividade</button><button class="btn btn-primary" data-save-page="atividades"><i class="fas fa-save"></i> Salvar atividades</button></div><div class="grid3" id="ativ-grid">${STATE.adminPanel.activities.map(activityCard).join("")}</div>`; }
+function membrosTpl(){ return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar membro..."></div><select id="member-branch-filter" style="margin:0;width:160px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--g200)"><option value="">Todos os ramos</option><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select><button class="btn btn-primary" data-open-modal="modal-new-membro"><i class="fas fa-user-plus"></i> Novo membro</button><button class="btn btn-primary" data-save-page="membros"><i class="fas fa-save"></i> Salvar membros</button></div><div class="card"><table><thead><tr><th>Membro</th><th>Ramo</th><th>Função</th><th>Ingresso</th><th>Status</th><th>Ações</th></tr></thead><tbody id="membros-tbody"></tbody></table></div>`; }
+
+function ramosTpl(){
+  const b=STATE.adminPanel.branches[BRANCH];
+  return `<div class="ramo-tabs">${Object.keys(STATE.adminPanel.branches).map(key=>`<div class="ramo-tab${key===BRANCH?" on":""}" data-branch-tab="${key}">${esc(STATE.adminPanel.branches[key].name)}</div>`).join("")}</div><div class="notice"><i class="fas fa-info-circle"></i> Edite o ramo atual e salve nesta própria área.</div><div class="card"><div class="card-head"><h3 id="ramo-card-title">${esc(`${b.name} — ${b.age}`)}</h3></div><div class="form-row"><div class="fg"><label>Nome do ramo</label><input id="ramo-nome" value="${esc(b.name)}"></div><div class="fg"><label>Faixa etária</label><input id="ramo-idade" value="${esc(b.age)}"></div></div><div class="fg"><label>Descrição curta</label><textarea id="ramo-desc1" rows="2">${esc(b.short)}</textarea></div><div class="fg"><label>Descrição longa</label><textarea id="ramo-desc2" rows="3">${esc(b.long)}</textarea></div><div class="fg"><label>Bullets (um por linha)</label><textarea id="ramo-bullets" rows="4">${esc(b.bullets.join("\n"))}</textarea></div><div class="ai-box"><div class="ai-box-head"><i class="fas fa-magic"></i><span>Melhorar texto</span></div><div class="ai-input-row"><input class="ai-input" id="ramo-ai-input" placeholder="Ex: deixe mais inspirador e claro para pais"><button class="btn btn-primary btn-sm" id="ramo-ai-btn"><i class="fas fa-wand-magic-sparkles"></i> Gerar</button></div><div class="ai-result" id="ramo-ai-result"></div></div><div style="display:flex;gap:8px"><button class="btn btn-primary" data-save-page="ramos"><i class="fas fa-save"></i> Salvar ramo</button><button class="btn" id="ramo-apply-ai">Aplicar sugestão</button></div></div>`;
 }
 
-function getImageTargets(root) {
-    return Array.from(root.querySelectorAll('img')).map(function (node, index) {
-        return {
-            key: buildPath(node, root),
-            node: node,
-            label: 'Imagem ' + (index + 1) + ' - ' + (node.getAttribute('alt') || node.getAttribute('src') || 'sem descricao')
-        };
-    });
+function sobreTpl(){
+  const a=STATE.adminPanel.about;
+  return `<div class="card"><div class="card-head"><h3>Seção: O Escotismo pelo mundo</h3></div><div class="fg"><label>Título</label><input id="about-world-title" value="${esc(a.worldTitle)}"></div><div class="fg"><label>Texto principal</label><textarea id="about-world-text" rows="4">${esc(a.worldText)}</textarea></div><div class="fg"><label>Texto complementar</label><textarea id="about-world-complement" rows="3">${esc(a.worldComplement)}</textarea></div><div class="ai-box"><div class="ai-box-head"><i class="fas fa-magic"></i><span>Reescrever trecho</span></div><div class="ai-input-row"><input class="ai-input" id="sobre-ai-input" placeholder="Ex: deixe mais inspirador e institucional"><button class="btn btn-primary btn-sm" id="about-ai-btn"><i class="fas fa-wand-magic-sparkles"></i> Gerar</button></div><div class="ai-result" id="sobre-ai-result"></div></div><div style="display:flex;gap:8px"><button class="btn btn-primary" data-save-page="sobre"><i class="fas fa-save"></i> Salvar bloco</button><button class="btn" id="about-apply-ai">Aplicar sugestão</button></div></div><div class="card"><div class="card-head"><h3>Seção: Nossa história</h3></div><div class="fg"><label>Texto de abertura</label><textarea id="about-history-intro" rows="3">${esc(a.historyIntro)}</textarea></div><div class="fg"><label>Marcos históricos (um por linha)</label><textarea id="about-milestones" rows="5">${esc(a.milestones.join("\n"))}</textarea></div><button class="btn btn-primary" data-save-page="sobre"><i class="fas fa-save"></i> Salvar história</button></div>`;
 }
 
-function getSectionTargets(root) {
-    return Array.from(root.children).filter(function (node) {
-        return node.tagName === 'SECTION';
-    }).map(function (node, index) {
-        var heading = node.querySelector('h1, h2, h3');
-        return {
-            key: buildPath(node, root),
-            label: heading ? heading.textContent.trim() : 'Secao ' + (index + 1)
-        };
-    });
+function contatoTpl(){
+  const c=STATE.adminPanel.contact;
+  return `<div class="grid2"><div class="card"><div class="card-head"><h3>Informações de contato</h3></div><div class="fg"><label>E-mail</label><input id="contact-email" value="${esc(c.email)}"></div><div class="fg"><label>Telefone principal</label><input id="contact-phone-primary" value="${esc(c.phonePrimary)}"></div><div class="fg"><label>Telefone secundário</label><input id="contact-phone-secondary" value="${esc(c.phoneSecondary)}"></div><div class="fg"><label>Instagram</label><input id="contact-instagram" value="${esc(c.instagram)}"></div><div class="fg"><label>Horário de atividades</label><input id="contact-schedule" value="${esc(c.schedule)}"></div><button class="btn btn-primary" data-save-page="contato"><i class="fas fa-save"></i> Salvar contato</button></div><div class="card"><div class="card-head"><h3>Endereço</h3></div><div class="fg"><label>Rua / Endereço</label><input id="contact-address" value="${esc(c.address)}"></div><div class="fg"><label>CEP</label><input id="contact-cep" value="${esc(c.cep)}"></div><div class="fg"><label>Cidade / Estado</label><input id="contact-city" value="${esc(c.cityState)}"></div><div class="fg"><label>Link Google Maps (iframe src)</label><textarea id="contact-maps" rows="3">${esc(c.mapsSrc)}</textarea></div><button class="btn btn-primary" data-save-page="contato"><i class="fas fa-save"></i> Salvar endereço</button></div></div>`;
 }
 
-function readTextValue(node) {
-    if (node.classList.contains('btn')) {
-        var clone = node.cloneNode(true);
-        clone.querySelectorAll('i').forEach(function (icon) {
-            icon.remove();
-        });
-        return clone.textContent.trim();
-    }
-    return node.innerHTML.trim();
+function iaTpl(){ return `<div class="notice success"><i class="fas fa-robot"></i> Assistente local para ajudar com rascunhos rápidos. Ele não chama API externa.</div><div class="card"><div class="card-head"><h3><i class="fas fa-robot" style="color:var(--b5);margin-right:6px"></i>Assistente de conteúdo</h3><span class="badge b-blue">Local</span></div><div id="ia-chat" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:4px 0"></div><div style="display:flex;gap:8px"><input class="ai-input" id="ia-input" placeholder="Ex: gere um texto para divulgar o sábado do grupo" style="flex:1"><button class="btn btn-primary" id="ia-send-btn"><i class="fas fa-paper-plane"></i> Enviar</button></div><div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-xs btn-ghost" data-ia-quick="Escreva uma descrição inspiradora para o ramo Escoteiros do GEAR 9º DF">Descrição Escoteiros</button><button class="btn btn-xs btn-ghost" data-ia-quick="Crie um post para Instagram anunciando as atividades do sábado do GEAR 9º DF">Post Instagram</button><button class="btn btn-xs btn-ghost" data-ia-quick="Escreva um texto sobre a importância do escotismo para formação de jovens líderes">Texto sobre escotismo</button></div></div>`; }
+
+function configTpl(){
+  const s=STATE.adminPanel.settings;
+  return `<div class="card"><div class="card-head"><h3>Identidade do grupo</h3></div><div class="form-row"><div class="fg"><label>Nome curto</label><input id="cfg-short-name" value="${esc(s.shortName)}"></div><div class="fg"><label>Nome completo</label><input id="cfg-full-name" value="${esc(s.fullName)}"></div></div><div class="form-row"><div class="fg"><label>Lema</label><input id="cfg-motto" value="${esc(s.motto)}"></div><div class="fg"><label>Ano de fundação</label><input id="cfg-founded" value="${esc(s.founded)}"></div></div><div class="fg"><label>Slogan completo</label><input id="cfg-slogan" value="${esc(s.slogan)}"></div><button class="btn btn-primary" data-save-page="config"><i class="fas fa-save"></i> Salvar identidade</button></div><div class="card"><div class="card-head"><h3>Visibilidade de seções</h3></div><div style="display:grid;gap:14px">${visibilityRows(s.visibility)}</div><div style="margin-top:14px"><button class="btn btn-primary" data-save-page="config"><i class="fas fa-save"></i> Salvar visibilidade</button></div></div>`;
 }
 
-function renderTextEditor(pageName) {
-    var container = document.getElementById('textEditor');
-    var pageState = ensurePageState(pageName);
-    container.innerHTML = '';
-
-    CURRENT_TARGETS.texts.forEach(function (entry, index) {
-        var details = document.createElement('details');
-        details.innerHTML =
-            '<summary>' + (index + 1) + '. ' + escapeHtml(entry.label) + '</summary>' +
-            '<div class="editor-meta">' + escapeHtml(entry.key) + '</div>' +
-            '<div class="editor-field"><label>Conteudo</label><textarea></textarea></div>';
-
-        var field = details.querySelector('textarea');
-        field.value = Object.prototype.hasOwnProperty.call(pageState.text, entry.key) ? pageState.text[entry.key] : readTextValue(entry.node);
-        field.addEventListener('input', function () {
-            pageState.text[entry.key] = field.value;
-            syncJson();
-            queueAutoSave();
-        });
-
-        container.appendChild(details);
-    });
+function bindShared(){
+  document.querySelectorAll("[data-open-modal]").forEach(btn=>btn.addEventListener("click",()=>openModal(btn.dataset.openModal)));
+  document.querySelectorAll("[data-close-modal]").forEach(btn=>btn.addEventListener("click",()=>closeModal(btn.dataset.closeModal)));
+  document.querySelectorAll(".modal-overlay").forEach(overlay=>overlay.addEventListener("click",event=>{if(event.target===overlay)closeModal(overlay.id);}));
+  document.querySelectorAll("[data-save-page]").forEach(btn=>btn.addEventListener("click",()=>{captureForms(); save(false);}));
+  document.querySelectorAll("[data-nav-page]").forEach(btn=>btn.addEventListener("click",()=>{PAGE=btn.dataset.navPage; renderSidebar(); renderPage(PAGE);}));
+  document.getElementById("content").addEventListener("input",()=>setStatus("dirty","Alterações pendentes"));
 }
 
-function renderImageEditor(pageName) {
-    var container = document.getElementById('imageEditor');
-    var pageState = ensurePageState(pageName);
-    container.innerHTML = '';
-
-    CURRENT_TARGETS.images.forEach(function (entry, index) {
-        var override = pageState.images[entry.key] || {};
-        var details = document.createElement('details');
-        details.innerHTML =
-            '<summary>' + (index + 1) + '. ' + escapeHtml(entry.label) + '</summary>' +
-            '<div class="editor-meta">' + escapeHtml(entry.key) + '</div>' +
-            '<div class="editor-field"><label>Caminho da imagem</label><input type="text"></div>' +
-            '<div class="editor-field"><label>Descricao da imagem (ALT)</label><input type="text"></div>';
-
-        var inputs = details.querySelectorAll('input');
-        inputs[0].value = override.src || entry.node.getAttribute('src') || '';
-        inputs[1].value = typeof override.alt === 'string' ? override.alt : (entry.node.getAttribute('alt') || '');
-
-        function updateImage() {
-            pageState.images[entry.key] = pageState.images[entry.key] || {};
-            pageState.images[entry.key].src = inputs[0].value.trim();
-            pageState.images[entry.key].alt = inputs[1].value.trim();
-            syncJson();
-            queueAutoSave();
-        }
-
-        inputs[0].addEventListener('input', updateImage);
-        inputs[1].addEventListener('input', updateImage);
-
-        container.appendChild(details);
-    });
+function bindPage(page){
+  if(page==="calendario"){document.getElementById("cal-prev").addEventListener("click",()=>{MONTH=MONTH===0?11:MONTH-1;if(MONTH===11)YEAR-=1;renderCalendar();});document.getElementById("cal-next").addEventListener("click",()=>{MONTH=MONTH===11?0:MONTH+1;if(MONTH===0)YEAR+=1;renderCalendar();});document.getElementById("add-event-btn").addEventListener("click",addEvent);renderCalendar();}
+  if(page==="galeria"){document.getElementById("add-photo-btn").addEventListener("click",addPhoto);document.querySelectorAll("[data-filter-gallery]").forEach(btn=>btn.addEventListener("click",()=>filterGallery(btn.dataset.filterGallery)));renderGallery();}
+  if(page==="projetos"){document.getElementById("add-project-btn").addEventListener("click",addProject);renderProjects();}
+  if(page==="ramos"){document.querySelectorAll("[data-branch-tab]").forEach(tab=>tab.addEventListener("click",()=>{captureBranch();BRANCH=tab.dataset.branchTab;renderPage("ramos");}));document.getElementById("ramo-ai-btn").addEventListener("click",()=>{const box=document.getElementById("ramo-ai-result");box.textContent=generateText(document.getElementById("ramo-ai-input").value,document.getElementById("ramo-desc1").value);box.classList.add("show");});document.getElementById("ramo-apply-ai").addEventListener("click",()=>{const box=document.getElementById("ramo-ai-result");if(box.textContent.trim())document.getElementById("ramo-desc1").value=box.textContent.trim();});}
+  if(page==="atividades"){document.getElementById("add-activity-btn").addEventListener("click",addActivity);document.querySelectorAll("[data-remove-activity]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.activities=STATE.adminPanel.activities.filter(x=>x.id!==btn.dataset.removeActivity);renderPage("atividades");showToast("Atividade removida.");setStatus("dirty","Alterações pendentes");}));}
+  if(page==="membros"){document.getElementById("add-member-btn").addEventListener("click",addMember);document.getElementById("member-search").addEventListener("input",renderMembers);document.getElementById("member-branch-filter").addEventListener("change",renderMembers);renderMembers();}
+  if(page==="sobre"){document.getElementById("about-ai-btn").addEventListener("click",()=>{const box=document.getElementById("sobre-ai-result");box.textContent=generateText(document.getElementById("sobre-ai-input").value,document.getElementById("about-world-text").value);box.classList.add("show");});document.getElementById("about-apply-ai").addEventListener("click",()=>{const box=document.getElementById("sobre-ai-result");if(box.textContent.trim())document.getElementById("about-world-text").value=box.textContent.trim();});}
+  if(page==="ia"){document.getElementById("ia-send-btn").addEventListener("click",sendIA);document.getElementById("ia-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendIA();});document.querySelectorAll("[data-ia-quick]").forEach(btn=>btn.addEventListener("click",()=>{document.getElementById("ia-input").value=btn.dataset.iaQuick;sendIA();}));renderIA();}
 }
 
-function renderSectionEditor(pageName) {
-    var container = document.getElementById('sectionEditor');
-    var pageState = ensurePageState(pageName);
-    container.innerHTML = '';
-
-    CURRENT_TARGETS.sections.forEach(function (entry) {
-        var wrapper = document.createElement('div');
-        wrapper.className = 'editor-card editor-toggle';
-        wrapper.innerHTML =
-            '<div><strong>' + escapeHtml(entry.label) + '</strong><div class="editor-meta">' + escapeHtml(entry.key) + '</div></div>' +
-            '<input type="checkbox" checked>';
-
-        var checkbox = wrapper.querySelector('input');
-        checkbox.checked = !(pageState.sections[entry.key] && pageState.sections[entry.key].hidden);
-        checkbox.addEventListener('change', function () {
-            pageState.sections[entry.key] = { hidden: !checkbox.checked };
-            syncJson();
-            queueAutoSave();
-        });
-
-        container.appendChild(wrapper);
-    });
+function renderCalendar(){
+  document.getElementById("cal-month-lbl").textContent=`${MONTHS[MONTH]} de ${YEAR}`; document.getElementById("cal-month-short").textContent=MONTHS_SHORT[MONTH];
+  const grid=document.getElementById("cal-grid"), first=new Date(YEAR,MONTH,1).getDay(), last=new Date(YEAR,MONTH+1,0).getDate(), now=new Date();
+  grid.innerHTML=["D","S","T","Q","Q","S","S"].map(d=>`<div class="cal-wday">${d}</div>`).join("");
+  for(let i=0;i<first;i+=1) grid.innerHTML+='<div class="cal-day empty">0</div>';
+  for(let d=1;d<=last;d+=1){const key=dateKey(YEAR,MONTH,d), has=STATE.adminPanel.events.some(x=>x.date===key), reg=STATE.adminPanel.events.some(x=>x.date===key&&x.type==="regional"), today=d===now.getDate()&&MONTH===now.getMonth()&&YEAR===now.getFullYear(); grid.innerHTML+=`<div class="cal-day${has?" has-ev":""}${reg?" has-reg":""}${today?" today":""}">${d}</div>`;}
+  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date);return d.getMonth()===MONTH&&d.getFullYear()===YEAR;}).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("cal-events-panel").innerHTML=monthEvents.map(x=>`<div class="cal-ev-item"><div class="cal-ev-dot" style="background:${typeColor(x.type)}"></div><div class="cal-ev-info"><div class="cal-ev-title">${esc(x.title)}</div><div class="cal-ev-date">${esc(formatDate(x.date))} · <span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></div></div><button class="btn btn-xs btn-danger" data-remove-event="${x.id}"><i class="fas fa-times"></i></button></div>`).join("")||'<div class="empty-state"><i class="fas fa-calendar"></i><p>Sem eventos especiais este mês.</p></div>';
+  document.getElementById("all-events-tbody").innerHTML=STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(x=>`<tr><td>${esc(formatDate(x.date))}</td><td>${esc(x.title)}</td><td><span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></td><td class="td-actions"><button class="btn btn-xs btn-danger" data-remove-event-row="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`).join("");
+  document.querySelectorAll("[data-remove-event],[data-remove-event-row]").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.removeEvent||btn.dataset.removeEventRow; STATE.adminPanel.events=STATE.adminPanel.events.filter(x=>x.id!==id); renderCalendar(); showToast("Evento removido."); setStatus("dirty","Alterações pendentes");}));
 }
 
-function renderExtraList(pageName) {
-    var container = document.getElementById('extraList');
-    var pageState = ensurePageState(pageName);
-    container.innerHTML = '';
-
-    pageState.extras.forEach(function (extra) {
-        var card = document.createElement('div');
-        card.className = 'editor-card extra-item';
-        card.innerHTML =
-            '<strong>' + escapeHtml(extra.title || 'Secao sem titulo') + '</strong>' +
-            '<div class="editor-meta">' + escapeHtml(extra.id) + '</div>' +
-            '<button type="button" class="btn btn-outline btn-small">Remover</button>';
-
-        card.querySelector('button').addEventListener('click', function () {
-            pageState.extras = pageState.extras.filter(function (node) {
-                return node.id !== extra.id;
-            });
-            renderExtraList(pageName);
-            updateSummary(pageName);
-            syncJson();
-            setStatus('Secao extra removida. Salve para publicar.');
-            queueAutoSave();
-        });
-
-        container.appendChild(card);
-    });
+function renderGallery(){
+  const grid=document.getElementById("photo-grid"), filter=grid.dataset.filter||"all", photos=STATE.adminPanel.photos.filter(x=>filter==="all"||x.category===filter);
+  document.getElementById("gal-count").textContent=`${photos.length} foto${photos.length===1?"":"s"}`;
+  grid.innerHTML=photos.map(x=>`<div class="photo-item"><div class="photo-ph"><i class="fas fa-image" style="font-size:1.5rem;margin-bottom:4px;display:block"></i>${esc(x.caption).replace(/\n/g,"<br>")}</div><div class="photo-ov"><button class="btn btn-sm btn-danger" style="font-size:.72rem" data-remove-photo="${x.id}"><i class="fas fa-trash"></i></button></div><span class="photo-cat badge b-blue">${esc(x.category)}</span></div>`).join("");
+  grid.querySelectorAll("[data-remove-photo]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.photos=STATE.adminPanel.photos.filter(x=>x.id!==btn.dataset.removePhoto);renderGallery();showToast("Foto removida.");setStatus("dirty","Alterações pendentes");}));
 }
 
-function addExtraSection() {
-    var pageState = ensurePageState(CURRENT_PAGE);
-    pageState.extras.push({
-        id: 'extra-' + Date.now(),
-        title: document.getElementById('extraTitle').value.trim(),
-        text: document.getElementById('extraText').value.trim(),
-        buttonLabel: document.getElementById('extraButtonLabel').value.trim(),
-        buttonHref: document.getElementById('extraButtonHref').value.trim(),
-        imageSrc: document.getElementById('extraImageSrc').value.trim(),
-        imageAlt: document.getElementById('extraImageAlt').value.trim(),
-        tone: document.getElementById('extraTone').value
-    });
-
-    document.getElementById('extraTitle').value = '';
-    document.getElementById('extraText').value = '';
-    document.getElementById('extraButtonLabel').value = '';
-    document.getElementById('extraButtonHref').value = '';
-    document.getElementById('extraImageSrc').value = '';
-    document.getElementById('extraImageAlt').value = '';
-    document.getElementById('extraTone').value = 'plain';
-
-    renderExtraList(CURRENT_PAGE);
-    updateSummary(CURRENT_PAGE);
-    syncJson();
-    setStatus('Nova secao adicionada. Salvando...');
-    queueAutoSave();
+function renderProjects(){
+  document.getElementById("projetos-container").innerHTML=STATE.adminPanel.projects.map(x=>`<div class="proj-card"><div style="display:flex;gap:14px;align-items:flex-start"><div class="proj-icon" style="background:${projectBg(x.status)};color:${projectFg(x.status)}">${esc(x.icon)}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:.9rem;font-weight:700">${esc(x.title)}</span><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></div><div style="font-size:.75rem;color:var(--g400);margin-bottom:6px">${esc(x.meta)}</div><p style="font-size:.82rem;color:var(--g600)">${esc(x.description)}</p><div class="prog-bar" style="max-width:220px"><div class="prog-fill" style="width:${x.progress}%"></div></div><div style="font-size:.72rem;color:var(--g400);margin-top:3px">${x.progress}% concluído</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-danger" data-remove-project="${x.id}"><i class="fas fa-trash"></i></button></div></div></div>`).join("");
+  document.querySelectorAll("[data-remove-project]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.projects=STATE.adminPanel.projects.filter(x=>x.id!==btn.dataset.removeProject);renderProjects();showToast("Projeto removido.");setStatus("dirty","Alterações pendentes");}));
 }
 
-async function saveState(isAutoSave) {
-    if (IS_SAVING) {
-        return;
-    }
-
-    try {
-        IS_SAVING = true;
-        var parsed = JSON.parse(document.getElementById('jsonField').value);
-        ADMIN_STATE = parsed;
-        var response = await fetch('/api/admin/content', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ADMIN_STATE)
-        });
-
-        if (!response.ok) {
-            throw new Error('save_failed');
-        }
-
-        updateSummary(CURRENT_PAGE);
-        setStatus(isAutoSave ? 'Alteracoes salvas automaticamente.' : 'Alteracoes salvas no servidor.');
-        refreshPreview(true);
-    } catch (error) {
-        setStatus('Nao foi possivel salvar. Revise os dados e tente novamente.', true);
-    } finally {
-        IS_SAVING = false;
-    }
+function renderMembers(){
+  const search=(document.getElementById("member-search").value||"").toLowerCase(), branch=document.getElementById("member-branch-filter").value||"";
+  const rows=STATE.adminPanel.members.filter(x=>(!search||x.name.toLowerCase().includes(search))&&(!branch||x.branch===branch));
+  document.getElementById("membros-tbody").innerHTML=rows.map(x=>{const initials=x.name.split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join(""), colors=MEMBER_COLORS[hash(x.name)%MEMBER_COLORS.length]; return `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="mv" style="background:${colors[0]};color:${colors[1]}">${initials}</div>${esc(x.name)}</div></td><td>${esc(x.branch)}</td><td><span class="badge ${badgeClass(x.role==="Chefe"?"planejado":x.role==="Monitor"?"grupo":"rascunho")}">${esc(x.role)}</span></td><td>${esc(x.since)}</td><td><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></td><td class="td-actions"><button class="btn btn-xs btn-danger" data-remove-member="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`;}).join("");
+  document.querySelectorAll("[data-remove-member]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.members=STATE.adminPanel.members.filter(x=>x.id!==btn.dataset.removeMember);renderMembers();showToast("Membro removido.");setStatus("dirty","Alterações pendentes");}));
 }
 
-function copyJson() {
-    syncJson();
-    var field = document.getElementById('jsonField');
+function renderIA(){document.getElementById("ia-chat").innerHTML=STATE.adminPanel.iaHistory.map(x=>`<div style="display:flex;justify-content:${x.role==="user"?"flex-end":"flex-start"}"><div style="max-width:80%;padding:10px 14px;border-radius:${x.role==="user"?"14px 14px 4px 14px":"14px 14px 14px 4px"};font-size:.83rem;line-height:1.6;${x.role==="user"?"background:var(--b5);color:#fff":"background:var(--g50);color:var(--ink);border:1px solid var(--g100)"}">${esc(x.content)}</div></div>`).join("");}
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(field.value);
-        setStatus('Configuracao copiada.');
-        return;
-    }
+function captureForms(){if(PAGE==="ramos")captureBranch();if(PAGE==="sobre")captureAbout();if(PAGE==="contato")captureContact();if(PAGE==="config")captureConfig();}
+function captureBranch(){if(!document.getElementById("ramo-nome"))return; const b=STATE.adminPanel.branches[BRANCH]; b.name=document.getElementById("ramo-nome").value.trim(); b.age=document.getElementById("ramo-idade").value.trim(); b.short=document.getElementById("ramo-desc1").value.trim(); b.long=document.getElementById("ramo-desc2").value.trim(); b.bullets=document.getElementById("ramo-bullets").value.split("\n").map(x=>x.trim()).filter(Boolean);}
+function captureAbout(){if(!document.getElementById("about-world-title"))return; const a=STATE.adminPanel.about; a.worldTitle=document.getElementById("about-world-title").value.trim(); a.worldText=document.getElementById("about-world-text").value.trim(); a.worldComplement=document.getElementById("about-world-complement").value.trim(); a.historyIntro=document.getElementById("about-history-intro").value.trim(); a.milestones=document.getElementById("about-milestones").value.split("\n").map(x=>x.trim()).filter(Boolean);}
+function captureContact(){if(!document.getElementById("contact-email"))return; const c=STATE.adminPanel.contact; c.email=document.getElementById("contact-email").value.trim(); c.phonePrimary=document.getElementById("contact-phone-primary").value.trim(); c.phoneSecondary=document.getElementById("contact-phone-secondary").value.trim(); c.instagram=document.getElementById("contact-instagram").value.trim(); c.schedule=document.getElementById("contact-schedule").value.trim(); c.address=document.getElementById("contact-address").value.trim(); c.cep=document.getElementById("contact-cep").value.trim(); c.cityState=document.getElementById("contact-city").value.trim(); c.mapsSrc=document.getElementById("contact-maps").value.trim();}
+function captureConfig(){if(!document.getElementById("cfg-short-name"))return; const s=STATE.adminPanel.settings; s.shortName=document.getElementById("cfg-short-name").value.trim(); s.fullName=document.getElementById("cfg-full-name").value.trim(); s.motto=document.getElementById("cfg-motto").value.trim(); s.founded=document.getElementById("cfg-founded").value.trim(); s.slogan=document.getElementById("cfg-slogan").value.trim(); document.querySelectorAll("[data-config-toggle]").forEach(t=>{s.visibility[t.dataset.configToggle]=t.checked;});}
 
-    field.focus();
-    field.select();
-    document.execCommand('copy');
-    setStatus('Configuracao copiada.');
+async function save(isAuto){
+  if(SAVING)return; captureForms(); SAVING=true; setStatus("saving","Salvando...");
+  try{const response=await fetch("/api/admin/content",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(STATE)}); if(!response.ok)throw new Error("save_failed"); setStatus("ready","Salvo"); if(!isAuto)showToast("Alterações salvas com sucesso.");}catch(e){setStatus("error","Falha ao salvar"); if(!isAuto)showToast("Não foi possível salvar agora.");}finally{SAVING=false;}
 }
 
-function syncJson() {
-    document.getElementById('jsonField').value = JSON.stringify(ADMIN_STATE, null, 2);
-}
+async function logout(){await fetch("/api/auth/logout",{method:"POST"}); window.location.href="/login";}
+function openModal(id){const modal=document.getElementById(id); if(modal)modal.classList.add("open");}
+function closeModal(id){const modal=document.getElementById(id); if(modal)modal.classList.remove("open");}
+function setStatus(mode,label){const badge=document.getElementById("save-status-badge"), saveBtn=document.getElementById("save-btn"); let color="var(--success)"; if(mode==="dirty")color="var(--warn)"; if(mode==="saving")color="var(--b5)"; if(mode==="error")color="var(--danger)"; badge.innerHTML=`<i class="fas fa-circle" style="color:${color};font-size:.5rem;margin-right:4px"></i>${label}`; saveBtn.classList.toggle("saving",mode==="saving");}
+function showToast(message){const toast=document.getElementById("toast"); document.getElementById("toast-msg").textContent=message; toast.classList.add("show"); clearTimeout(TOAST_TIMER); TOAST_TIMER=setTimeout(()=>toast.classList.remove("show"),2500);}
 
-function queueAutoSave() {
-    clearTimeout(AUTO_SAVE_TIMER);
-    setStatus('Alteracao em rascunho. Salvando...');
-    AUTO_SAVE_TIMER = setTimeout(function () {
-        saveState(true);
-    }, 700);
-}
+function addEvent(){const date=document.getElementById("ev-date").value, title=document.getElementById("ev-title").value.trim(); if(!date||!title)return alert("Preencha data e título."); STATE.adminPanel.events.push({id:id("ev"),date,title,type:document.getElementById("ev-type").value,description:document.getElementById("ev-desc").value.trim()}); closeModal("modal-new-event"); renderCalendar(); showToast("Evento adicionado."); setStatus("dirty","Alterações pendentes");}
+function addPhoto(){const title=document.getElementById("photo-title").value.trim(); if(!title)return alert("Preencha o título da foto."); STATE.adminPanel.photos.push({id:id("ph"),title,category:document.getElementById("photo-category").value,caption:document.getElementById("photo-caption").value.trim()||title}); closeModal("modal-upload"); renderGallery(); showToast("Foto adicionada."); setStatus("dirty","Alterações pendentes");}
+function addProject(){const title=document.getElementById("np-nome").value.trim(); if(!title)return alert("Preencha o nome do projeto."); STATE.adminPanel.projects.push({id:id("pr"),icon:document.getElementById("np-icon").value||"🌟",title,status:document.getElementById("np-status").value,meta:document.getElementById("np-meta").value.trim(),description:document.getElementById("np-desc").value.trim(),progress:Number(document.getElementById("np-prog").value||0)}); closeModal("modal-new-proj"); renderProjects(); showToast("Projeto criado."); setStatus("dirty","Alterações pendentes");}
+function addActivity(){const title=document.getElementById("na-title").value.trim(); if(!title)return alert("Preencha o título da atividade."); STATE.adminPanel.activities.push({id:id("at"),icon:document.getElementById("na-icon").value||"⭐",title,description:document.getElementById("na-desc").value.trim()}); closeModal("modal-new-ativ"); renderPage("atividades"); showToast("Atividade adicionada."); setStatus("dirty","Alterações pendentes");}
+function addMember(){const name=document.getElementById("nm-nome").value.trim(); if(!name)return alert("Preencha o nome do membro."); STATE.adminPanel.members.push({id:id("mb"),name,branch:document.getElementById("nm-ramo").value,role:document.getElementById("nm-func").value,since:document.getElementById("nm-ano").value,status:document.getElementById("nm-status").value}); closeModal("modal-new-membro"); renderMembers(); showToast("Membro cadastrado."); setStatus("dirty","Alterações pendentes");}
+function filterGallery(category){document.getElementById("photo-grid").dataset.filter=category; document.querySelectorAll("[data-filter-gallery]").forEach(btn=>btn.classList.toggle("btn-primary",btn.dataset.filterGallery===category)); renderGallery();}
+function sendIA(){const input=document.getElementById("ia-input"), prompt=input.value.trim(); if(!prompt)return; STATE.adminPanel.iaHistory.push({role:"user",content:prompt}); STATE.adminPanel.iaHistory.push({role:"assistant",content:generateText(prompt,"GEAR 9º DF")}); input.value=""; renderIA(); setStatus("dirty","Alterações pendentes");}
 
-function updateSummary(pageName) {
-    var pageState = ensurePageState(pageName);
-    document.getElementById('kpiTexts').textContent = CURRENT_TARGETS.texts.length;
-    document.getElementById('kpiImages').textContent = CURRENT_TARGETS.images.length;
-    document.getElementById('kpiSections').textContent = CURRENT_TARGETS.sections.length;
-    document.getElementById('kpiExtras').textContent = pageState.extras.length;
-    document.getElementById('currentPageLabel').textContent = 'Pagina atual: ' + (ADMIN_PAGES[pageName] || pageName);
-}
-
-function refreshPreview(forceReload) {
-    var frame = document.getElementById('previewFrame');
-    var src = CURRENT_PAGE;
-    if (forceReload) {
-        src += '?preview=' + Date.now();
-    }
-    frame.src = src;
-}
-
-function setStatus(message, isError) {
-    var line = document.getElementById('statusLine');
-    line.textContent = message;
-    line.style.color = isError ? '#ff6b6b' : '#4da1ff';
-}
-
-function bindSearch(inputId, containerId) {
-    var input = document.getElementById(inputId);
-    var container = document.getElementById(containerId);
-
-    if (!input || !container) {
-        return;
-    }
-
-    input.addEventListener('input', function () {
-        var term = input.value.trim().toLowerCase();
-        Array.from(container.children).forEach(function (item) {
-            var text = item.textContent.toLowerCase();
-            item.style.display = !term || text.indexOf(term) !== -1 ? '' : 'none';
-        });
-    });
-}
-
-function escapeHtml(value) {
-    return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+function metric(label,value,sub){return `<div class="metric"><div class="metric-lbl">${esc(label)}</div><div class="metric-val">${esc(String(value))}</div><div class="metric-sub"><i class="fas fa-check"></i>${esc(sub)}</div></div>`;}
+function act(text,info){return `<div class="act-item"><div class="act-dot"></div><div class="act-text">${esc(text)}</div><div class="act-time">${esc(info)}</div></div>`;}
+function dashEvents(){return STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5).map(x=>act(x.title,formatDate(x.date))).join("")||'<div class="empty-state"><i class="fas fa-calendar"></i><p>Sem eventos cadastrados.</p></div>';}
+function branchMetrics(){const counts={Filhotes:0,Lobinhos:0,Escoteiros:0,Seniores:0,Pioneiros:0}; STATE.adminPanel.members.forEach(x=>{if(counts[x.branch]!==undefined)counts[x.branch]+=1;}); const total=STATE.adminPanel.members.length||1; return `<div class="grid3" style="grid-template-columns:repeat(5,1fr)">${Object.keys(counts).map(key=>`<div><div style="font-size:.75rem;color:var(--g600);margin-bottom:4px">${esc(key)}</div><div style="font-size:1.2rem;font-weight:700">${counts[key]}</div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(counts[key]/total*100)}%"></div></div></div>`).join("")}</div>`;}
+function activityCard(x){return `<div class="card" style="margin-bottom:0"><div style="font-size:1.5rem;margin-bottom:8px">${esc(x.icon)}</div><div style="font-size:.9rem;font-weight:700;margin-bottom:5px">${esc(x.title)}</div><div style="font-size:.8rem;color:var(--g600);margin-bottom:12px">${esc(x.description)}</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-danger" data-remove-activity="${x.id}"><i class="fas fa-trash"></i></button></div></div>`;}
+function filterBtn(cat,label,on=false){return `<button class="btn btn-sm${on?" btn-primary":""}" data-filter-gallery="${cat}">${label}</button>`;}
+function visibilityRows(v){const rows=[["gallery","Galeria de fotos","Exibir galeria no site público"],["projects","Projetos sociais","Exibir seção de projetos"],["calendar","Calendário","Exibir calendário na página inicial"],["championBadge","Banner de conquista","Exibir badge de destaque no hero"],["contactForm","Formulário de contato","Permitir envio de mensagens"]]; return rows.map(([key,title,desc])=>`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:.85rem;font-weight:600">${title}</div><div style="font-size:.75rem;color:var(--g400)">${desc}</div></div><label class="tog"><input type="checkbox" data-config-toggle="${key}"${v[key]?" checked":""}><span class="tog-sl"></span></label></div>`).join("");}
+function eventModal(){return `<div class="modal-overlay" id="modal-new-event"><div class="modal-box"><div class="modal-head"><h3><i class="fas fa-calendar-plus" style="color:var(--b5);margin-right:6px"></i>Novo evento</h3><button class="modal-close" data-close-modal="modal-new-event">×</button></div><div class="form-row"><div class="fg"><label>Data</label><input type="date" id="ev-date"></div><div class="fg"><label>Tipo</label><select id="ev-type"><option value="grupo">Grupo</option><option value="regional">Regional</option><option value="nacional">Nacional</option></select></div></div><div class="fg"><label>Título do evento</label><input id="ev-title"></div><div class="fg"><label>Descrição (opcional)</label><textarea id="ev-desc" rows="2"></textarea></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-event">Cancelar</button><button class="btn btn-primary" id="add-event-btn"><i class="fas fa-check"></i> Adicionar</button></div></div></div>`;}
+function photoModal(){return `<div class="modal-overlay" id="modal-upload"><div class="modal-box"><div class="modal-head"><h3><i class="fas fa-upload" style="color:var(--b5);margin-right:6px"></i>Adicionar foto</h3><button class="modal-close" data-close-modal="modal-upload">×</button></div><div class="form-row"><div class="fg"><label>Título</label><input id="photo-title"></div><div class="fg"><label>Categoria</label><select id="photo-category"><option value="acampamento">acampamento</option><option value="atividade">atividade</option><option value="evento">evento</option><option value="comunidade">comunidade</option></select></div></div><div class="fg"><label>Legenda</label><input id="photo-caption"></div><div class="modal-foot"><button class="btn" data-close-modal="modal-upload">Cancelar</button><button class="btn btn-primary" id="add-photo-btn"><i class="fas fa-check"></i> Adicionar</button></div></div></div>`;}
+function projectModal(){return `<div class="modal-overlay" id="modal-new-proj"><div class="modal-box"><div class="modal-head"><h3><i class="fas fa-hands-helping" style="color:var(--b5);margin-right:6px"></i>Novo projeto</h3><button class="modal-close" data-close-modal="modal-new-proj">×</button></div><div class="fg"><label>Nome do projeto</label><input id="np-nome"></div><div class="form-row"><div class="fg"><label>Status</label><select id="np-status"><option value="planejado">Planejado</option><option value="ativo">Ativo</option><option value="concluido">Concluído</option></select></div><div class="fg"><label>Progresso (%)</label><input type="number" id="np-prog" min="0" max="100" value="0"></div></div><div class="fg"><label>Meta / tags</label><input id="np-meta"></div><div class="fg"><label>Descrição</label><textarea id="np-desc" rows="3"></textarea></div><div class="fg"><label>Emoji</label><input id="np-icon" value="🌟"></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-proj">Cancelar</button><button class="btn btn-primary" id="add-project-btn"><i class="fas fa-check"></i> Criar projeto</button></div></div></div>`;}
+function activityModal(){return `<div class="modal-overlay" id="modal-new-ativ"><div class="modal-box"><div class="modal-head"><h3>Nova atividade</h3><button class="modal-close" data-close-modal="modal-new-ativ">×</button></div><div class="form-row"><div class="fg"><label>Emoji / ícone</label><input id="na-icon" value="🏕️"></div><div class="fg"><label>Título</label><input id="na-title"></div></div><div class="fg"><label>Descrição</label><textarea id="na-desc" rows="3"></textarea></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-ativ">Cancelar</button><button class="btn btn-primary" id="add-activity-btn"><i class="fas fa-check"></i> Adicionar</button></div></div></div>`;}
+function memberModal(){return `<div class="modal-overlay" id="modal-new-membro"><div class="modal-box"><div class="modal-head"><h3>Novo membro</h3><button class="modal-close" data-close-modal="modal-new-membro">×</button></div><div class="form-row"><div class="fg"><label>Nome completo</label><input id="nm-nome"></div><div class="fg"><label>Ramo</label><select id="nm-ramo"><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select></div></div><div class="form-row"><div class="fg"><label>Função</label><select id="nm-func"><option>Jovem</option><option>Monitor</option><option>Chefe</option></select></div><div class="fg"><label>Ano de ingresso</label><input id="nm-ano" type="number" value="2026"></div></div><div class="fg"><label>Status</label><select id="nm-status"><option value="ativo">Ativo</option><option value="pendente">Pendente</option><option value="inativo">Inativo</option></select></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-membro">Cancelar</button><button class="btn btn-primary" id="add-member-btn"><i class="fas fa-check"></i> Cadastrar</button></div></div></div>`;}
+function badgeClass(v){if(v==="regional"||v==="ativo")return"b-green"; if(v==="planejado"||v==="nacional"||v==="pendente")return"b-amber"; if(v==="grupo")return"b-blue"; if(v==="concluido"||v==="inativo")return"b-red"; return"b-gray";}
+function typeColor(v){if(v==="regional")return"var(--success)"; if(v==="nacional")return"var(--warn)"; return"var(--b5)";}
+function projectBg(v){if(v==="concluido")return"#d1fae5"; if(v==="planejado")return"#fef3c7"; return"var(--b0)";}
+function projectFg(v){if(v==="concluido")return"#065f46"; if(v==="planejado")return"#92400e"; return"var(--b7)";}
+function dateKey(y,m,d){return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
+function formatDate(v){const p=String(v).split("-"); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:v;}
+function id(prefix){return `${prefix}-${Math.random().toString(36).slice(2,10)}`;}
+function generateText(prompt,base){return `Sugestão de rascunho:\n\n${base||"texto base"}\n\nVersão ajustada com foco no pedido: ${prompt||"melhorar clareza"}.`;}
+function hash(v){return v.split("").reduce((sum,char)=>sum+char.charCodeAt(0),0);}
+function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}

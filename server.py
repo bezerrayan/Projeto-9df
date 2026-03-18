@@ -76,7 +76,7 @@ def init_db():
 def ensure_content_file():
     if not os.path.exists(CONTENT_PATH):
         with open(CONTENT_PATH, "w", encoding="utf-8") as file:
-            json.dump({"pages": {}}, file, ensure_ascii=False, indent=2)
+            json.dump({"pages": {}, "adminPanel": {}}, file, ensure_ascii=False, indent=2)
 
 
 def load_content():
@@ -85,6 +85,8 @@ def load_content():
         data = json.load(file)
     if "pages" not in data or not isinstance(data["pages"], dict):
         data["pages"] = {}
+    if "adminPanel" not in data or not isinstance(data["adminPanel"], dict):
+        data["adminPanel"] = {}
     return data
 
 
@@ -109,13 +111,13 @@ def login_required(view_func):
 
 def sanitize_content_payload(payload):
     if not isinstance(payload, dict):
-        return {"pages": {}}
+        return {"pages": {}, "adminPanel": {}}
 
     pages = payload.get("pages", {})
     if not isinstance(pages, dict):
         pages = {}
 
-    cleaned = {"pages": {}}
+    cleaned = {"pages": {}, "adminPanel": {}}
 
     for page_name, page_data in pages.items():
         if page_name not in ADMIN_PAGES or not isinstance(page_data, dict):
@@ -132,6 +134,10 @@ def sanitize_content_payload(payload):
             "sections": sections if isinstance(sections, dict) else {},
             "extras": extras if isinstance(extras, list) else [],
         }
+
+    admin_panel = payload.get("adminPanel", {})
+    if isinstance(admin_panel, dict):
+        cleaned["adminPanel"] = admin_panel
 
     return cleaned
 
