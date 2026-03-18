@@ -106,6 +106,17 @@ function bindGlobalActions() {
         window.location.href = '/login';
     });
     document.getElementById('addExtraButton').addEventListener('click', addExtraSection);
+    document.querySelectorAll('[data-admin-save]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            saveState();
+        });
+    });
+    document.querySelectorAll('[data-admin-preview]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            refreshPreview(true);
+            setStatus('Preview atualizado.');
+        });
+    });
     bindSearch('textSearch', 'textEditor');
     bindSearch('imageSearch', 'imageEditor');
     bindSearch('sectionSearch', 'sectionEditor');
