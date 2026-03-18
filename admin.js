@@ -1,6 +1,11 @@
 var ADMIN_STATE = { pages: {} };
 var ADMIN_PAGES = {};
 var CURRENT_PAGE = 'index.html';
+var CURRENT_TARGETS = {
+    texts: [],
+    images: [],
+    sections: []
+};
 
 document.addEventListener('DOMContentLoaded', function () {
     initializeAdmin();
@@ -27,6 +32,7 @@ async function initializeAdmin() {
 
     setupPageSelect();
     bindGlobalActions();
+    setupTabs();
     await loadPageEditor(CURRENT_PAGE);
 }
 
@@ -84,7 +90,7 @@ function bindGlobalActions() {
     document.getElementById('resetPageButton').addEventListener('click', function () {
         delete ADMIN_STATE.pages[CURRENT_PAGE];
         loadPageEditor(CURRENT_PAGE);
-        setStatus('Página resetada localmente. Salve para persistir.');
+        setStatus('Pagina resetada localmente. Salve para persistir.');
     });
     document.getElementById('logoutButton').addEventListener('click', async function () {
         await fetch('/api/auth/logout', {
@@ -94,6 +100,25 @@ function bindGlobalActions() {
         window.location.href = '/login';
     });
     document.getElementById('addExtraButton').addEventListener('click', addExtraSection);
+}
+
+function setupTabs() {
+    var tabs = document.querySelectorAll('[data-admin-tab]');
+    var panels = document.querySelectorAll('[data-admin-panel]');
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            var target = tab.getAttribute('data-admin-tab');
+
+            tabs.forEach(function (button) {
+                button.classList.toggle('active', button === tab);
+            });
+
+            panels.forEach(function (panel) {
+                panel.classList.toggle('active', panel.getAttribute('data-admin-panel') === target);
+            });
+        });
+    });
 }
 
 async function loadPageEditor(pageName) {
@@ -107,15 +132,20 @@ async function loadPageEditor(pageName) {
     var main = documentNode.querySelector('main');
 
     if (!main) {
-        setStatus('Não foi possível ler a estrutura da página selecionada.');
+        setStatus('Nao foi possivel ler a estrutura da pagina selecionada.', true);
         return;
     }
 
-    renderTextEditor(main, pageName);
-    renderImageEditor(main, pageName);
-    renderSectionEditor(main, pageName);
+    CURRENT_TARGETS.texts = getTextTargets(main);
+    CURRENT_TARGETS.images = getImageTargets(main);
+    CURRENT_TARGETS.sections = getSectionTargets(main);
+
+    renderTextEditor(pageName);
+    renderImageEditor(pageName);
+    renderSectionEditor(pageName);
     renderExtraList(pageName);
-    document.getElementById('jsonField').value = JSON.stringify(ADMIN_STATE, null, 2);
+    updateSummary(pageName);
+    syncJson();
     refreshPreview();
     setStatus('Editor carregado para ' + (ADMIN_PAGES[pageName] || pageName) + '.');
 }
@@ -160,7 +190,7 @@ function getImageTargets(root) {
         return {
             key: buildPath(node, root),
             node: node,
-            label: 'Imagem ' + (index + 1) + ' - ' + (node.getAttribute('alt') || node.getAttribute('src') || 'sem descrição')
+            label: 'Imagem ' + (index + 1) + ' - ' + (node.getAttribute('alt') || node.getAttribute('src') || 'sem descricao')
         };
     });
 }
@@ -172,7 +202,7 @@ function getSectionTargets(root) {
         var heading = node.querySelector('h1, h2, h3');
         return {
             key: buildPath(node, root),
-            label: heading ? heading.textContent.trim() : 'Seção ' + (index + 1)
+            label: heading ? heading.textContent.trim() : 'Secao ' + (index + 1)
         };
     });
 }
@@ -180,23 +210,25 @@ function getSectionTargets(root) {
 function readTextValue(node) {
     if (node.classList.contains('btn')) {
         var clone = node.cloneNode(true);
-        clone.querySelectorAll('i').forEach(function (icon) { icon.remove(); });
+        clone.querySelectorAll('i').forEach(function (icon) {
+            icon.remove();
+        });
         return clone.textContent.trim();
     }
     return node.innerHTML.trim();
 }
 
-function renderTextEditor(root, pageName) {
+function renderTextEditor(pageName) {
     var container = document.getElementById('textEditor');
     var pageState = ensurePageState(pageName);
     container.innerHTML = '';
 
-    getTextTargets(root).forEach(function (entry) {
+    CURRENT_TARGETS.texts.forEach(function (entry, index) {
         var details = document.createElement('details');
         details.innerHTML =
-            '<summary>' + escapeHtml(entry.label) + '</summary>' +
+            '<summary>' + (index + 1) + '. ' + escapeHtml(entry.label) + '</summary>' +
             '<div class="editor-meta">' + escapeHtml(entry.key) + '</div>' +
-            '<div class="editor-field"><label>Conteúdo</label><textarea></textarea></div>';
+            '<div class="editor-field"><label>Conteudo</label><textarea></textarea></div>';
 
         var field = details.querySelector('textarea');
         field.value = Object.prototype.hasOwnProperty.call(pageState.text, entry.key) ? pageState.text[entry.key] : readTextValue(entry.node);
@@ -209,49 +241,46 @@ function renderTextEditor(root, pageName) {
     });
 }
 
-function renderImageEditor(root, pageName) {
+function renderImageEditor(pageName) {
     var container = document.getElementById('imageEditor');
     var pageState = ensurePageState(pageName);
     container.innerHTML = '';
 
-    getImageTargets(root).forEach(function (entry) {
+    CURRENT_TARGETS.images.forEach(function (entry, index) {
         var override = pageState.images[entry.key] || {};
         var details = document.createElement('details');
         details.innerHTML =
-            '<summary>' + escapeHtml(entry.label) + '</summary>' +
+            '<summary>' + (index + 1) + '. ' + escapeHtml(entry.label) + '</summary>' +
             '<div class="editor-meta">' + escapeHtml(entry.key) + '</div>' +
-            '<div class="editor-field"><label>src</label><input type="text"></div>' +
-            '<div class="editor-field"><label>alt</label><input type="text"></div>';
+            '<div class="editor-field"><label>Caminho da imagem</label><input type="text"></div>' +
+            '<div class="editor-field"><label>Descricao da imagem (ALT)</label><input type="text"></div>';
 
         var inputs = details.querySelectorAll('input');
         inputs[0].value = override.src || entry.node.getAttribute('src') || '';
         inputs[1].value = typeof override.alt === 'string' ? override.alt : (entry.node.getAttribute('alt') || '');
 
-        inputs[0].addEventListener('input', function () {
+        function updateImage() {
             pageState.images[entry.key] = pageState.images[entry.key] || {};
             pageState.images[entry.key].src = inputs[0].value.trim();
             pageState.images[entry.key].alt = inputs[1].value.trim();
             syncJson();
-        });
-        inputs[1].addEventListener('input', function () {
-            pageState.images[entry.key] = pageState.images[entry.key] || {};
-            pageState.images[entry.key].src = inputs[0].value.trim();
-            pageState.images[entry.key].alt = inputs[1].value.trim();
-            syncJson();
-        });
+        }
+
+        inputs[0].addEventListener('input', updateImage);
+        inputs[1].addEventListener('input', updateImage);
 
         container.appendChild(details);
     });
 }
 
-function renderSectionEditor(root, pageName) {
+function renderSectionEditor(pageName) {
     var container = document.getElementById('sectionEditor');
     var pageState = ensurePageState(pageName);
     container.innerHTML = '';
 
-    getSectionTargets(root).forEach(function (entry) {
+    CURRENT_TARGETS.sections.forEach(function (entry) {
         var wrapper = document.createElement('div');
-        wrapper.className = 'editor-toggle';
+        wrapper.className = 'editor-card editor-toggle';
         wrapper.innerHTML =
             '<div><strong>' + escapeHtml(entry.label) + '</strong><div class="editor-meta">' + escapeHtml(entry.key) + '</div></div>' +
             '<input type="checkbox" checked>';
@@ -274,18 +303,22 @@ function renderExtraList(pageName) {
 
     pageState.extras.forEach(function (extra) {
         var card = document.createElement('div');
-        card.className = 'extra-item';
+        card.className = 'editor-card extra-item';
         card.innerHTML =
-            '<strong>' + escapeHtml(extra.title || 'Seção sem título') + '</strong>' +
+            '<strong>' + escapeHtml(extra.title || 'Secao sem titulo') + '</strong>' +
             '<div class="editor-meta">' + escapeHtml(extra.id) + '</div>' +
             '<button type="button" class="btn btn-outline btn-small">Remover</button>';
+
         card.querySelector('button').addEventListener('click', function () {
             pageState.extras = pageState.extras.filter(function (node) {
                 return node.id !== extra.id;
             });
             renderExtraList(pageName);
+            updateSummary(pageName);
             syncJson();
+            setStatus('Secao extra removida. Salve para publicar.');
         });
+
         container.appendChild(card);
     });
 }
@@ -303,8 +336,18 @@ function addExtraSection() {
         tone: document.getElementById('extraTone').value
     });
 
+    document.getElementById('extraTitle').value = '';
+    document.getElementById('extraText').value = '';
+    document.getElementById('extraButtonLabel').value = '';
+    document.getElementById('extraButtonHref').value = '';
+    document.getElementById('extraImageSrc').value = '';
+    document.getElementById('extraImageAlt').value = '';
+    document.getElementById('extraTone').value = 'plain';
+
     renderExtraList(CURRENT_PAGE);
+    updateSummary(CURRENT_PAGE);
     syncJson();
+    setStatus('Nova secao adicionada. Salve para publicar.');
 }
 
 async function saveState() {
@@ -322,10 +365,11 @@ async function saveState() {
             throw new Error('save_failed');
         }
 
-        setStatus('Alterações salvas no servidor.');
+        updateSummary(CURRENT_PAGE);
+        setStatus('Alteracoes salvas no servidor.');
         refreshPreview(true);
     } catch (error) {
-        setStatus('Não foi possível salvar. Revise o JSON e tente novamente.', true);
+        setStatus('Nao foi possivel salvar. Revise os dados e tente novamente.', true);
     }
 }
 
@@ -335,18 +379,27 @@ function copyJson() {
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(field.value);
-        setStatus('JSON copiado.');
+        setStatus('Configuracao copiada.');
         return;
     }
 
     field.focus();
     field.select();
     document.execCommand('copy');
-    setStatus('JSON copiado.');
+    setStatus('Configuracao copiada.');
 }
 
 function syncJson() {
     document.getElementById('jsonField').value = JSON.stringify(ADMIN_STATE, null, 2);
+}
+
+function updateSummary(pageName) {
+    var pageState = ensurePageState(pageName);
+    document.getElementById('kpiTexts').textContent = CURRENT_TARGETS.texts.length;
+    document.getElementById('kpiImages').textContent = CURRENT_TARGETS.images.length;
+    document.getElementById('kpiSections').textContent = CURRENT_TARGETS.sections.length;
+    document.getElementById('kpiExtras').textContent = pageState.extras.length;
+    document.getElementById('currentPageLabel').textContent = 'Pagina atual: ' + (ADMIN_PAGES[pageName] || pageName);
 }
 
 function refreshPreview(forceReload) {
@@ -361,7 +414,7 @@ function refreshPreview(forceReload) {
 function setStatus(message, isError) {
     var line = document.getElementById('statusLine');
     line.textContent = message;
-    line.style.color = isError ? '#b42318' : '';
+    line.style.color = isError ? '#ff6b6b' : '#4da1ff';
 }
 
 function escapeHtml(value) {

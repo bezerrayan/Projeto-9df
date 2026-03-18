@@ -10,123 +10,550 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { margin: 0; background: #f2f7ff; }
-        .admin-app { min-height: 100vh; display: grid; grid-template-columns: 320px minmax(0, 1fr); }
-        .admin-sidebar { background: #0d2342; color: #fff; padding: 28px 22px; display: grid; gap: 22px; align-content: start; }
-        .admin-brand strong { display: block; font-size: 1.15rem; }
-        .admin-brand span { display: block; opacity: .72; font-size: .84rem; margin-top: 6px; }
-        .admin-sidebar label { display: grid; gap: 7px; font-weight: 700; font-size: .88rem; }
-        .admin-sidebar select { width: 100%; border: none; border-radius: 14px; padding: 14px; font: 700 .95rem/1.3 'Syne', sans-serif; }
-        .admin-sidebar .btn { justify-content: center; }
-        .admin-main { padding: 28px; display: grid; gap: 20px; }
-        .admin-topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
-        .admin-topbar h1 { margin: 0; font-size: 2rem; }
-        .admin-sub { color: var(--muted); margin-top: 6px; }
-        .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .admin-grid { display: grid; gap: 18px; grid-template-columns: 1.15fr .85fr; align-items: start; }
-        .admin-panel { background: #fff; border: 1px solid rgba(13,45,90,.08); border-radius: 26px; box-shadow: 0 18px 40px rgba(13,45,90,.08); padding: 22px; display: grid; gap: 18px; }
-        .admin-panel h2 { margin: 0; font-size: 1.2rem; }
-        .admin-panel p { margin: 0; color: var(--muted); }
-        .editor-block { display: grid; gap: 12px; }
-        .editor-block details { border: 1px solid rgba(13,45,90,.08); border-radius: 18px; padding: 12px 14px; background: #fbfdff; }
-        .editor-block summary { cursor: pointer; font-weight: 700; color: var(--ink); }
-        .editor-meta { margin-top: 4px; font-size: .76rem; color: var(--muted); word-break: break-all; }
-        .editor-field { display: grid; gap: 7px; margin-top: 12px; }
-        .editor-field label { font-weight: 700; font-size: .84rem; color: var(--ink); }
-        .editor-field input, .editor-field textarea, .editor-field select { width: 100%; border: 1px solid rgba(13,45,90,.12); border-radius: 12px; padding: 11px 13px; font: 500 .9rem/1.5 'Syne', sans-serif; }
-        .editor-field textarea { min-height: 96px; resize: vertical; }
-        .editor-toggle { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-        .editor-toggle input { width: 18px; height: 18px; }
-        .extra-list { display: grid; gap: 10px; }
-        .extra-item { display: grid; gap: 8px; border: 1px solid rgba(13,45,90,.08); border-radius: 18px; padding: 12px 14px; background: #fbfdff; }
-        .preview-card iframe { width: 100%; min-height: 720px; border: none; border-radius: 20px; background: #fff; }
-        .status-line { min-height: 22px; font-size: .9rem; color: var(--blue-700); }
-        .code-box { min-height: 180px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
-        @media (max-width: 1080px) { .admin-app { grid-template-columns: 1fr; } .admin-grid { grid-template-columns: 1fr; } .preview-card iframe { min-height: 520px; } }
+        :root {
+            --admin-bg: #070b14;
+            --admin-panel: #10151d;
+            --admin-panel-2: #151c27;
+            --admin-line: rgba(255, 255, 255, 0.1);
+            --admin-text: rgba(255, 255, 255, 0.92);
+            --admin-muted: rgba(255, 255, 255, 0.62);
+            --admin-accent: #4da1ff;
+            --admin-accent-soft: rgba(77, 161, 255, 0.14);
+            --admin-danger: #ff6b6b;
+        }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #131d30 0%, var(--admin-bg) 58%);
+            color: var(--admin-text);
+        }
+
+        .admin-app {
+            min-height: 100vh;
+            padding: 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .admin-header {
+            display: grid;
+            gap: 18px;
+            padding: 22px 24px;
+            background: rgba(16, 21, 29, 0.9);
+            border: 1px solid var(--admin-line);
+            border-radius: 28px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+        }
+
+        .admin-header-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .admin-title-wrap h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 2.7rem);
+        }
+
+        .admin-title-wrap p {
+            margin: 10px 0 0;
+            color: var(--admin-muted);
+            max-width: 760px;
+            line-height: 1.7;
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border: 1px solid var(--admin-line);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--admin-text);
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .admin-header-controls {
+            display: grid;
+            gap: 14px;
+            min-width: min(100%, 310px);
+        }
+
+        .admin-header-controls label {
+            display: grid;
+            gap: 8px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--admin-muted);
+        }
+
+        .admin-header-controls select {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--admin-line);
+            background: var(--admin-panel-2);
+            color: var(--admin-text);
+            font: 700 0.96rem/1.3 "Syne", sans-serif;
+        }
+
+        .admin-action-row,
+        .admin-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .admin-action-row .btn,
+        .admin-tabs button {
+            justify-content: center;
+            border-radius: 14px;
+        }
+
+        .admin-tabs button {
+            border: 1px solid var(--admin-line);
+            padding: 11px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--admin-text);
+            font: 700 0.92rem/1 "Syne", sans-serif;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .admin-tabs button.active,
+        .admin-tabs button:hover {
+            background: var(--admin-accent-soft);
+            border-color: rgba(77, 161, 255, 0.32);
+            color: #ffffff;
+        }
+
+        .admin-kpis {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .admin-kpi {
+            padding: 20px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--admin-line);
+        }
+
+        .admin-kpi strong {
+            display: block;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .admin-kpi span {
+            color: var(--admin-muted);
+            font-size: 0.88rem;
+        }
+
+        .admin-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .admin-column {
+            display: grid;
+            gap: 18px;
+        }
+
+        .admin-panel {
+            background: rgba(16, 21, 29, 0.92);
+            border: 1px solid var(--admin-line);
+            border-radius: 28px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+            padding: 22px;
+        }
+
+        .admin-panel h2,
+        .admin-panel h3 {
+            margin: 0;
+        }
+
+        .admin-panel p {
+            color: var(--admin-muted);
+            line-height: 1.7;
+        }
+
+        .admin-panel-head {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .admin-tab-panel {
+            display: none;
+        }
+
+        .admin-tab-panel.active {
+            display: block;
+        }
+
+        .admin-guide {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .admin-guide-card {
+            padding: 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--admin-line);
+            display: grid;
+            gap: 8px;
+        }
+
+        .admin-guide-card i {
+            color: var(--admin-accent);
+            font-size: 1.1rem;
+        }
+
+        .admin-guide-card strong {
+            font-size: 1rem;
+        }
+
+        .admin-guide-card span {
+            color: var(--admin-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .editor-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .editor-list details,
+        .editor-card {
+            border: 1px solid var(--admin-line);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 14px 16px;
+        }
+
+        .editor-list summary {
+            cursor: pointer;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .editor-meta {
+            margin-top: 6px;
+            color: var(--admin-muted);
+            font-size: 0.78rem;
+            word-break: break-all;
+        }
+
+        .editor-field {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .editor-field label {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--admin-muted);
+        }
+
+        .editor-field input,
+        .editor-field textarea,
+        .editor-field select {
+            width: 100%;
+            padding: 12px 13px;
+            border-radius: 14px;
+            border: 1px solid var(--admin-line);
+            background: var(--admin-panel-2);
+            color: var(--admin-text);
+            font: 500 0.92rem/1.5 "Syne", sans-serif;
+        }
+
+        .editor-field textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .editor-toggle {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .editor-toggle strong {
+            display: block;
+        }
+
+        .editor-toggle input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--admin-accent);
+        }
+
+        .extra-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .extra-item {
+            display: grid;
+            gap: 10px;
+        }
+
+        .extra-item .btn {
+            width: fit-content;
+        }
+
+        .status-line {
+            min-height: 22px;
+            color: var(--admin-accent);
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .preview-card iframe {
+            width: 100%;
+            min-height: 740px;
+            border: none;
+            border-radius: 22px;
+            background: #ffffff;
+        }
+
+        .helper-list {
+            display: grid;
+            gap: 10px;
+            margin: 0;
+            padding-left: 18px;
+            color: var(--admin-muted);
+        }
+
+        .code-box {
+            min-height: 260px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        }
+
+        .admin-danger {
+            color: var(--admin-danger);
+        }
+
+        @media (max-width: 1100px) {
+            .admin-kpis,
+            .admin-guide {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-card iframe {
+                min-height: 560px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .admin-app {
+                padding: 14px;
+            }
+
+            .admin-header,
+            .admin-panel {
+                padding: 18px;
+                border-radius: 22px;
+            }
+
+            .admin-kpis,
+            .admin-guide {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="admin-app">
-        <aside class="admin-sidebar">
-            <div class="admin-brand">
-                <strong>GEAR 9º DF</strong>
-                <span>Painel administrativo completo</span>
-            </div>
-
-            <label>
-                Página editada
-                <select id="pageSelect"></select>
-            </label>
-
-            <a class="btn btn-light" id="openPageLink" href="index.html" target="_blank" rel="noopener noreferrer">Abrir página</a>
-            <button class="btn btn-ghost" id="logoutButton" type="button">Sair</button>
-        </aside>
-
-        <main class="admin-main">
-            <div class="admin-topbar">
-                <div>
-                    <h1>Painel de conteúdo</h1>
-                    <div class="admin-sub">Edite textos, imagens, visibilidade e seções extras sem mexer no HTML manualmente.</div>
+        <header class="admin-header">
+            <div class="admin-header-top">
+                <div class="admin-title-wrap">
+                    <div class="admin-badge"><i class="fas fa-shield-halved"></i> Painel administrativo</div>
+                    <h1>Gerencie o conteúdo do site com clareza</h1>
+                    <p>Escolha a página, ajuste o que precisa e salve. O painel foi organizado para quem não é técnico: menos estrutura, mais ação direta.</p>
                 </div>
-                <div class="admin-actions">
-                    <button class="btn btn-outline" id="resetPageButton" type="button">Resetar página</button>
-                    <button class="btn btn-outline" id="copyJsonButton" type="button">Copiar JSON</button>
-                    <button class="btn btn-primary" id="saveButton" type="button">Salvar alterações</button>
+
+                <div class="admin-header-controls">
+                    <label>
+                        Página em edição
+                        <select id="pageSelect"></select>
+                    </label>
+                    <div class="admin-action-row">
+                        <a class="btn btn-outline" id="openPageLink" href="index.html" target="_blank" rel="noopener noreferrer">Abrir página</a>
+                        <button class="btn btn-ghost" id="logoutButton" type="button">Sair</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="status-line" id="statusLine"></div>
+            <div class="admin-tabs" role="tablist" aria-label="Seções do painel">
+                <button type="button" class="active" data-admin-tab="overview">Visão geral</button>
+                <button type="button" data-admin-tab="text">Textos</button>
+                <button type="button" data-admin-tab="images">Imagens</button>
+                <button type="button" data-admin-tab="sections">Seções</button>
+                <button type="button" data-admin-tab="extras">Novas seções</button>
+                <button type="button" data-admin-tab="publish">Publicação</button>
+            </div>
 
-            <div class="admin-grid">
-                <section class="admin-panel">
-                    <div>
-                        <h2>Editor</h2>
-                        <p>O painel lê a estrutura real da página escolhida e gera os campos editáveis automaticamente.</p>
+            <div class="admin-kpis">
+                <article class="admin-kpi">
+                    <strong id="kpiTexts">0</strong>
+                    <span>Textos desta página</span>
+                </article>
+                <article class="admin-kpi">
+                    <strong id="kpiImages">0</strong>
+                    <span>Imagens disponíveis</span>
+                </article>
+                <article class="admin-kpi">
+                    <strong id="kpiSections">0</strong>
+                    <span>Seções controláveis</span>
+                </article>
+                <article class="admin-kpi">
+                    <strong id="kpiExtras">0</strong>
+                    <span>Seções extras criadas</span>
+                </article>
+            </div>
+        </header>
+
+        <div class="status-line" id="statusLine"></div>
+
+        <div class="admin-layout">
+            <div class="admin-column">
+                <section class="admin-panel admin-tab-panel active" data-admin-panel="overview">
+                    <div class="admin-panel-head">
+                        <h2>Comece por aqui</h2>
+                        <p>Use este fluxo simples para evitar erros e manter a página organizada.</p>
                     </div>
 
-                    <div class="editor-block">
-                        <h3>Textos</h3>
-                        <div id="textEditor"></div>
-                    </div>
-
-                    <div class="editor-block">
-                        <h3>Imagens</h3>
-                        <div id="imageEditor"></div>
-                    </div>
-
-                    <div class="editor-block">
-                        <h3>Seções</h3>
-                        <div id="sectionEditor"></div>
-                    </div>
-
-                    <div class="editor-block">
-                        <h3>Seções extras</h3>
-                        <div class="extra-list" id="extraList"></div>
-                        <div class="editor-field"><label>Título</label><input type="text" id="extraTitle"></div>
-                        <div class="editor-field"><label>Texto</label><textarea id="extraText"></textarea></div>
-                        <div class="editor-field"><label>Botão</label><input type="text" id="extraButtonLabel"></div>
-                        <div class="editor-field"><label>Link do botão</label><input type="text" id="extraButtonHref" placeholder="contato.html ou https://..."></div>
-                        <div class="editor-field"><label>Imagem</label><input type="text" id="extraImageSrc" placeholder="images/sua-foto.jpg"></div>
-                        <div class="editor-field"><label>ALT da imagem</label><input type="text" id="extraImageAlt"></div>
-                        <div class="editor-field"><label>Tom visual</label><select id="extraTone"><option value="plain">Claro</option><option value="soft">Suave</option><option value="dark">Escuro</option></select></div>
-                        <button class="btn btn-primary" id="addExtraButton" type="button">Adicionar seção</button>
-                    </div>
-
-                    <div class="editor-block">
-                        <h3>JSON do conteúdo</h3>
-                        <textarea class="code-box" id="jsonField"></textarea>
+                    <div class="admin-guide">
+                        <article class="admin-guide-card">
+                            <i class="fas fa-list-check"></i>
+                            <strong>1. Escolha a página</strong>
+                            <span>Troque a página no seletor acima e o painel carrega automaticamente os campos certos.</span>
+                        </article>
+                        <article class="admin-guide-card">
+                            <i class="fas fa-pen-to-square"></i>
+                            <strong>2. Edite por tipo</strong>
+                            <span>Use as abas para mexer em textos, imagens ou visibilidade das seções sem lidar com código.</span>
+                        </article>
+                        <article class="admin-guide-card">
+                            <i class="fas fa-floppy-disk"></i>
+                            <strong>3. Salve e confira</strong>
+                            <span>Depois de salvar, confira o resultado no preview e na página aberta em nova aba.</span>
+                        </article>
                     </div>
                 </section>
 
+                <section class="admin-panel admin-tab-panel" data-admin-panel="text">
+                    <div class="admin-panel-head">
+                        <h2>Editar textos</h2>
+                        <p>Abra um bloco, troque o conteúdo e siga para o próximo. Aqui ficam títulos, parágrafos, chamadas e botões.</p>
+                    </div>
+                    <div class="editor-list" id="textEditor"></div>
+                </section>
+
+                <section class="admin-panel admin-tab-panel" data-admin-panel="images">
+                    <div class="admin-panel-head">
+                        <h2>Trocar imagens</h2>
+                        <p>Informe o caminho da imagem e a descrição. A descrição ajuda acessibilidade e organização do conteúdo.</p>
+                    </div>
+                    <div class="editor-list" id="imageEditor"></div>
+                </section>
+
+                <section class="admin-panel admin-tab-panel" data-admin-panel="sections">
+                    <div class="admin-panel-head">
+                        <h2>Mostrar ou ocultar seções</h2>
+                        <p>Use esta área para ligar ou desligar blocos inteiros da página sem precisar apagar conteúdo.</p>
+                    </div>
+                    <div class="editor-list" id="sectionEditor"></div>
+                </section>
+
+                <section class="admin-panel admin-tab-panel" data-admin-panel="extras">
+                    <div class="admin-panel-head">
+                        <h2>Criar nova seção</h2>
+                        <p>Adicione uma seção nova com título, texto, botão e imagem. Ideal para avisos, campanhas e destaques temporários.</p>
+                    </div>
+
+                    <div class="extra-list" id="extraList"></div>
+
+                    <div class="editor-field"><label>Título</label><input type="text" id="extraTitle"></div>
+                    <div class="editor-field"><label>Texto</label><textarea id="extraText"></textarea></div>
+                    <div class="editor-field"><label>Texto do botão</label><input type="text" id="extraButtonLabel"></div>
+                    <div class="editor-field"><label>Link do botão</label><input type="text" id="extraButtonHref" placeholder="contato.html ou https://..."></div>
+                    <div class="editor-field"><label>Imagem</label><input type="text" id="extraImageSrc" placeholder="images/sua-foto.jpg"></div>
+                    <div class="editor-field"><label>ALT da imagem</label><input type="text" id="extraImageAlt"></div>
+                    <div class="editor-field"><label>Tom visual</label><select id="extraTone"><option value="plain">Claro</option><option value="soft">Suave</option><option value="dark">Escuro</option></select></div>
+                    <button class="btn btn-primary" id="addExtraButton" type="button">Adicionar seção</button>
+                </section>
+
+                <section class="admin-panel admin-tab-panel" data-admin-panel="publish">
+                    <div class="admin-panel-head">
+                        <h2>Salvar e publicar depois</h2>
+                        <p>Esta área concentra ações finais e um bloco avançado para suporte técnico quando necessário.</p>
+                    </div>
+
+                    <div class="admin-action-row">
+                        <button class="btn btn-primary" id="saveButton" type="button">Salvar alterações</button>
+                        <button class="btn btn-outline" id="copyJsonButton" type="button">Copiar configuração</button>
+                        <button class="btn btn-outline" id="resetPageButton" type="button">Resetar página</button>
+                    </div>
+
+                    <ul class="helper-list">
+                        <li>Salve sempre antes de trocar de página, para não perder o que foi ajustado.</li>
+                        <li>Use “Abrir página” para conferir a página completa em outra aba.</li>
+                        <li class="admin-danger">Resetar página apaga apenas as alterações salvas para a página atual.</li>
+                    </ul>
+
+                    <div class="editor-field">
+                        <label>Configuração completa da página</label>
+                        <textarea class="code-box" id="jsonField"></textarea>
+                    </div>
+                </section>
+            </div>
+
+            <div class="admin-column">
+                <section class="admin-panel">
+                    <div class="admin-panel-head">
+                        <h2>Resumo rápido</h2>
+                        <p id="currentPageLabel">Página atual: Início</p>
+                    </div>
+
+                    <ul class="helper-list">
+                        <li>Textos curtos para botões e chamadas funcionam melhor.</li>
+                        <li>Quando trocar uma imagem, revise também o ALT.</li>
+                        <li>Se a página parecer longa demais, use a aba de seções para simplificar.</li>
+                    </ul>
+                </section>
+
                 <section class="admin-panel preview-card">
-                    <div>
+                    <div class="admin-panel-head">
                         <h2>Preview</h2>
-                        <p>Após salvar, o preview recarrega usando o conteúdo salvo no servidor.</p>
+                        <p>Depois de salvar, o preview recarrega com a versão atual do servidor.</p>
                     </div>
                     <iframe id="previewFrame" src="index.html"></iframe>
                 </section>
             </div>
-        </main>
+        </div>
     </div>
 
     <script src="admin.js"></script>

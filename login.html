@@ -20,6 +20,7 @@
         .login-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
         .login-feedback { min-height: 22px; font-size: 0.9rem; color: #b42318; }
         .login-back { color: var(--blue-700); font-weight: 700; }
+        .login-hint { margin-top: 6px; font-size: 0.86rem; line-height: 1.6; color: var(--muted); }
     </style>
 </head>
 <body>
@@ -27,6 +28,7 @@
         <div class="eyebrow">Área administrativa</div>
         <h1>Painel do 9º DF</h1>
         <p>Entre com um e-mail autorizado e senha para editar textos, imagens, seções e conteúdos do site.</p>
+        <div class="login-hint">Este painel funciona quando o site está rodando pelo servidor local com Flask. Em ambiente estático, o login não autentica.</div>
 
         <form class="login-form" id="loginForm">
             <label>
@@ -66,8 +68,13 @@
                         body: JSON.stringify({ email: email, password: password })
                     });
 
-                    if (!response.ok) {
+                    if (response.status === 401) {
                         feedback.textContent = 'E-mail ou senha inválidos.';
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        feedback.textContent = 'O backend do painel não está disponível aqui. Use o servidor local para acessar o admin.';
                         return;
                     }
 
