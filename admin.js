@@ -548,8 +548,10 @@ async function renderSiteContentEditor(forceReload){
   try{
     const schema=await getContentSchema(CONTENT_PAGE,forceReload);
     const pageState=ensureManagedPageState(CONTENT_PAGE);
-    summary.textContent=`${sitePageMeta(CONTENT_PAGE).title}: ${schema.texts.length} textos, ${schema.images.length} imagens, ${schema.sections.length} seções e ${pageState.extras.length} blocos extras prontos para edição.`;
-    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Textos principais</h3><span class="badge b-blue">${schema.texts.length}</span></div>${renderFriendlyTextEditor(schema.texts,pageState)}</div><div class="card"><div class="card-head"><h3>Imagens da página</h3><span class="badge b-blue">${schema.images.length}</span></div>${renderFriendlyImageEditor(schema.images,pageState)}</div></div><div class="grid2"><div class="card"><div class="card-head"><h3>Seções visíveis</h3><span class="badge b-blue">${schema.sections.length}</span></div>${renderFriendlySectionEditor(schema.sections,pageState)}</div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><p style="font-size:.78rem;color:var(--g400);margin:-4px 0 14px">Use blocos extras quando quiser acrescentar um destaque novo sem mexer na estrutura principal da página.</p><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
+    const curatedTexts=getCuratedSiteItems(CONTENT_PAGE,schema.texts,false);
+    const curatedImages=getCuratedSiteItems(CONTENT_PAGE,schema.images,true);
+    summary.textContent=`${sitePageMeta(CONTENT_PAGE).title}: ${curatedTexts.length} campos principais, ${curatedImages.length} imagens úteis e ${pageState.extras.length} blocos extras. O restante fica como texto padrão do site.`;
+    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Campos principais</h3><span class="badge b-blue">${curatedTexts.length}</span></div>${renderFriendlyTextEditor(curatedTexts,pageState)}</div><div class="card"><div class="card-head"><h3>Imagens úteis</h3><span class="badge b-blue">${curatedImages.length}</span></div>${renderFriendlyImageEditor(curatedImages,pageState)}</div></div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><p style="font-size:.78rem;color:var(--g400);margin:-4px 0 14px">Use blocos extras quando quiser acrescentar um destaque novo sem mexer na estrutura principal da página.</p><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div>`;
     bindSiteContentEditor();
   }catch(error){
     const pageState=ensureManagedPageState(CONTENT_PAGE);
@@ -652,10 +654,78 @@ function groupSiteEditorEntries(pageName,items,isImage=false){
     }
     return {...config,items:matched};
   }).filter(group=>group.items.length);
-  if(remaining.length){
-    groups.push({title:"Outros campos da página",description:"Campos identificados automaticamente que não entraram em um bloco específico.",items:remaining});
-  }
-  return groups;
+  return groups.length?groups:[{title:isImage?"Imagens da página":"Campos principais",description:isImage?"Imagens principais identificadas automaticamente.":"Campos principais identificados automaticamente.",items:remaining.slice(0,isImage?2:6)}];
+}
+
+function getCuratedSiteItems(pageName,items,isImage=false){
+  const groups=groupSiteEditorEntries(pageName,items,isImage);
+  const limits=getSiteEditorLimits(pageName,isImage);
+  const flattened=[];
+  groups.forEach(group=>{
+    const limit=limits[group.title]||limits.default;
+    group.items.slice(0,limit).forEach(item=>flattened.push(item));
+  });
+  return flattened;
+}
+
+function getSiteEditorLimits(pageName,isImage){
+  const base=isImage?{default:1}:{default:2};
+  const pageLimits={
+    "index.html":isImage?{
+      default:1,
+      "Hero principal":1,
+      "Missão do grupo":1,
+      "Atividades em destaque":2
+    }:{
+      default:2,
+      "Hero principal":4,
+      "Missão do grupo":3,
+      "Primeira visita":4,
+      "Ramos e jornada":2,
+      "Atividades em destaque":3,
+      "Avisos e comunicados":3,
+      "FAQ e chamada final":4
+    },
+    "sobre.html":isImage?{
+      default:1,
+      "Hero da página":1,
+      "História do grupo":1
+    }:{
+      default:2,
+      "Hero da página":2,
+      "Origem do escotismo":3,
+      "História do grupo":4,
+      "Valores e propósito":4,
+      "Chamada final":2
+    },
+    "atividades.html":isImage?{
+      default:1,
+      "Cards de atividades":3
+    }:{
+      default:2,
+      "Hero da página":2,
+      "Cards de atividades":6,
+      "Chamada final":2
+    },
+    "projetos.html":isImage?{
+      default:1,
+      "Projetos em destaque":3
+    }:{
+      default:2,
+      "Hero da página":2,
+      "Projetos em destaque":4,
+      "Convite para apoiar":2
+    },
+    "contato.html":isImage?{
+      default:0
+    }:{
+      default:2,
+      "Hero da página":2,
+      "Informações rápidas":5,
+      "Formulário e orientações":2
+    }
+  }[pageName];
+  return pageLimits||base;
 }
 
 function decorateEditorEntry(entry,index,isImage){
