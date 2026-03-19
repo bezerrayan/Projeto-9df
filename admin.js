@@ -588,6 +588,83 @@ function readableTag(label){
   const tag=String(label||"").split(" - ")[0].toLowerCase();
   return ({h1:"título",h2:"subtítulo",h3:"bloco",h4:"bloco",p:"texto",a:"botão",div:"apoio"})[tag]||"campo";
 }
+
+const SITE_EDITOR_SECTIONS={
+  "index.html":[
+    {title:"Hero principal",description:"Frase de impacto, texto de abertura, imagem principal e botões iniciais.",match:["Aprender","Conheça o grupo","Como participar","Fundado em 1971","jovens vivem aventuras","landing.webp"]},
+    {title:"Missão do grupo",description:"Apresentação institucional e chamada para conhecer a história.",match:["Mais que um grupo","O Escotismo é","Com base na Promessa","Nossa história","Membros do grupo em atividade"]},
+    {title:"Primeira visita",description:"Blocos de orientação para famílias e visitantes.",match:["Entre no grupo","Quem pode participar","Quando visitar","O que levar","Próximo passo","Abrir guia de participação"]},
+    {title:"Ramos e jornada",description:"Introdução sobre as faixas etárias e a jornada no grupo.",match:["Cada idade","Do primeiro passo"]},
+    {title:"Atividades em destaque",description:"Cards visuais e chamada para a página de atividades.",match:["Aventura com","Acampamentos","Fogueiras","Trilhas","Especialidades","Ver tudo","hero2.webp","hero1.webp"]},
+    {title:"Avisos e comunicados",description:"Comunicados rápidos e cartões informativos da home.",match:["O que vale","Visitas abertas","Central de arquivos","Conheça quem conduz"]},
+    {title:"FAQ e chamada final",description:"Respostas rápidas e botões finais para ação.",match:["Não.","Sim.","Na página de documentos","Pronto para a","Quero me juntar","Falar com a chefia"]}
+  ],
+  "sobre.html":[
+    {title:"Hero da página",description:"Título inicial, texto de apresentação e imagem de abertura.",match:["O escotismo que forma","Desde 1971","atividade comunitária"]},
+    {title:"Origem do escotismo",description:"Bloco sobre Baden-Powell e origem do movimento.",match:["Robert Baden-Powell","O Escotismo nasceu","Rapidamente","No Brasil"]},
+    {title:"História do grupo",description:"Fundação, linha do tempo e consolidação do grupo.",match:["Fundado para voar alto","17 de outubro de 1971","Ano Base","Ano da Afirmação","Ano da Consolidação","Hoje","Sede e ambiente"]},
+    {title:"Valores e propósito",description:"Missão, visão, valores e propósito institucional.",match:["Os valores que","Missão","Visão","Valores","Propósito"]},
+    {title:"Chamada final",description:"Faixa de encerramento com convite para contato.",match:["Venha fazer parte","Entre em contato"]}
+  ],
+  "atividades.html":[
+    {title:"Hero da página",description:"Introdução da página de atividades.",match:["O que fazemos","cada atividade é pensada"]},
+    {title:"Cards de atividades",description:"Cards com atividades, descrições e imagens.",match:["Acampamentos","Trilhas","Fogueiras","Especialidades","Liderança","Conquistas","atividade-card"]},
+    {title:"Chamada final",description:"Convite para conhecer o grupo.",match:["Quer viver tudo isso","Quero conhecer o grupo"]}
+  ],
+  "projetos.html":[
+    {title:"Hero da página",description:"Apresentação geral dos projetos.",match:["Projetos","Nossos projetos transformam"]},
+    {title:"Projetos em destaque",description:"Cards de projetos sociais, com imagem, título e texto.",match:["Mutirão Verde","Higiene é Dignidade","Doação de Brinquedos","project-image"]},
+    {title:"Convite para apoiar",description:"Bloco final com CTA de participação e voluntariado.",match:["Quer apoiar o grupo","Saiba como participar","Seja um voluntário"]}
+  ],
+  "contato.html":[
+    {title:"Hero da página",description:"Abertura da página de contato e primeira visita.",match:["Contato e primeira visita","esta página concentra"]},
+    {title:"Informações rápidas",description:"Canal principal, horários, visita e localização.",match:["Informações rápidas","Canal principal","Atendimento presencial","Primeira visita","Localização","Ver documentos"]},
+    {title:"Formulário e orientações",description:"Texto de apoio do formulário e mensagens para contato.",match:["Prepare sua mensagem","O site ainda não usa envio automático"]}
+  ]
+};
+
+function renderFriendlyTextEditor(texts,pageState){
+  if(!texts.length)return '<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum texto principal foi identificado nesta página.</p></div>';
+  const groups=groupSiteEditorEntries(CONTENT_PAGE,texts);
+  return groups.map(group=>`<div style="border:1px solid var(--g100);border-radius:var(--r-lg);padding:16px;margin-bottom:14px;background:var(--white)"><div style="margin-bottom:12px"><div style="font-size:.88rem;font-weight:700;color:var(--b9)">${esc(group.title)}</div><div style="font-size:.76rem;color:var(--g400);margin-top:3px">${esc(group.description)}</div></div>${group.items.map((entry,index)=>`<details ${index===0?'open':''} style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">${esc(entry.editorTitle||`Campo ${index+1}`)}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(entry.editorHint||summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">${esc(readableTag(entry.label))}</span></summary><div class="fg" style="margin-top:12px;margin-bottom:0"><label>Conteúdo</label><textarea rows="${textareaRows(entry.value)}" data-site-text="${esc(entry.key)}">${esc(pageState.text[entry.key]??entry.value)}</textarea></div></details>`).join("")}</div>`).join("");
+}
+
+function renderFriendlyImageEditor(images,pageState){
+  if(!images.length)return '<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem principal foi identificada nesta página.</p></div>';
+  const groups=groupSiteEditorEntries(CONTENT_PAGE,images,true);
+  return groups.map(group=>`<div style="border:1px solid var(--g100);border-radius:var(--r-lg);padding:16px;margin-bottom:14px;background:var(--white)"><div style="margin-bottom:12px"><div style="font-size:.88rem;font-weight:700;color:var(--b9)">${esc(group.title)}</div><div style="font-size:.76rem;color:var(--g400);margin-top:3px">${esc(group.description)}</div></div>${group.items.map((entry,index)=>{const override=pageState.images[entry.key]||{};return `<details ${index===0?'open':''} style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">${esc(entry.editorTitle||`Imagem ${index+1}`)}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(entry.editorHint||summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">imagem</span></summary><div class="fg" style="margin-top:12px"><label>Arquivo / caminho</label><input data-site-image-src="${esc(entry.key)}" value="${esc(override.src??entry.src)}"></div><div class="fg" style="margin-bottom:0"><label>Texto alternativo</label><input data-site-image-alt="${esc(entry.key)}" value="${esc(override.alt??entry.alt)}"></div></details>`;}).join("")}</div>`).join("");
+}
+
+function groupSiteEditorEntries(pageName,items,isImage=false){
+  const configs=SITE_EDITOR_SECTIONS[pageName];
+  if(!configs||!configs.length){
+    return [{title:isImage?"Imagens da página":"Conteúdo da página",description:isImage?"Imagens identificadas automaticamente nesta página.":"Campos identificados automaticamente nesta página.",items:items.map((entry,index)=>decorateEditorEntry(entry,index,isImage))}];
+  }
+  const remaining=items.map((entry,index)=>decorateEditorEntry(entry,index,isImage));
+  const groups=configs.map(config=>{
+    const matched=[];
+    for(let i=remaining.length-1;i>=0;i-=1){
+      const haystack=`${remaining[i].label} ${remaining[i].value||""} ${remaining[i].src||""}`.toLowerCase();
+      if(config.match.some(term=>haystack.includes(String(term).toLowerCase()))){
+        matched.unshift(remaining[i]);
+        remaining.splice(i,1);
+      }
+    }
+    return {...config,items:matched};
+  }).filter(group=>group.items.length);
+  if(remaining.length){
+    groups.push({title:"Outros campos da página",description:"Campos identificados automaticamente que não entraram em um bloco específico.",items:remaining});
+  }
+  return groups;
+}
+
+function decorateEditorEntry(entry,index,isImage){
+  return {
+    ...entry,
+    editorTitle:isImage?`Imagem ${index+1}`:`Campo ${index+1}`,
+    editorHint:summarizeEditorLabel(entry.label)
+  };
+}
 function normalizeImagePath(value){return String(value||"").trim().replace(/\\/g,"/").replace(/^\.?\//,"");}
 function hasAllowedImageExtension(path){const parts=String(path||"").toLowerCase().split("."); return parts.length>1&&GALLERY_ALLOWED_EXTENSIONS.includes(parts.pop());}
 function isSafeLinuxPath(path){return /^images\/[a-z0-9/_-]+\.(webp|jpg|jpeg|png|svg)$/.test(String(path||""));}
