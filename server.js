@@ -1,14 +1,21 @@
-require("dotenv").config();
-
 const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const express = require("express");
 const session = require("express-session");
 const mysql = require("mysql2/promise");
+const dotenv = require("dotenv");
+
+const BASE_DIR = __dirname;
+const LOCAL_ENV_PATH = path.join(BASE_DIR, ".env.local");
+const DEFAULT_ENV_PATH = path.join(BASE_DIR, ".env");
+
+dotenv.config({ path: DEFAULT_ENV_PATH });
+if (fs.existsSync(LOCAL_ENV_PATH)) {
+  dotenv.config({ path: LOCAL_ENV_PATH, override: true });
+}
 
 const app = express();
-const BASE_DIR = __dirname;
 const CONTENT_PATH = path.join(BASE_DIR, "site_content.json");
 const ADMINS_PATH = path.join(BASE_DIR, "admin_auth.json");
 const PORT = Number(process.env.PORT || 5000);

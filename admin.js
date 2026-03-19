@@ -1,7 +1,10 @@
 const PAGES=[["Principal","dashboard","fa-th-large","Dashboard"],["Principal","calendario","fa-calendar-alt","Calendário"],["Principal","galeria","fa-images","Galeria"],["Principal","projetos","fa-hands-helping","Projetos"],["Principal","ramos","fa-layer-group","Ramos"],["Principal","atividades","fa-star","Atividades"],["Principal","membros","fa-users","Membros"],["Conteúdo","sobre","fa-info-circle","Página Sobre"],["Conteúdo","contato","fa-map-marker-alt","Contato"],["Sistema","ia","fa-robot","Assistente IA"],["Sistema","config","fa-cog","Configurações"]];
 const MONTHS=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],MONTHS_SHORT=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],MEMBER_COLORS=[["#E6F1FB","#185FA5"],["#d1fae5","#065f46"],["#fef3c7","#92400e"],["#fee2e2","#991b1b"],["#ede9fe","#5b21b6"]];
 const GALLERY_ALLOWED_EXTENSIONS=["webp","jpg","jpeg","png","svg"],GALLERY_MAX_BYTES=2*1024*1024,GALLERY_MAX_LABEL="2 MB";
-let STATE={pages:{},adminPanel:{}},PAGE="dashboard",BRANCH="filhotes",MONTH=2,YEAR=2026,SAVING=false,TOAST_TIMER=null;
+const PUBLIC_PAGE_OPTIONS=[["index.html","Inicio"],["sobre.html","Sobre"],["atividades.html","Atividades"],["galeria.html","Galeria"],["ramo.html","Ramos"],["projetos.html","Projetos"],["contato.html","Contato"],["documentos.html","Documentos"],["equipe.html","Equipe"],["participar.html","Participar"],["links.html","Links uteis"]];
+let STATE={pages:{},adminPanel:{}},PAGE="dashboard",BRANCH="filhotes",MONTH=2,YEAR=2026,SAVING=false,TOAST_TIMER=null,CONTENT_PAGE="index.html";
+const CONTENT_SCHEMA_CACHE={};
+PAGES.splice(7,0,["ConteÃºdo","siteContent","fa-pen-ruler","Conteudo do site"]);
 
 document.addEventListener("DOMContentLoaded",init);
 
@@ -56,6 +59,7 @@ function template(page){
   if(page==="ramos") return ramosTpl();
   if(page==="atividades") return atividadesTpl();
   if(page==="membros") return membrosTpl();
+  if(page==="siteContent") return siteContentTpl();
   if(page==="sobre") return sobreTpl();
   if(page==="contato") return contatoTpl();
   if(page==="ia") return iaTpl();
@@ -104,6 +108,8 @@ function configTpl(){
   return `<div class="card"><div class="card-head"><h3>Identidade do grupo</h3></div><div class="form-row"><div class="fg"><label>Nome curto</label><input id="cfg-short-name" value="${esc(s.shortName)}"></div><div class="fg"><label>Nome completo</label><input id="cfg-full-name" value="${esc(s.fullName)}"></div></div><div class="form-row"><div class="fg"><label>Lema</label><input id="cfg-motto" value="${esc(s.motto)}"></div><div class="fg"><label>Ano de fundação</label><input id="cfg-founded" value="${esc(s.founded)}"></div></div><div class="fg"><label>Slogan completo</label><input id="cfg-slogan" value="${esc(s.slogan)}"></div><button class="btn btn-primary" data-save-page="config"><i class="fas fa-save"></i> Salvar identidade</button></div><div class="card"><div class="card-head"><h3>Visibilidade de seções</h3></div><div style="display:grid;gap:14px">${visibilityRows(s.visibility)}</div><div style="margin-top:14px"><button class="btn btn-primary" data-save-page="config"><i class="fas fa-save"></i> Salvar visibilidade</button></div></div>`;
 }
 
+function siteContentTpl(){ return `<div class="notice"><i class="fas fa-pen-ruler"></i> Edite o conteudo publico por pagina sem sair do painel. Os dados salvos aqui alimentam o site que o visitante enxerga.</div><div class="card"><div class="card-head"><h3>Pagina publica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" id="site-open-link" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Abrir pagina</a><button class="btn btn-sm" id="site-reload-schema"><i class="fas fa-rotate-right"></i> Recarregar estrutura</button><button class="btn btn-primary btn-sm" data-save-page="siteContent"><i class="fas fa-save"></i> Salvar pagina</button></div></div><div class="form-row"><div class="fg"><label>Pagina</label><select id="site-content-page">${PUBLIC_PAGE_OPTIONS.map(([file,label])=>`<option value="${file}"${file===CONTENT_PAGE?" selected":""}>${label} (${file})</option>`).join("")}</select></div><div class="fg"><label>Resumo</label><div id="site-content-summary" style="padding:9px 12px;border-radius:var(--r-md);border:1.5px solid var(--g200);background:var(--g50);font-size:.83rem;color:var(--g600)">Carregando estrutura...</div></div></div></div><div id="site-content-editor"><div class="card"><div class="empty-state"><i class="fas fa-file-lines"></i><p>Carregando editor da pagina...</p></div></div></div>`; }
+
 function bindShared(){
   document.querySelectorAll("[data-open-modal]").forEach(btn=>btn.addEventListener("click",()=>openModal(btn.dataset.openModal)));
   document.querySelectorAll("[data-close-modal]").forEach(btn=>btn.addEventListener("click",()=>closeModal(btn.dataset.closeModal)));
@@ -120,6 +126,7 @@ function bindPage(page){
   if(page==="ramos"){document.querySelectorAll("[data-branch-tab]").forEach(tab=>tab.addEventListener("click",()=>{captureBranch();BRANCH=tab.dataset.branchTab;renderPage("ramos");}));document.getElementById("ramo-ai-btn").addEventListener("click",()=>{const box=document.getElementById("ramo-ai-result");box.textContent=generateText(document.getElementById("ramo-ai-input").value,document.getElementById("ramo-desc1").value);box.classList.add("show");});document.getElementById("ramo-apply-ai").addEventListener("click",()=>{const box=document.getElementById("ramo-ai-result");if(box.textContent.trim())document.getElementById("ramo-desc1").value=box.textContent.trim();});}
   if(page==="atividades"){document.getElementById("add-activity-btn").addEventListener("click",addActivity);document.querySelectorAll("[data-remove-activity]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.activities=STATE.adminPanel.activities.filter(x=>x.id!==btn.dataset.removeActivity);renderPage("atividades");showToast("Atividade removida.");setStatus("dirty","Alterações pendentes");}));}
   if(page==="membros"){document.getElementById("add-member-btn").addEventListener("click",addMember);document.getElementById("member-search").addEventListener("input",renderMembers);document.getElementById("member-branch-filter").addEventListener("change",renderMembers);renderMembers();}
+  if(page==="siteContent"){initSiteContentEditor();}
   if(page==="sobre"){document.getElementById("about-ai-btn").addEventListener("click",()=>{const box=document.getElementById("sobre-ai-result");box.textContent=generateText(document.getElementById("sobre-ai-input").value,document.getElementById("about-world-text").value);box.classList.add("show");});document.getElementById("about-apply-ai").addEventListener("click",()=>{const box=document.getElementById("sobre-ai-result");if(box.textContent.trim())document.getElementById("about-world-text").value=box.textContent.trim();});}
   if(page==="ia"){document.getElementById("ia-send-btn").addEventListener("click",sendIA);document.getElementById("ia-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendIA();});document.querySelectorAll("[data-ia-quick]").forEach(btn=>btn.addEventListener("click",()=>{document.getElementById("ia-input").value=btn.dataset.iaQuick;sendIA();}));renderIA();}
 }
@@ -157,7 +164,97 @@ function renderMembers(){
 
 function renderIA(){document.getElementById("ia-chat").innerHTML=STATE.adminPanel.iaHistory.map(x=>`<div style="display:flex;justify-content:${x.role==="user"?"flex-end":"flex-start"}"><div style="max-width:80%;padding:10px 14px;border-radius:${x.role==="user"?"14px 14px 4px 14px":"14px 14px 14px 4px"};font-size:.83rem;line-height:1.6;${x.role==="user"?"background:var(--b5);color:#fff":"background:var(--g50);color:var(--ink);border:1px solid var(--g100)"}">${esc(x.content)}</div></div>`).join("");}
 
-function captureForms(){if(PAGE==="ramos")captureBranch();if(PAGE==="sobre")captureAbout();if(PAGE==="contato")captureContact();if(PAGE==="config")captureConfig();}
+async function initSiteContentEditor(){
+  const select=document.getElementById("site-content-page"),reloadBtn=document.getElementById("site-reload-schema"),openLink=document.getElementById("site-open-link");
+  if(!select||!reloadBtn||!openLink)return;
+  select.addEventListener("change",async()=>{captureSiteContent();CONTENT_PAGE=select.value;openLink.href=`/${CONTENT_PAGE}`;await renderSiteContentEditor(false);});
+  reloadBtn.addEventListener("click",async()=>{await renderSiteContentEditor(true);showToast("Estrutura da pagina recarregada.");});
+  openLink.href=`/${CONTENT_PAGE}`;
+  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
+  if(container)container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(CONTENT_PAGE)}...</p></div></div>`;
+  if(summary)summary.textContent="Lendo estrutura da pagina...";
+  await renderSiteContentEditor(false);
+}
+
+async function renderSiteContentEditor(forceReload){
+  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
+  if(!container||!summary)return;
+  container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(CONTENT_PAGE)}...</p></div></div>`;
+  try{
+    const schema=await getContentSchema(CONTENT_PAGE,forceReload);
+    const pageState=ensureManagedPageState(CONTENT_PAGE);
+    summary.textContent=`${schema.texts.length} textos, ${schema.images.length} imagens, ${schema.sections.length} secoes e ${pageState.extras.length} blocos extras.`;
+    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Textos editaveis</h3><span class="badge b-blue">${schema.texts.length}</span></div>${schema.texts.length?schema.texts.map(entry=>`<div class="fg"><label>${esc(entry.label)}</label><textarea rows="${textareaRows(entry.value)}" data-site-text="${esc(entry.key)}">${esc(pageState.text[entry.key]??entry.value)}</textarea><div style="font-size:.72rem;color:var(--g400);margin-top:5px">Chave: ${esc(entry.key)}</div></div>`).join(""):'<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum texto identificado nesta pagina.</p></div>'}</div><div class="card"><div class="card-head"><h3>Imagens editaveis</h3><span class="badge b-blue">${schema.images.length}</span></div>${schema.images.length?schema.images.map(entry=>{const override=pageState.images[entry.key]||{};return `<div style="padding:12px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:12px;background:var(--g50)"><div style="font-size:.78rem;font-weight:700;color:var(--b9);margin-bottom:8px">${esc(entry.label)}</div><div class="fg"><label>Src</label><input data-site-image-src="${esc(entry.key)}" value="${esc(override.src??entry.src)}"></div><div class="fg" style="margin-bottom:0"><label>Alt</label><input data-site-image-alt="${esc(entry.key)}" value="${esc(override.alt??entry.alt)}"></div></div>`;}).join(""):'<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem identificada nesta pagina.</p></div>'}</div></div><div class="grid2"><div class="card"><div class="card-head"><h3>Secoes</h3><span class="badge b-blue">${schema.sections.length}</span></div>${schema.sections.length?schema.sections.map(entry=>{const sectionState=pageState.sections[entry.key]||{};return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:10px"><div><div style="font-size:.83rem;font-weight:700;color:var(--b9)">${esc(entry.label)}</div><div style="font-size:.72rem;color:var(--g400);margin-top:4px">${esc(entry.key)}</div></div><label class="tog"><input type="checkbox" data-site-section-hidden="${esc(entry.key)}"${sectionState.hidden?" checked":""}><span class="tog-sl"></span></label></div>`;}).join(""):'<div class="empty-state"><i class="fas fa-layer-group"></i><p>Nenhuma secao principal identificada.</p></div>'}</div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
+    bindSiteContentEditor();
+  }catch(error){
+    const pageState=ensureManagedPageState(CONTENT_PAGE);
+    summary.textContent="Leitura automatica indisponivel. Fallback exibido.";
+    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Diagnostico</h3><span class="badge b-amber">Fallback</span></div><div class="notice"><i class="fas fa-triangle-exclamation"></i> Nao foi possivel mapear automaticamente os textos, imagens e secoes de ${esc(CONTENT_PAGE)} neste carregamento. Tente recarregar a estrutura.</div><div class="fg"><label>Pagina atual</label><input value="${esc(CONTENT_PAGE)}" disabled></div><div class="fg" style="margin-bottom:0"><label>Motivo</label><textarea rows="4" disabled>${esc(error&&error.message?error.message:"schema_load_failed")}</textarea></div></div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
+    bindSiteContentEditor();
+  }
+}
+
+function bindSiteContentEditor(){
+  const addBtn=document.getElementById("add-extra-section");
+  if(addBtn)addBtn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras.push({id:id("extra"),title:"",text:"",buttonLabel:"",buttonHref:"",imageSrc:"",imageAlt:"",tone:"default"});renderSiteContentEditor(false);setStatus("dirty","AlteraÃ§Ãµes pendentes");});
+  document.querySelectorAll("[data-remove-extra]").forEach(btn=>btn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras=ensureManagedPageState(CONTENT_PAGE).extras.filter(extra=>extra.id!==btn.dataset.removeExtra);renderSiteContentEditor(false);showToast("Bloco extra removido.");setStatus("dirty","AlteraÃ§Ãµes pendentes");}));
+}
+
+async function getContentSchema(pageName,forceReload){
+  if(!forceReload&&CONTENT_SCHEMA_CACHE[pageName])return CONTENT_SCHEMA_CACHE[pageName];
+  const cacheBust=forceReload?`?t=${Date.now()}`:"";
+  const response=await fetch(`/${pageName}${cacheBust}`,{credentials:"same-origin",cache:"no-store"});
+  if(!response.ok)throw new Error("page_fetch_failed");
+  const html=await response.text(),doc=new DOMParser().parseFromString(html,"text/html"),root=doc.querySelector("main")||doc.body;
+  const schema={texts:getEditableTextNodesForAdmin(root).map(entry=>({key:entry.key,label:entry.label,value:readEditableTextForAdmin(entry.element)})),images:getEditableImagesForAdmin(root).map(entry=>({key:entry.key,label:entry.label,src:entry.element.getAttribute("src")||"",alt:entry.element.getAttribute("alt")||""})),sections:getEditableSectionsForAdmin(root).map(entry=>({key:entry.key,label:entry.label}))};
+  CONTENT_SCHEMA_CACHE[pageName]=schema;
+  return schema;
+}
+
+function ensureManagedPageState(pageName){
+  if(!STATE.pages||typeof STATE.pages!=="object")STATE.pages={};
+  if(!STATE.pages[pageName]||typeof STATE.pages[pageName]!=="object")STATE.pages[pageName]={text:{},images:{},sections:{},extras:[]};
+  const pageState=STATE.pages[pageName];
+  pageState.text=pageState.text&&typeof pageState.text==="object"?pageState.text:{};
+  pageState.images=pageState.images&&typeof pageState.images==="object"?pageState.images:{};
+  pageState.sections=pageState.sections&&typeof pageState.sections==="object"?pageState.sections:{};
+  pageState.extras=Array.isArray(pageState.extras)?pageState.extras:[];
+  return pageState;
+}
+
+function captureSiteContent(){
+  const editor=document.getElementById("site-content-editor");
+  if(!editor)return;
+  const pageState=ensureManagedPageState(CONTENT_PAGE),schema=CONTENT_SCHEMA_CACHE[CONTENT_PAGE]||{texts:[],images:[],sections:[]},nextText={},nextImages={},nextSections={};
+  schema.texts.forEach(entry=>{const field=document.querySelector(`[data-site-text="${cssEscape(entry.key)}"]`);if(!field)return;const value=field.value.trim();if(value&&value!==entry.value)nextText[entry.key]=value;});
+  schema.images.forEach(entry=>{const srcField=document.querySelector(`[data-site-image-src="${cssEscape(entry.key)}"]`),altField=document.querySelector(`[data-site-image-alt="${cssEscape(entry.key)}"]`);if(!srcField||!altField)return;const src=srcField.value.trim(),alt=altField.value.trim(),imageState={};if(src&&src!==entry.src)imageState.src=src;if(alt!==entry.alt)imageState.alt=alt;if(Object.keys(imageState).length)nextImages[entry.key]=imageState;});
+  schema.sections.forEach(entry=>{const field=document.querySelector(`[data-site-section-hidden="${cssEscape(entry.key)}"]`);if(field&&field.checked)nextSections[entry.key]={hidden:true};});
+  pageState.text=nextText;
+  pageState.images=nextImages;
+  pageState.sections=nextSections;
+  pageState.extras=Array.from(document.querySelectorAll("[data-extra-card]")).map(card=>({id:card.dataset.extraCard||id("extra"),title:valueFrom(card,"[data-extra-title]"),text:valueFrom(card,"[data-extra-text]"),buttonLabel:valueFrom(card,"[data-extra-button-label]"),buttonHref:valueFrom(card,"[data-extra-button-href]"),imageSrc:valueFrom(card,"[data-extra-image-src]"),imageAlt:valueFrom(card,"[data-extra-image-alt]"),tone:valueFrom(card,"[data-extra-tone]")||"default"}));
+}
+
+function renderExtraSectionCards(extras){
+  if(!extras.length)return '<div class="empty-state"><i class="fas fa-puzzle-piece"></i><p>Nenhum bloco extra adicionado para esta pagina.</p></div>';
+  return extras.map(extra=>`<div data-extra-card="${esc(extra.id||id("extra"))}" style="padding:14px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:12px;background:var(--g50)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Bloco extra</div><button class="btn btn-xs btn-danger" data-remove-extra="${esc(extra.id||"")}"><i class="fas fa-trash"></i></button></div><div class="fg"><label>Titulo</label><input data-extra-title value="${esc(extra.title)}"></div><div class="fg"><label>Texto</label><textarea rows="4" data-extra-text>${esc(extra.text)}</textarea></div><div class="form-row"><div class="fg"><label>Botao label</label><input data-extra-button-label value="${esc(extra.buttonLabel)}"></div><div class="fg"><label>Botao link</label><input data-extra-button-href value="${esc(extra.buttonHref)}"></div></div><div class="form-row"><div class="fg"><label>Imagem src</label><input data-extra-image-src value="${esc(extra.imageSrc)}"></div><div class="fg"><label>Imagem alt</label><input data-extra-image-alt value="${esc(extra.imageAlt)}"></div></div><div class="fg" style="margin-bottom:0"><label>Tom visual</label><select data-extra-tone><option value="default"${extra.tone==="default"?" selected":""}>Padrao</option><option value="soft"${extra.tone==="soft"?" selected":""}>Suave</option><option value="dark"${extra.tone==="dark"?" selected":""}>Escuro</option></select></div></div>`).join("");
+}
+
+function buildAdminPathForEditor(element,root){
+  const parts=[]; let current=element;
+  while(current&&current!==root){const tag=current.tagName.toLowerCase();let index=1,sibling=current.previousElementSibling;while(sibling){if(sibling.tagName===current.tagName)index+=1;sibling=sibling.previousElementSibling;}parts.unshift(`${tag}:nth-of-type(${index})`);current=current.parentElement;}
+  return parts.join(" > ");
+}
+
+function getEditableTextNodesForAdmin(root){return Array.from(root.querySelectorAll("h1, h2, h3, h4, p, .eyebrow, .btn")).filter(node=>node.textContent&&node.textContent.trim()&&!node.closest(".admin-shell")).map((node,index)=>({index,key:buildAdminPathForEditor(node,root),element:node,label:`${node.tagName.toLowerCase()} - ${node.textContent.trim().replace(/\s+/g," ").slice(0,60)}`}));}
+function getEditableImagesForAdmin(root){return Array.from(root.querySelectorAll("img")).filter(node=>!node.closest(".admin-shell")).map((node,index)=>({index,key:buildAdminPathForEditor(node,root),element:node,label:`Imagem ${index+1} - ${node.getAttribute("alt")||node.getAttribute("src")||"sem descricao"}`}));}
+function getEditableSectionsForAdmin(root){return Array.from(root.children).filter(node=>node.tagName==="SECTION"&&!node.classList.contains("admin-extra-section")).map((node,index)=>{const heading=node.querySelector("h1, h2, h3");return {index,key:buildAdminPathForEditor(node,root),element:node,label:heading?heading.textContent.trim():`Secao ${index+1}`};});}
+function readEditableTextForAdmin(node){if(node.classList.contains("btn")){const clone=node.cloneNode(true);clone.querySelectorAll("i").forEach(icon=>icon.remove());return clone.textContent.trim();}return node.innerHTML.trim();}
+function textareaRows(value){return Math.max(3,Math.min(8,String(value||"").split("\n").length+1));}
+function cssEscape(value){return String(value||"").replace(/\\/g,"\\\\").replace(/"/g,'\\"');}
+function valueFrom(root,selector){const field=root.querySelector(selector);return field?field.value.trim():"";}
+
+function captureForms(){if(PAGE==="ramos")captureBranch();if(PAGE==="siteContent")captureSiteContent();if(PAGE==="sobre")captureAbout();if(PAGE==="contato")captureContact();if(PAGE==="config")captureConfig();}
 function captureBranch(){if(!document.getElementById("ramo-nome"))return; const b=STATE.adminPanel.branches[BRANCH]; b.name=document.getElementById("ramo-nome").value.trim(); b.age=document.getElementById("ramo-idade").value.trim(); b.short=document.getElementById("ramo-desc1").value.trim(); b.long=document.getElementById("ramo-desc2").value.trim(); b.bullets=document.getElementById("ramo-bullets").value.split("\n").map(x=>x.trim()).filter(Boolean);}
 function captureAbout(){if(!document.getElementById("about-world-title"))return; const a=STATE.adminPanel.about; a.worldTitle=document.getElementById("about-world-title").value.trim(); a.worldText=document.getElementById("about-world-text").value.trim(); a.worldComplement=document.getElementById("about-world-complement").value.trim(); a.historyIntro=document.getElementById("about-history-intro").value.trim(); a.milestones=document.getElementById("about-milestones").value.split("\n").map(x=>x.trim()).filter(Boolean);}
 function captureContact(){if(!document.getElementById("contact-email"))return; const c=STATE.adminPanel.contact; c.email=document.getElementById("contact-email").value.trim(); c.phonePrimary=document.getElementById("contact-phone-primary").value.trim(); c.phoneSecondary=document.getElementById("contact-phone-secondary").value.trim(); c.instagram=document.getElementById("contact-instagram").value.trim(); c.schedule=document.getElementById("contact-schedule").value.trim(); c.address=document.getElementById("contact-address").value.trim(); c.cep=document.getElementById("contact-cep").value.trim(); c.cityState=document.getElementById("contact-city").value.trim(); c.mapsSrc=document.getElementById("contact-maps").value.trim();}
