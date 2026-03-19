@@ -32,5 +32,251 @@
       "sections": {},
       "extras": []
     }
+  },
+  "adminPanel": {
+    "events": [
+      {
+        "id": "ev-n0uitnse",
+        "date": "2026-03-07",
+        "title": "Abertura Regional",
+        "type": "regional",
+        "description": ""
+      },
+      {
+        "id": "ev-w9yesz3u",
+        "date": "2026-03-14",
+        "title": "Atividade de seções",
+        "type": "grupo",
+        "description": ""
+      },
+      {
+        "id": "ev-fx6brgob",
+        "date": "2026-03-21",
+        "title": "Atividade das seções",
+        "type": "grupo",
+        "description": ""
+      },
+      {
+        "id": "ev-nchyrblb",
+        "date": "2026-03-28",
+        "title": "Atividade das seções",
+        "type": "grupo",
+        "description": ""
+      }
+    ],
+    "photos": [
+      {
+        "id": "ph-g3qta8lm",
+        "title": "Acampamento CENIPA 2025",
+        "category": "acampamento",
+        "caption": "Acampamento\nCENIPA 2025",
+        "src": "images/mult_verde/dsc08692.webp"
+      },
+      {
+        "id": "ph-f2ecnzn1",
+        "title": "Trilha Chapada 2025",
+        "category": "atividade",
+        "caption": "Trilha\nChapada 2025",
+        "src": "images/higiene/photo_4958569241523630116_y.webp"
+      },
+      {
+        "id": "ph-54v4ctai",
+        "title": "Abertura Regional 2026",
+        "category": "evento",
+        "caption": "Abertura\nRegional 2026",
+        "src": "images/photo_4909301671674973021_x.jpg"
+      },
+      {
+        "id": "ph-tbpusjdy",
+        "title": "Mutirão Verde 2025",
+        "category": "comunidade",
+        "caption": "Mutirão\nVerde 2025",
+        "src": "images/mult_verde/photo_4909301671674973015_y.jpg"
+      }
+    ],
+    "projects": [
+      {
+        "id": "pr-edk0a3km",
+        "icon": "🌱",
+        "title": "Mutirão Verde",
+        "status": "ativo",
+        "meta": "#MeioAmbiente · #Comunidade · Nov 2025 · 40 participantes",
+        "description": "Reflorestar áreas degradadas e promover consciência ecológica na vizinhança.",
+        "progress": 75
+      },
+      {
+        "id": "pr-ohoal5mk",
+        "icon": "🤝",
+        "title": "Campanha Higiene é Dignidade",
+        "status": "ativo",
+        "meta": "#Solidariedade · #Inverno · Jul 2025 · 60 participantes",
+        "description": "Coleta e distribuição de produtos de higiene para famílias em vulnerabilidade.",
+        "progress": 90
+      },
+      {
+        "id": "pr-uhpxa4b6",
+        "icon": "🎁",
+        "title": "Doação de Brinquedos da Alcateia",
+        "status": "planejado",
+        "meta": "#NatalSolidário · #Crianças · Dez 2025 · 25 participantes",
+        "description": "Levar a magia do Natal a crianças de uma creche carente.",
+        "progress": 40
+      }
+    ],
+    "activities": [
+      {
+        "id": "at-5b0wfie0",
+        "icon": "⛺",
+        "title": "Acampamentos",
+        "description": "Vivência intensa na natureza, autonomia e trabalho em equipe sob as estrelas."
+      },
+      {
+        "id": "at-vpzdl1x1",
+        "icon": "🥾",
+        "title": "Trilhas",
+        "description": "Exploração de caminhos, orientação e respeito ao meio ambiente."
+      },
+      {
+        "id": "at-ctvlkfg0",
+        "icon": "🔥",
+        "title": "Fogueiras",
+        "description": "Integração, canções e reflexões que fortalecem valores."
+      },
+      {
+        "id": "at-pwaz4hfn",
+        "icon": "⭐",
+        "title": "Especialidades",
+        "description": "Habilidades em primeiros socorros, técnicas escoteiras e muito mais."
+      }
+    ],
+    "members": [
+      {
+        "id": "mb-617a8q6g",
+        "name": "Gustavo S.",
+        "branch": "Pioneiros",
+        "role": "Chefe",
+        "since": "2019",
+        "status": "ativo"
+      },
+      {
+        "id": "mb-e7fn6tos",
+        "name": "Yan Bezerra",
+        "branch": "Seniores",
+        "role": "Chefe",
+        "since": "2023",
+        "status": "ativo"
+      },
+      {
+        "id": "mb-e1f305k6",
+        "name": "Maria C.",
+        "branch": "Escoteiros",
+        "role": "Monitor",
+        "since": "2022",
+        "status": "ativo"
+      },
+      {
+        "id": "mb-gvbgdyyd",
+        "name": "Pedro T.",
+        "branch": "Lobinhos",
+        "role": "Jovem",
+        "since": "2023",
+        "status": "ativo"
+      }
+    ],
+    "branches": {
+      "filhotes": {
+        "name": "Filhotes",
+        "age": "5 a 7 anos",
+        "short": "Primeiros passos no escotismo com acolhimento, descobertas e atividades pensadas para aprender brincando.",
+        "long": "Nessa fase, a criança fortalece confiança, convivência e autonomia em encontros leves e dinâmicos.",
+        "bullets": [
+          "Jogos cooperativos e integração em grupo",
+          "Histórias e atividades de valores escoteiros",
+          "Experiências ao ar livre com segurança"
+        ]
+      },
+      "lobinhos": {
+        "name": "Lobinhos",
+        "age": "7 a 10 anos",
+        "short": "Na alcateia, crianças desenvolvem responsabilidade, amizade e autonomia.",
+        "long": "As atividades estimulam iniciativa e respeito ao grupo, com aprendizagem pela ação.",
+        "bullets": [
+          "Jogos, canções e aprendizagem pela ação",
+          "Acantonamentos e trilhas leves",
+          "Boas ações e cooperação no dia a dia"
+        ]
+      },
+      "escoteiros": {
+        "name": "Escoteiros",
+        "age": "10 a 15 anos",
+        "short": "No sistema de patrulhas, o jovem assume responsabilidades reais e cresce em técnica e liderança.",
+        "long": "Cada patrulha tem autonomia para planejar e executar suas atividades com orientação dos chefes.",
+        "bullets": [
+          "Acampamentos, pioneirias e desafios de campo",
+          "Técnicas mateiras e orientação",
+          "Liderança prática com autonomia crescente"
+        ]
+      },
+      "seniores": {
+        "name": "Seniores",
+        "age": "15 a 18 anos",
+        "short": "Fase de superação com desafios mais intensos, protagonismo juvenil e preparação para a vida adulta.",
+        "long": "Os jovens assumem papel central na gestão das atividades e desenvolvem visão crítica do mundo.",
+        "bullets": [
+          "Expedições e técnicas avançadas",
+          "Projetos de impacto social",
+          "Maturidade, disciplina e visão crítica"
+        ]
+      },
+      "pioneiros": {
+        "name": "Pioneiros",
+        "age": "18 a 22 anos",
+        "short": "Ramo de jovens adultos com foco em projeto de vida, serviço ao próximo e liderança com propósito.",
+        "long": "O Pioneiro é o escoteiro que escolheu continuar e liderar. Seu lema é servir.",
+        "bullets": [
+          "Mutirões e ações sociais contínuas",
+          "Gestão de projetos e equipes",
+          "Liderança servidora na comunidade"
+        ]
+      }
+    },
+    "about": {
+      "worldTitle": "O Escotismo pelo mundo",
+      "worldText": "O Escotismo nasceu em 1907, na Inglaterra, idealizado por Robert Baden-Powell, com uma proposta simples e poderosa: educar jovens por meio da aventura, do trabalho em equipe e do aprendizado na prática.",
+      "worldComplement": "No Brasil, o Escotismo chegou em 1910 e contribui há mais de um século para a formação de cidadãos ativos e conscientes.",
+      "historyIntro": "O Grupo Escoteiro do Ar Salgado Filho 9º DF foi fundado em 17 de outubro de 1971, movido por um sonho ousado: unir o Escotismo à paixão pela aviação.",
+      "milestones": [
+        "1971 — Ano Base: estruturação do grupo e primeiras atividades regionais",
+        "1972 — Ano da Afirmação: identidade no contexto Escotismo e Aeronáutica",
+        "1974 — Ano da Consolidação: sede própria e crescimento em número e qualidade",
+        "Hoje — Bicampeões da Olimpíada Escoteira do Ar"
+      ]
+    },
+    "contact": {
+      "email": "contato@escoteiro.com",
+      "phonePrimary": "(61) 99999-9999",
+      "phoneSecondary": "(61) 3333-3333",
+      "instagram": "@gear9df",
+      "schedule": "Sábados: 14h30 às 18h",
+      "address": "SHIS QI 3 - s/n",
+      "cep": "71605-500",
+      "cityState": "Brasília, DF",
+      "mapsSrc": "https://www.google.com/maps/embed"
+    },
+    "settings": {
+      "shortName": "GEAR 9º DF",
+      "fullName": "Grupo Escoteiro do Ar Salgado Filho",
+      "motto": "Sempre Alerta para Servir",
+      "founded": "1971",
+      "slogan": "Passou, passou, passou um avião, e nele está escrito: Salgado Filho é amigão!",
+      "visibility": {
+        "gallery": true,
+        "projects": true,
+        "calendar": true,
+        "championBadge": true,
+        "contactForm": true
+      }
+    },
+    "iaHistory": []
   }
 }
