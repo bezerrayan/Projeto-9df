@@ -378,6 +378,216 @@ function id(prefix){return `${prefix}-${Math.random().toString(36).slice(2,10)}`
 function generateText(prompt,base){return `Sugestão de rascunho:\n\n${base||"texto base"}\n\nVersão ajustada com foco no pedido: ${prompt||"melhorar clareza"}.`;}
 function hash(v){return v.split("").reduce((sum,char)=>sum+char.charCodeAt(0),0);}
 function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}
+
+function calendarioTpl(){
+  return `<div class="notice"><i class="fas fa-calendar-check"></i> Use o calendário para cadastrar os eventos do grupo. Clique em <strong>Novo evento</strong>, preencha os dados e depois salve.</div><div class="grid2"><div class="card" style="margin-bottom:0"><div class="card-head"><h3 id="cal-month-lbl"></h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button><button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button></div></div><div class="cal-grid-wrap" id="cal-grid"></div><div style="display:flex;gap:12px;margin-top:12px;font-size:.72rem;color:var(--g400)"><span><i class="fas fa-circle" style="color:var(--b5);font-size:.45rem;margin-right:4px"></i>Grupo</span><span><i class="fas fa-circle" style="color:var(--success);font-size:.45rem;margin-right:4px"></i>Regional</span><span><i class="fas fa-circle" style="color:var(--warn);font-size:.45rem;margin-right:4px"></i>Nacional</span></div></div><div class="card" style="margin-bottom:0"><div class="card-head"><h3>Eventos de <span id="cal-month-short"></span></h3><button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button></div><div id="cal-events-panel" style="max-height:280px;overflow-y:auto"></div><div style="margin-top:12px"><button class="btn btn-primary" data-save-page="calendario"><i class="fas fa-save"></i> Salvar calendário</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-head"><h3>Todos os eventos</h3><span class="badge b-blue" id="all-events-count">0</span></div><div id="all-events-tbody" style="display:grid;gap:12px"></div></div>`;
+}
+
+function membrosTpl(){
+  return `<div class="notice"><i class="fas fa-users"></i> Cadastre os membros do grupo e use a busca para localizar rapidamente. Os dados podem ser filtrados por ramo.</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap"><div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar membro..."></div><select id="member-branch-filter" style="margin:0;width:180px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--g200)"><option value="">Todos os ramos</option><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select><button class="btn btn-primary" data-open-modal="modal-new-membro"><i class="fas fa-user-plus"></i> Novo membro</button><button class="btn btn-primary" data-save-page="membros"><i class="fas fa-save"></i> Salvar membros</button></div><div class="card"><div class="card-head"><h3>Perfis cadastrados</h3><span class="badge b-blue" id="members-count">0</span></div><div id="membros-tbody" style="display:grid;gap:12px"></div></div>`;
+}
+
+function renderCalendar(){
+  document.getElementById("cal-month-lbl").textContent=`${MONTHS[MONTH]} de ${YEAR}`;
+  document.getElementById("cal-month-short").textContent=MONTHS_SHORT[MONTH];
+  const grid=document.getElementById("cal-grid"), first=new Date(YEAR,MONTH,1).getDay(), last=new Date(YEAR,MONTH+1,0).getDate(), now=new Date();
+  grid.innerHTML=["D","S","T","Q","Q","S","S"].map(d=>`<div class="cal-wday">${d}</div>`).join("");
+  for(let i=0;i<first;i+=1) grid.innerHTML+='<div class="cal-day empty">0</div>';
+  for(let d=1;d<=last;d+=1){
+    const key=dateKey(YEAR,MONTH,d), has=STATE.adminPanel.events.some(x=>x.date===key), reg=STATE.adminPanel.events.some(x=>x.date===key&&x.type==="regional"), today=d===now.getDate()&&MONTH===now.getMonth()&&YEAR===now.getFullYear();
+    grid.innerHTML+=`<div class="cal-day${has?" has-ev":""}${reg?" has-reg":""}${today?" today":""}">${d}</div>`;
+  }
+  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date);return d.getMonth()===MONTH&&d.getFullYear()===YEAR;}).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("cal-events-panel").innerHTML=monthEvents.length?monthEvents.map(x=>`<div class="cal-ev-item"><div class="cal-ev-dot" style="background:${typeColor(x.type)}"></div><div class="cal-ev-info"><div class="cal-ev-title">${esc(x.title)}</div><div class="cal-ev-date">${esc(formatDate(x.date))} · <span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></div></div><button class="btn btn-xs btn-danger" data-remove-event="${x.id}"><i class="fas fa-times"></i></button></div>`).join(""):`<div class="empty-state"><i class="fas fa-calendar"></i><p>Nenhum evento especial neste mês. Clique em "Novo evento".</p></div>`;
+  const allEvents=STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const count=document.getElementById("all-events-count");
+  if(count)count.textContent=String(allEvents.length);
+  document.getElementById("all-events-tbody").innerHTML=allEvents.length?allEvents.map(x=>`<div class="proj-card" data-event-card="${x.id}" style="margin-bottom:0"><div class="event-view"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><div style="font-size:.72rem;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">${esc(formatDate(x.date))}</div><div style="font-size:1rem;font-weight:700;color:var(--b9);margin-bottom:6px">${esc(x.title)}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span>${x.description?`<span style="font-size:.78rem;color:var(--g600)">${esc(x.description)}</span>`:""}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" data-edit-event="${x.id}"><i class="fas fa-pen"></i> Editar</button><button class="btn btn-sm btn-danger" data-remove-event-row="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div></div><div class="event-edit" style="display:none"><div class="form-row"><div class="fg"><label>Data</label><input type="date" data-event-date="${x.id}" value="${esc(x.date)}"></div><div class="fg"><label>Tipo</label><select data-event-type="${x.id}"><option value="grupo"${x.type==="grupo"?" selected":""}>Grupo</option><option value="regional"${x.type==="regional"?" selected":""}>Regional</option><option value="nacional"${x.type==="nacional"?" selected":""}>Nacional</option></select></div></div><div class="fg"><label>Título</label><input data-event-title="${x.id}" value="${esc(x.title)}"></div><div class="fg"><label>Descrição</label><textarea rows="3" data-event-description="${x.id}">${esc(x.description||"")}</textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-cancel-event="${x.id}">Cancelar</button><button class="btn btn-sm btn-primary" data-save-event-row="${x.id}"><i class="fas fa-save"></i> Salvar evento</button></div></div></div>`).join(""):`<div class="empty-state"><i class="fas fa-calendar-day"></i><p>Nenhum evento cadastrado ainda. Use "Novo evento" para adicionar o primeiro.</p></div>`;
+  document.querySelectorAll("[data-remove-event],[data-remove-event-row]").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.removeEvent||btn.dataset.removeEventRow; STATE.adminPanel.events=STATE.adminPanel.events.filter(x=>x.id!==id); renderCalendar(); showToast("Evento removido."); setStatus("dirty","Alterações pendentes");}));
+  document.querySelectorAll("[data-save-event-row]").forEach(btn=>btn.addEventListener("click",()=>saveEventRow(btn.dataset.saveEventRow)));
+  document.querySelectorAll("[data-edit-event]").forEach(btn=>btn.addEventListener("click",()=>toggleEventEdit(btn.dataset.editEvent,true)));
+  document.querySelectorAll("[data-cancel-event]").forEach(btn=>btn.addEventListener("click",()=>toggleEventEdit(btn.dataset.cancelEvent,false)));
+}
+
+function renderProjects(){
+  const container=document.getElementById("projetos-container");
+  container.innerHTML=STATE.adminPanel.projects.length?STATE.adminPanel.projects.map(x=>`<div class="proj-card" data-project-card="${x.id}"><div class="project-view"><div style="display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap"><div style="display:flex;gap:14px;align-items:flex-start;flex:1;min-width:280px"><div class="proj-icon" style="background:${projectBg(x.status)};color:${projectFg(x.status)}">${esc(x.icon)}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span style="font-size:1rem;font-weight:700;color:var(--b9)">${esc(x.title)}</span><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></div><div style="font-size:.78rem;color:var(--g400);margin-bottom:8px">${esc(x.meta)}</div><p style="font-size:.83rem;color:var(--g600);line-height:1.6">${esc(x.description)}</p><div class="prog-bar" style="max-width:260px"><div class="prog-fill" style="width:${x.progress}%"></div></div><div style="font-size:.72rem;color:var(--g400);margin-top:4px">${x.progress}% concluído</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" data-edit-project="${x.id}"><i class="fas fa-pen"></i> Editar</button><button class="btn btn-sm btn-danger" data-remove-project="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div></div><div class="project-edit" style="display:none"><div class="form-row"><div class="fg"><label>Nome do projeto</label><input data-project-title="${x.id}" value="${esc(x.title)}"></div><div class="fg"><label>Status</label><select data-project-status="${x.id}"><option value="planejado"${x.status==="planejado"?" selected":""}>Planejado</option><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="concluido"${x.status==="concluido"?" selected":""}>Concluído</option></select></div></div><div class="form-row"><div class="fg"><label>Emoji</label><input data-project-icon="${x.id}" value="${esc(x.icon)}"></div><div class="fg"><label>Progresso (%)</label><input type="number" min="0" max="100" data-project-progress="${x.id}" value="${esc(String(x.progress))}"></div></div><div class="fg"><label>Meta / tags</label><input data-project-meta="${x.id}" value="${esc(x.meta)}"></div><div class="fg"><label>Descrição</label><textarea rows="3" data-project-description="${x.id}">${esc(x.description)}</textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-cancel-project="${x.id}">Cancelar</button><button class="btn btn-sm btn-primary" data-save-project="${x.id}"><i class="fas fa-save"></i> Salvar projeto</button></div></div></div>`).join(""):`<div class="card" style="margin-bottom:0"><div class="empty-state"><i class="fas fa-diagram-project"></i><p>Nenhum projeto cadastrado ainda. Clique em "Novo projeto" para criar o primeiro.</p></div></div>`;
+  document.querySelectorAll("[data-save-project]").forEach(btn=>btn.addEventListener("click",()=>saveProjectCard(btn.dataset.saveProject)));
+  document.querySelectorAll("[data-edit-project]").forEach(btn=>btn.addEventListener("click",()=>toggleProjectEdit(btn.dataset.editProject,true)));
+  document.querySelectorAll("[data-cancel-project]").forEach(btn=>btn.addEventListener("click",()=>toggleProjectEdit(btn.dataset.cancelProject,false)));
+  document.querySelectorAll("[data-remove-project]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.projects=STATE.adminPanel.projects.filter(x=>x.id!==btn.dataset.removeProject);renderProjects();showToast("Projeto removido.");setStatus("dirty","Alterações pendentes");}));
+}
+
+function renderMembers(){
+  const search=(document.getElementById("member-search").value||"").toLowerCase(), branch=document.getElementById("member-branch-filter").value||"";
+  const rows=STATE.adminPanel.members.filter(x=>(!search||x.name.toLowerCase().includes(search))&&(!branch||x.branch===branch));
+  const count=document.getElementById("members-count");
+  if(count)count.textContent=String(rows.length);
+  document.getElementById("membros-tbody").innerHTML=rows.length?rows.map(x=>{const initials=x.name.split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join(""), colors=MEMBER_COLORS[hash(x.name)%MEMBER_COLORS.length]; return `<div class="proj-card" data-member-card="${x.id}" style="margin-bottom:0"><div class="member-view"><div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="display:flex;gap:12px;align-items:flex-start;flex:1;min-width:280px"><div class="mv" style="width:40px;height:40px;background:${colors[0]};color:${colors[1]}">${initials}</div><div><div style="font-size:1rem;font-weight:700;color:var(--b9);margin-bottom:6px">${esc(x.name)}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span class="badge b-blue">${esc(x.branch)}</span><span class="badge ${badgeClass(x.role==="Chefe"?"planejado":x.role==="Monitor"?"grupo":"rascunho")}">${esc(x.role)}</span><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></div><div style="font-size:.78rem;color:var(--g400)">Ingressou em ${esc(x.since)}</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" data-edit-member="${x.id}"><i class="fas fa-pen"></i> Editar</button><button class="btn btn-sm btn-danger" data-remove-member="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div></div><div class="member-edit" style="display:none"><div class="form-row"><div class="fg"><label>Nome</label><input data-member-name="${x.id}" value="${esc(x.name)}"></div><div class="fg"><label>Ramo</label><select data-member-branch="${x.id}"><option${x.branch==="Filhotes"?" selected":""}>Filhotes</option><option${x.branch==="Lobinhos"?" selected":""}>Lobinhos</option><option${x.branch==="Escoteiros"?" selected":""}>Escoteiros</option><option${x.branch==="Seniores"?" selected":""}>Seniores</option><option${x.branch==="Pioneiros"?" selected":""}>Pioneiros</option></select></div></div><div class="form-row"><div class="fg"><label>Função</label><select data-member-role="${x.id}"><option${x.role==="Jovem"?" selected":""}>Jovem</option><option${x.role==="Monitor"?" selected":""}>Monitor</option><option${x.role==="Chefe"?" selected":""}>Chefe</option></select></div><div class="fg"><label>Ano de ingresso</label><input data-member-since="${x.id}" value="${esc(x.since)}"></div></div><div class="fg"><label>Status</label><select data-member-status="${x.id}"><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="pendente"${x.status==="pendente"?" selected":""}>Pendente</option><option value="inativo"${x.status==="inativo"?" selected":""}>Inativo</option></select></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-cancel-member="${x.id}">Cancelar</button><button class="btn btn-sm btn-primary" data-save-member="${x.id}"><i class="fas fa-save"></i> Salvar perfil</button></div></div></div>`;}).join(""):`<div class="empty-state"><i class="fas fa-user-plus"></i><p>${search||branch?"Nenhum membro encontrado com esse filtro.":"Nenhum membro cadastrado ainda. Clique em \"Novo membro\" para começar."}</p></div>`;
+  document.querySelectorAll("[data-save-member]").forEach(btn=>btn.addEventListener("click",()=>saveMemberRow(btn.dataset.saveMember)));
+  document.querySelectorAll("[data-edit-member]").forEach(btn=>btn.addEventListener("click",()=>toggleMemberEdit(btn.dataset.editMember,true)));
+  document.querySelectorAll("[data-cancel-member]").forEach(btn=>btn.addEventListener("click",()=>toggleMemberEdit(btn.dataset.cancelMember,false)));
+  document.querySelectorAll("[data-remove-member]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.members=STATE.adminPanel.members.filter(x=>x.id!==btn.dataset.removeMember);renderMembers();showToast("Membro removido.");setStatus("dirty","Alterações pendentes");}));
+}
+
+function saveEventRow(id){
+  const event=STATE.adminPanel.events.find(item=>item.id===id);
+  if(!event)return;
+  event.date=document.querySelector(`[data-event-date="${id}"]`)?.value||event.date;
+  event.title=(document.querySelector(`[data-event-title="${id}"]`)?.value||event.title).trim();
+  event.type=document.querySelector(`[data-event-type="${id}"]`)?.value||event.type;
+  event.description=(document.querySelector(`[data-event-description="${id}"]`)?.value||event.description||"").trim();
+  renderCalendar();
+  showToast("Evento atualizado.");
+  setStatus("dirty","Alterações pendentes");
+}
+
+function saveProjectCard(id){
+  const project=STATE.adminPanel.projects.find(item=>item.id===id);
+  if(!project)return;
+  project.title=(document.querySelector(`[data-project-title="${id}"]`)?.value||project.title).trim();
+  project.status=document.querySelector(`[data-project-status="${id}"]`)?.value||project.status;
+  project.icon=(document.querySelector(`[data-project-icon="${id}"]`)?.value||project.icon).trim()||"🌟";
+  project.progress=Number(document.querySelector(`[data-project-progress="${id}"]`)?.value||project.progress);
+  project.meta=(document.querySelector(`[data-project-meta="${id}"]`)?.value||project.meta).trim();
+  project.description=(document.querySelector(`[data-project-description="${id}"]`)?.value||project.description).trim();
+  renderProjects();
+  showToast("Projeto atualizado.");
+  setStatus("dirty","Alterações pendentes");
+}
+
+function saveMemberRow(id){
+  const member=STATE.adminPanel.members.find(item=>item.id===id);
+  if(!member)return;
+  member.name=(document.querySelector(`[data-member-name="${id}"]`)?.value||member.name).trim();
+  member.branch=document.querySelector(`[data-member-branch="${id}"]`)?.value||member.branch;
+  member.role=document.querySelector(`[data-member-role="${id}"]`)?.value||member.role;
+  member.since=(document.querySelector(`[data-member-since="${id}"]`)?.value||member.since).trim();
+  member.status=document.querySelector(`[data-member-status="${id}"]`)?.value||member.status;
+  renderMembers();
+  showToast("Membro atualizado.");
+  setStatus("dirty","Alterações pendentes");
+}
+
+function toggleEventEdit(id,force){
+  const card=document.querySelector(`[data-event-card="${id}"]`);
+  if(!card)return;
+  const next=typeof force==="boolean"?force:!card.classList.contains("editing");
+  card.classList.toggle("editing",next);
+  const view=card.querySelector(".event-view"), edit=card.querySelector(".event-edit");
+  if(view)view.style.display=next?"none":"block";
+  if(edit)edit.style.display=next?"block":"none";
+}
+
+function toggleProjectEdit(id,force){
+  const card=document.querySelector(`[data-project-card="${id}"]`);
+  if(!card)return;
+  const next=typeof force==="boolean"?force:!card.classList.contains("editing");
+  card.classList.toggle("editing",next);
+  const view=card.querySelector(".project-view"), edit=card.querySelector(".project-edit");
+  if(view)view.style.display=next?"none":"block";
+  if(edit)edit.style.display=next?"block":"none";
+}
+
+function toggleMemberEdit(id,force){
+  const card=document.querySelector(`[data-member-card="${id}"]`);
+  if(!card)return;
+  const next=typeof force==="boolean"?force:!card.classList.contains("editing");
+  card.classList.toggle("editing",next);
+  const view=card.querySelector(".member-view"), edit=card.querySelector(".member-edit");
+  if(view)view.style.display=next?"none":"block";
+  if(edit)edit.style.display=next?"block":"none";
+}
+
+const sitePageMeta=pageName=>({
+  "index.html":{title:"Home",icon:"fa-house",desc:"Hero, destaques, avisos, FAQ e chamadas principais."},
+  "sobre.html":{title:"Sobre",icon:"fa-circle-info",desc:"História, missão e apresentação institucional."},
+  "atividades.html":{title:"Atividades",icon:"fa-star",desc:"Experiências, rotina e apresentação das atividades."},
+  "galeria.html":{title:"Galeria",icon:"fa-images",desc:"Textos de apoio e imagens da galeria pública."},
+  "ramo.html":{title:"Ramos",icon:"fa-layer-group",desc:"Apresentação de cada faixa etária e seus textos."},
+  "projetos.html":{title:"Projetos",icon:"fa-hands-helping",desc:"Projetos sociais, títulos, descrições e imagens."},
+  "contato.html":{title:"Contato",icon:"fa-envelope",desc:"Informações para falar com o grupo e visitar."},
+  "documentos.html":{title:"Documentos",icon:"fa-file-lines",desc:"Arquivos, descrições e orientações para famílias."},
+  "equipe.html":{title:"Equipe",icon:"fa-users",desc:"Apresentação da chefia e da equipe do grupo."},
+  "participar.html":{title:"Participar",icon:"fa-user-plus",desc:"Passo a passo para a primeira visita e ingresso."},
+  "links.html":{title:"Links úteis",icon:"fa-link",desc:"Links externos e explicações de apoio."}
+}[pageName]||{title:pageName,icon:"fa-file",desc:"Conteúdo público da página."});
+
+if(PAGES.find(item=>item[1]==="siteContent")){
+  const siteItem=PAGES.find(item=>item[1]==="siteContent");
+  siteItem[0]="Páginas";
+  siteItem[3]="Páginas do site";
+}
+
+function siteContentTpl(){
+  const current=sitePageMeta(CONTENT_PAGE);
+  return `<div class="notice"><i class="fas fa-pen-ruler"></i> Edite o site por página, com campos pensados para quem vai publicar conteúdo e não para quem programa.</div><div class="card"><div class="card-head"><h3><i class="fas ${current.icon}" style="color:var(--b5);margin-right:6px"></i>${current.title}</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" id="site-open-link" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Abrir página</a><button class="btn btn-sm" id="site-reload-schema"><i class="fas fa-rotate-right"></i> Atualizar estrutura</button><button class="btn btn-primary btn-sm" data-save-page="siteContent"><i class="fas fa-save"></i> Salvar página</button></div></div><p style="font-size:.84rem;color:var(--g600);margin-top:-4px">${esc(current.desc)}</p><div id="site-page-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">${PUBLIC_PAGE_OPTIONS.map(([file])=>{const meta=sitePageMeta(file);return `<button class="btn btn-sm${file===CONTENT_PAGE?" btn-primary":""}" data-site-page-tab="${file}"><i class="fas ${meta.icon}"></i> ${meta.title}</button>`;}).join("")}</div><div style="margin-top:16px;padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--g200);background:var(--g50);font-size:.83rem;color:var(--g600)" id="site-content-summary">Carregando campos da página...</div></div><div id="site-content-editor"><div class="card"><div class="empty-state"><i class="fas fa-file-lines"></i><p>Carregando editor da página...</p></div></div></div>`;
+}
+
+async function initSiteContentEditor(){
+  const reloadBtn=document.getElementById("site-reload-schema"),openLink=document.getElementById("site-open-link");
+  if(!reloadBtn||!openLink)return;
+  document.querySelectorAll("[data-site-page-tab]").forEach(btn=>btn.addEventListener("click",async()=>{
+    if(btn.dataset.sitePageTab===CONTENT_PAGE)return;
+    captureSiteContent();
+    CONTENT_PAGE=btn.dataset.sitePageTab;
+    renderPage("siteContent");
+  }));
+  reloadBtn.addEventListener("click",async()=>{await renderSiteContentEditor(true);showToast("Estrutura da página atualizada.");});
+  openLink.href=`/${CONTENT_PAGE}`;
+  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
+  if(container)container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(sitePageMeta(CONTENT_PAGE).title)}...</p></div></div>`;
+  if(summary)summary.textContent="Lendo campos editáveis da página...";
+  await renderSiteContentEditor(false);
+}
+
+async function renderSiteContentEditor(forceReload){
+  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
+  if(!container||!summary)return;
+  container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(sitePageMeta(CONTENT_PAGE).title)}...</p></div></div>`;
+  try{
+    const schema=await getContentSchema(CONTENT_PAGE,forceReload);
+    const pageState=ensureManagedPageState(CONTENT_PAGE);
+    summary.textContent=`${sitePageMeta(CONTENT_PAGE).title}: ${schema.texts.length} textos, ${schema.images.length} imagens, ${schema.sections.length} seções e ${pageState.extras.length} blocos extras prontos para edição.`;
+    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Textos principais</h3><span class="badge b-blue">${schema.texts.length}</span></div>${renderFriendlyTextEditor(schema.texts,pageState)}</div><div class="card"><div class="card-head"><h3>Imagens da página</h3><span class="badge b-blue">${schema.images.length}</span></div>${renderFriendlyImageEditor(schema.images,pageState)}</div></div><div class="grid2"><div class="card"><div class="card-head"><h3>Seções visíveis</h3><span class="badge b-blue">${schema.sections.length}</span></div>${renderFriendlySectionEditor(schema.sections,pageState)}</div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><p style="font-size:.78rem;color:var(--g400);margin:-4px 0 14px">Use blocos extras quando quiser acrescentar um destaque novo sem mexer na estrutura principal da página.</p><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
+    bindSiteContentEditor();
+  }catch(error){
+    const pageState=ensureManagedPageState(CONTENT_PAGE);
+    summary.textContent="Não foi possível mapear a página automaticamente. O painel exibiu um modo de segurança.";
+    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Diagnóstico</h3><span class="badge b-amber">Modo de segurança</span></div><div class="notice"><i class="fas fa-triangle-exclamation"></i> Esta página ainda não pôde ser convertida para o editor amigável. Tente atualizar a estrutura.</div><div class="fg"><label>Página</label><input value="${esc(sitePageMeta(CONTENT_PAGE).title)}" disabled></div><div class="fg" style="margin-bottom:0"><label>Motivo técnico</label><textarea rows="4" disabled>${esc(error&&error.message?error.message:"schema_load_failed")}</textarea></div></div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
+    bindSiteContentEditor();
+  }
+}
+
+function bindSiteContentEditor(){
+  const addBtn=document.getElementById("add-extra-section");
+  if(addBtn)addBtn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras.push({id:id("extra"),title:"",text:"",buttonLabel:"",buttonHref:"",imageSrc:"",imageAlt:"",tone:"default"});renderSiteContentEditor(false);setStatus("dirty","Alterações pendentes");});
+  document.querySelectorAll("[data-remove-extra]").forEach(btn=>btn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras=ensureManagedPageState(CONTENT_PAGE).extras.filter(extra=>extra.id!==btn.dataset.removeExtra);renderSiteContentEditor(false);showToast("Bloco extra removido.");setStatus("dirty","Alterações pendentes");}));
+}
+
+function renderFriendlyTextEditor(texts,pageState){
+  if(!texts.length)return '<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum texto principal foi identificado nesta página.</p></div>';
+  return texts.map((entry,index)=>`<details style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Texto ${index+1}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">${esc(readableTag(entry.label))}</span></summary><div class="fg" style="margin-top:12px;margin-bottom:0"><label>Conteúdo</label><textarea rows="${textareaRows(entry.value)}" data-site-text="${esc(entry.key)}">${esc(pageState.text[entry.key]??entry.value)}</textarea></div></details>`).join("");
+}
+
+function renderFriendlyImageEditor(images,pageState){
+  if(!images.length)return '<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem principal foi identificada nesta página.</p></div>';
+  return images.map((entry,index)=>{const override=pageState.images[entry.key]||{};return `<details style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Imagem ${index+1}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">imagem</span></summary><div class="fg" style="margin-top:12px"><label>Arquivo / caminho</label><input data-site-image-src="${esc(entry.key)}" value="${esc(override.src??entry.src)}"></div><div class="fg" style="margin-bottom:0"><label>Texto alternativo</label><input data-site-image-alt="${esc(entry.key)}" value="${esc(override.alt??entry.alt)}"></div></details>`;}).join("");
+}
+
+function renderFriendlySectionEditor(sections,pageState){
+  if(!sections.length)return '<div class="empty-state"><i class="fas fa-layer-group"></i><p>Nenhuma seção principal foi identificada nesta página.</p></div>';
+  return sections.map((entry,index)=>{const sectionState=pageState.sections[entry.key]||{};return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:10px;background:var(--g50)"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Seção ${index+1}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(summarizeEditorLabel(entry.label))}</div></div><label class="tog"><input type="checkbox" data-site-section-hidden="${esc(entry.key)}"${sectionState.hidden?" checked":""}><span class="tog-sl"></span></label></div>`;}).join("");
+}
+
+function summarizeEditorLabel(label){
+  return String(label||"").replace(/^(h1|h2|h3|h4|p|a|div)\s-\s/i,"").replace(/\s+/g," ").trim().slice(0,90)||"Conteúdo da página";
+}
+
+function readableTag(label){
+  const tag=String(label||"").split(" - ")[0].toLowerCase();
+  return ({h1:"título",h2:"subtítulo",h3:"bloco",h4:"bloco",p:"texto",a:"botão",div:"apoio"})[tag]||"campo";
+}
 function normalizeImagePath(value){return String(value||"").trim().replace(/\\/g,"/").replace(/^\.?\//,"");}
 function hasAllowedImageExtension(path){const parts=String(path||"").toLowerCase().split("."); return parts.length>1&&GALLERY_ALLOWED_EXTENSIONS.includes(parts.pop());}
 function isSafeLinuxPath(path){return /^images\/[a-z0-9/_-]+\.(webp|jpg|jpeg|png|svg)$/.test(String(path||""));}
