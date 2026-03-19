@@ -75,16 +75,16 @@ function dashboardTpl(){
 }
 
 function calendarioTpl(){
-  return `<div class="grid2"><div class="card" style="margin-bottom:0"><div class="card-head"><h3 id="cal-month-lbl"></h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button><button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button></div></div><div class="cal-grid-wrap" id="cal-grid"></div><div style="display:flex;gap:12px;margin-top:12px;font-size:.72rem;color:var(--g400)"><span><i class="fas fa-circle" style="color:var(--b5);font-size:.45rem;margin-right:4px"></i>Grupo</span><span><i class="fas fa-circle" style="color:var(--success);font-size:.45rem;margin-right:4px"></i>Regional</span><span><i class="fas fa-circle" style="color:var(--warn);font-size:.45rem;margin-right:4px"></i>Nacional</span></div></div><div class="card" style="margin-bottom:0"><div class="card-head"><h3>Eventos de <span id="cal-month-short"></span></h3><button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button></div><div id="cal-events-panel" style="max-height:280px;overflow-y:auto"></div><div style="margin-top:12px"><button class="btn btn-primary" data-save-page="calendario"><i class="fas fa-save"></i> Salvar calendário</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-head"><h3>Todos os eventos</h3></div><table><thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="all-events-tbody"></tbody></table></div>`;
+  return `<div class="notice"><i class="fas fa-calendar-check"></i> Use o calendário para cadastrar os eventos do grupo. Clique em <strong>Novo evento</strong>, preencha os dados e depois salve.</div><div class="grid2"><div class="card" style="margin-bottom:0"><div class="card-head"><h3 id="cal-month-lbl"></h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button><button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button></div></div><div class="cal-grid-wrap" id="cal-grid"></div><div style="display:flex;gap:12px;margin-top:12px;font-size:.72rem;color:var(--g400)"><span><i class="fas fa-circle" style="color:var(--b5);font-size:.45rem;margin-right:4px"></i>Grupo</span><span><i class="fas fa-circle" style="color:var(--success);font-size:.45rem;margin-right:4px"></i>Regional</span><span><i class="fas fa-circle" style="color:var(--warn);font-size:.45rem;margin-right:4px"></i>Nacional</span></div></div><div class="card" style="margin-bottom:0"><div class="card-head"><h3>Eventos de <span id="cal-month-short"></span></h3><button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button></div><div id="cal-events-panel" style="max-height:280px;overflow-y:auto"></div><div style="margin-top:12px"><button class="btn btn-primary" data-save-page="calendario"><i class="fas fa-save"></i> Salvar calendário</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-head"><h3>Todos os eventos</h3></div><table><thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="all-events-tbody"></tbody></table></div>`;
 }
 
 function galeriaTpl(){
   return `<div class="notice"><i class="fas fa-shield-alt"></i> Antes de cadastrar uma foto, coloque o arquivo dentro de <strong>images/</strong> e use apenas letras minúsculas, números e hífen. Formatos aceitos: ${GALLERY_ALLOWED_EXTENSIONS.join(", ")}. Tamanho máximo: ${GALLERY_MAX_LABEL}.</div><div class="card"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="btn btn-primary" data-open-modal="modal-upload"><i class="fas fa-upload"></i> Adicionar fotos</button><div style="display:flex;gap:6px;flex-wrap:wrap" id="gal-filters">${filterBtn("all","Todas",true)}${filterBtn("acampamento","Acampamentos")}${filterBtn("atividade","Atividades")}${filterBtn("evento","Eventos")}${filterBtn("comunidade","Ações Sociais")}</div><span style="margin-left:auto;font-size:.78rem;color:var(--g600)" id="gal-count"></span><button class="btn btn-primary" data-save-page="galeria"><i class="fas fa-save"></i> Salvar galeria</button></div></div><div class="photo-grid" id="photo-grid" data-filter="all"></div>`;
 }
 
-function projetosTpl(){ return `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-proj"><i class="fas fa-plus"></i> Novo projeto</button><button class="btn btn-primary" data-save-page="projetos"><i class="fas fa-save"></i> Salvar projetos</button></div><div id="projetos-container"></div>`; }
-function atividadesTpl(){ return `<div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-ativ"><i class="fas fa-plus"></i> Nova atividade</button><button class="btn btn-primary" data-save-page="atividades"><i class="fas fa-save"></i> Salvar atividades</button></div><div class="grid3" id="ativ-grid">${STATE.adminPanel.activities.map(activityCard).join("")}</div>`; }
-function membrosTpl(){ return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar membro..."></div><select id="member-branch-filter" style="margin:0;width:160px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--g200)"><option value="">Todos os ramos</option><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select><button class="btn btn-primary" data-open-modal="modal-new-membro"><i class="fas fa-user-plus"></i> Novo membro</button><button class="btn btn-primary" data-save-page="membros"><i class="fas fa-save"></i> Salvar membros</button></div><div class="card"><table><thead><tr><th>Membro</th><th>Ramo</th><th>Função</th><th>Ingresso</th><th>Status</th><th>Ações</th></tr></thead><tbody id="membros-tbody"></tbody></table></div>`; }
+function projetosTpl(){ return `<div class="notice"><i class="fas fa-hands-helping"></i> Cadastre aqui os projetos sociais e institucionais do grupo. Comece por <strong>Novo projeto</strong>.</div><div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-proj"><i class="fas fa-plus"></i> Novo projeto</button><button class="btn btn-primary" data-save-page="projetos"><i class="fas fa-save"></i> Salvar projetos</button></div><div id="projetos-container"></div>`; }
+function atividadesTpl(){ return `<div class="notice"><i class="fas fa-star"></i> Use esta área para listar as atividades principais apresentadas no site.</div><div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-ativ"><i class="fas fa-plus"></i> Nova atividade</button><button class="btn btn-primary" data-save-page="atividades"><i class="fas fa-save"></i> Salvar atividades</button></div><div class="grid3" id="ativ-grid">${STATE.adminPanel.activities.map(activityCard).join("")}</div>`; }
+function membrosTpl(){ return `<div class="notice"><i class="fas fa-users"></i> Cadastre os membros do grupo e use a busca para localizar rapidamente. Os dados podem ser filtrados por ramo.</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar membro..."></div><select id="member-branch-filter" style="margin:0;width:160px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--g200)"><option value="">Todos os ramos</option><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select><button class="btn btn-primary" data-open-modal="modal-new-membro"><i class="fas fa-user-plus"></i> Novo membro</button><button class="btn btn-primary" data-save-page="membros"><i class="fas fa-save"></i> Salvar membros</button></div><div class="card"><table><thead><tr><th>Membro</th><th>Ramo</th><th>Função</th><th>Ingresso</th><th>Status</th><th>Ações</th></tr></thead><tbody id="membros-tbody"></tbody></table></div>`; }
 
 function ramosTpl(){
   const b=STATE.adminPanel.branches[BRANCH];
@@ -109,6 +109,12 @@ function configTpl(){
 }
 
 function siteContentTpl(){ return `<div class="notice"><i class="fas fa-pen-ruler"></i> Edite o conteudo publico por pagina sem sair do painel. Os dados salvos aqui alimentam o site que o visitante enxerga.</div><div class="card"><div class="card-head"><h3>Pagina publica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" id="site-open-link" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Abrir pagina</a><button class="btn btn-sm" id="site-reload-schema"><i class="fas fa-rotate-right"></i> Recarregar estrutura</button><button class="btn btn-primary btn-sm" data-save-page="siteContent"><i class="fas fa-save"></i> Salvar pagina</button></div></div><div class="form-row"><div class="fg"><label>Pagina</label><select id="site-content-page">${PUBLIC_PAGE_OPTIONS.map(([file,label])=>`<option value="${file}"${file===CONTENT_PAGE?" selected":""}>${label} (${file})</option>`).join("")}</select></div><div class="fg"><label>Resumo</label><div id="site-content-summary" style="padding:9px 12px;border-radius:var(--r-md);border:1.5px solid var(--g200);background:var(--g50);font-size:.83rem;color:var(--g600)">Carregando estrutura...</div></div></div></div><div id="site-content-editor"><div class="card"><div class="empty-state"><i class="fas fa-file-lines"></i><p>Carregando editor da pagina...</p></div></div></div>`; }
+
+function renderModals(){
+  const root=document.getElementById("modal-root");
+  if(!root)return;
+  root.innerHTML=`${eventModal()}${photoModal()}${projectModal()}${activityModal()}${memberModal()}`;
+}
 
 function bindShared(){
   document.querySelectorAll("[data-open-modal]").forEach(btn=>btn.addEventListener("click",()=>openModal(btn.dataset.openModal)));
@@ -163,6 +169,77 @@ function renderMembers(){
 }
 
 function renderIA(){document.getElementById("ia-chat").innerHTML=STATE.adminPanel.iaHistory.map(x=>`<div style="display:flex;justify-content:${x.role==="user"?"flex-end":"flex-start"}"><div style="max-width:80%;padding:10px 14px;border-radius:${x.role==="user"?"14px 14px 4px 14px":"14px 14px 14px 4px"};font-size:.83rem;line-height:1.6;${x.role==="user"?"background:var(--b5);color:#fff":"background:var(--g50);color:var(--ink);border:1px solid var(--g100)"}">${esc(x.content)}</div></div>`).join("");}
+
+function renderCalendar(){
+  document.getElementById("cal-month-lbl").textContent=`${MONTHS[MONTH]} de ${YEAR}`;
+  document.getElementById("cal-month-short").textContent=MONTHS_SHORT[MONTH];
+  const grid=document.getElementById("cal-grid"), first=new Date(YEAR,MONTH,1).getDay(), last=new Date(YEAR,MONTH+1,0).getDate(), now=new Date();
+  grid.innerHTML=["D","S","T","Q","Q","S","S"].map(d=>`<div class="cal-wday">${d}</div>`).join("");
+  for(let i=0;i<first;i+=1) grid.innerHTML+='<div class="cal-day empty">0</div>';
+  for(let d=1;d<=last;d+=1){
+    const key=dateKey(YEAR,MONTH,d), has=STATE.adminPanel.events.some(x=>x.date===key), reg=STATE.adminPanel.events.some(x=>x.date===key&&x.type==="regional"), today=d===now.getDate()&&MONTH===now.getMonth()&&YEAR===now.getFullYear();
+    grid.innerHTML+=`<div class="cal-day${has?" has-ev":""}${reg?" has-reg":""}${today?" today":""}">${d}</div>`;
+  }
+  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date);return d.getMonth()===MONTH&&d.getFullYear()===YEAR;}).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("cal-events-panel").innerHTML=monthEvents.length?monthEvents.map(x=>`<div class="cal-ev-item"><div class="cal-ev-dot" style="background:${typeColor(x.type)}"></div><div class="cal-ev-info"><div class="cal-ev-title">${esc(x.title)}</div><div class="cal-ev-date">${esc(formatDate(x.date))} · <span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></div></div><button class="btn btn-xs btn-danger" data-remove-event="${x.id}"><i class="fas fa-times"></i></button></div>`).join(""):`<div class="empty-state"><i class="fas fa-calendar"></i><p>Nenhum evento especial neste mês. Clique em "Novo evento".</p></div>`;
+  const allEvents=STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById("all-events-tbody").innerHTML=allEvents.length?allEvents.map(x=>`<tr><td><input type="date" data-event-date="${x.id}" value="${esc(x.date)}"></td><td><input data-event-title="${x.id}" value="${esc(x.title)}"></td><td><select data-event-type="${x.id}"><option value="grupo"${x.type==="grupo"?" selected":""}>Grupo</option><option value="regional"${x.type==="regional"?" selected":""}>Regional</option><option value="nacional"${x.type==="nacional"?" selected":""}>Nacional</option></select></td><td class="td-actions"><button class="btn btn-xs" data-save-event-row="${x.id}"><i class="fas fa-floppy-disk"></i></button><button class="btn btn-xs btn-danger" data-remove-event-row="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(""):`<tr><td colspan="4"><div class="empty-state"><i class="fas fa-calendar-day"></i><p>Nenhum evento cadastrado ainda. Use "Novo evento" para adicionar o primeiro.</p></div></td></tr>`;
+  document.querySelectorAll("[data-remove-event],[data-remove-event-row]").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.removeEvent||btn.dataset.removeEventRow; STATE.adminPanel.events=STATE.adminPanel.events.filter(x=>x.id!==id); renderCalendar(); showToast("Evento removido."); setStatus("dirty","Alterações pendentes");}));
+  document.querySelectorAll("[data-save-event-row]").forEach(btn=>btn.addEventListener("click",()=>saveEventRow(btn.dataset.saveEventRow)));
+}
+
+function renderProjects(){
+  const container=document.getElementById("projetos-container");
+  container.innerHTML=STATE.adminPanel.projects.length?STATE.adminPanel.projects.map(x=>`<div class="proj-card"><div class="form-row"><div class="fg"><label>Nome do projeto</label><input data-project-title="${x.id}" value="${esc(x.title)}"></div><div class="fg"><label>Status</label><select data-project-status="${x.id}"><option value="planejado"${x.status==="planejado"?" selected":""}>Planejado</option><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="concluido"${x.status==="concluido"?" selected":""}>Concluído</option></select></div></div><div class="form-row"><div class="fg"><label>Emoji</label><input data-project-icon="${x.id}" value="${esc(x.icon)}"></div><div class="fg"><label>Progresso (%)</label><input type="number" min="0" max="100" data-project-progress="${x.id}" value="${esc(String(x.progress))}"></div></div><div class="fg"><label>Meta / tags</label><input data-project-meta="${x.id}" value="${esc(x.meta)}"></div><div class="fg"><label>Descrição</label><textarea rows="3" data-project-description="${x.id}">${esc(x.description)}</textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-save-project="${x.id}"><i class="fas fa-floppy-disk"></i> Salvar este projeto</button><button class="btn btn-sm btn-danger" data-remove-project="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div>`).join(""):`<div class="card" style="margin-bottom:0"><div class="empty-state"><i class="fas fa-diagram-project"></i><p>Nenhum projeto cadastrado ainda. Clique em "Novo projeto" para criar o primeiro.</p></div></div>`;
+  document.querySelectorAll("[data-save-project]").forEach(btn=>btn.addEventListener("click",()=>saveProjectCard(btn.dataset.saveProject)));
+  document.querySelectorAll("[data-remove-project]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.projects=STATE.adminPanel.projects.filter(x=>x.id!==btn.dataset.removeProject);renderProjects();showToast("Projeto removido.");setStatus("dirty","Alterações pendentes");}));
+}
+
+function renderMembers(){
+  const search=(document.getElementById("member-search").value||"").toLowerCase(), branch=document.getElementById("member-branch-filter").value||"";
+  const rows=STATE.adminPanel.members.filter(x=>(!search||x.name.toLowerCase().includes(search))&&(!branch||x.branch===branch));
+  document.getElementById("membros-tbody").innerHTML=rows.length?rows.map(x=>`<tr><td><input data-member-name="${x.id}" value="${esc(x.name)}"></td><td><select data-member-branch="${x.id}"><option${x.branch==="Filhotes"?" selected":""}>Filhotes</option><option${x.branch==="Lobinhos"?" selected":""}>Lobinhos</option><option${x.branch==="Escoteiros"?" selected":""}>Escoteiros</option><option${x.branch==="Seniores"?" selected":""}>Seniores</option><option${x.branch==="Pioneiros"?" selected":""}>Pioneiros</option></select></td><td><select data-member-role="${x.id}"><option${x.role==="Jovem"?" selected":""}>Jovem</option><option${x.role==="Monitor"?" selected":""}>Monitor</option><option${x.role==="Chefe"?" selected":""}>Chefe</option></select></td><td><input data-member-since="${x.id}" value="${esc(x.since)}"></td><td><select data-member-status="${x.id}"><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="pendente"${x.status==="pendente"?" selected":""}>Pendente</option><option value="inativo"${x.status==="inativo"?" selected":""}>Inativo</option></select></td><td class="td-actions"><button class="btn btn-xs" data-save-member="${x.id}"><i class="fas fa-floppy-disk"></i></button><button class="btn btn-xs btn-danger" data-remove-member="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(""):`<tr><td colspan="6"><div class="empty-state"><i class="fas fa-user-plus"></i><p>${search||branch?"Nenhum membro encontrado com esse filtro.":"Nenhum membro cadastrado ainda. Clique em \"Novo membro\" para começar."}</p></div></td></tr>`;
+  document.querySelectorAll("[data-save-member]").forEach(btn=>btn.addEventListener("click",()=>saveMemberRow(btn.dataset.saveMember)));
+  document.querySelectorAll("[data-remove-member]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.members=STATE.adminPanel.members.filter(x=>x.id!==btn.dataset.removeMember);renderMembers();showToast("Membro removido.");setStatus("dirty","Alterações pendentes");}));
+}
+
+function saveEventRow(id){
+  const event=STATE.adminPanel.events.find(item=>item.id===id);
+  if(!event)return;
+  event.date=document.querySelector(`[data-event-date="${id}"]`)?.value||event.date;
+  event.title=(document.querySelector(`[data-event-title="${id}"]`)?.value||event.title).trim();
+  event.type=document.querySelector(`[data-event-type="${id}"]`)?.value||event.type;
+  renderCalendar();
+  showToast("Evento atualizado.");
+  setStatus("dirty","Alterações pendentes");
+}
+
+function saveProjectCard(id){
+  const project=STATE.adminPanel.projects.find(item=>item.id===id);
+  if(!project)return;
+  project.title=(document.querySelector(`[data-project-title="${id}"]`)?.value||project.title).trim();
+  project.status=document.querySelector(`[data-project-status="${id}"]`)?.value||project.status;
+  project.icon=(document.querySelector(`[data-project-icon="${id}"]`)?.value||project.icon).trim()||"🌟";
+  project.progress=Number(document.querySelector(`[data-project-progress="${id}"]`)?.value||project.progress);
+  project.meta=(document.querySelector(`[data-project-meta="${id}"]`)?.value||project.meta).trim();
+  project.description=(document.querySelector(`[data-project-description="${id}"]`)?.value||project.description).trim();
+  renderProjects();
+  showToast("Projeto atualizado.");
+  setStatus("dirty","Alterações pendentes");
+}
+
+function saveMemberRow(id){
+  const member=STATE.adminPanel.members.find(item=>item.id===id);
+  if(!member)return;
+  member.name=(document.querySelector(`[data-member-name="${id}"]`)?.value||member.name).trim();
+  member.branch=document.querySelector(`[data-member-branch="${id}"]`)?.value||member.branch;
+  member.role=document.querySelector(`[data-member-role="${id}"]`)?.value||member.role;
+  member.since=(document.querySelector(`[data-member-since="${id}"]`)?.value||member.since).trim();
+  member.status=document.querySelector(`[data-member-status="${id}"]`)?.value||member.status;
+  renderMembers();
+  showToast("Membro atualizado.");
+  setStatus("dirty","Alterações pendentes");
+}
 
 async function initSiteContentEditor(){
   const select=document.getElementById("site-content-page"),reloadBtn=document.getElementById("site-reload-schema"),openLink=document.getElementById("site-open-link");
