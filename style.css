@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
+@font-face {
+    font-family: 'New Athletic M54';
+    src: url('./fonts/New%20Athletic%20M54.ttf') format('truetype');
+    font-display: swap;
+}
 
 :root {
     --blue-950: #08172d;
@@ -45,7 +49,7 @@ html {
 
 body {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'New Athletic M54', sans-serif;
     color: var(--ink);
     background: var(--white);
     line-height: 1.6;
@@ -111,7 +115,7 @@ textarea {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    font-family: 'Syne', sans-serif;
+    font-family: 'New Athletic M54', sans-serif;
     font-weight: 800;
     letter-spacing: -0.02em;
 }
@@ -277,7 +281,7 @@ h3,
 h4,
 h5 {
     margin: 0;
-    font-family: 'Syne', sans-serif;
+    font-family: 'New Athletic M54', sans-serif;
     letter-spacing: -0.04em;
     line-height: 1.04;
     color: var(--blue-900);
@@ -1623,7 +1627,7 @@ textarea {
 .footer-brand strong {
     display: block;
     color: var(--white);
-    font-family: 'Syne', sans-serif;
+    font-family: 'New Athletic M54', sans-serif;
     letter-spacing: -0.02em;
 }
 
