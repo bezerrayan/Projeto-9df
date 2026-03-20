@@ -11,11 +11,15 @@
   src:url("./fonts/New%20Athletic%20M54.ttf") format("truetype");
   font-display:swap;
 }
+/* admin UI font stack */
+:root{
+  --font-ui:"Segoe UI",Inter,system-ui,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+}
 /* ── Reset ─────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
 body{
-  font-family:"New Athletic M54",system-ui,sans-serif;
+  font-family:var(--font-ui);
   font-size:14px;
   color:#0f172a;
   background:#f1f5f9;
@@ -112,11 +116,11 @@ img{display:block;max-width:100%}
   flex-shrink:0;
 }
 .sb-brand-name{
-  font-family:"New Athletic M54",sans-serif;
+  font-family:var(--font-ui);
   font-size:13px;
-  font-weight:700;
+  font-weight:600;
   color:#f1f5f9;
-  letter-spacing:-.02em;
+  letter-spacing:.01em;
 }
 .sb-brand-sub{
   font-size:11px;
@@ -218,11 +222,11 @@ img{display:block;max-width:100%}
   box-shadow:var(--sh-xs);
 }
 .topbar-title{
-  font-family:"New Athletic M54",sans-serif;
+  font-family:var(--font-ui);
   font-size:15px;
-  font-weight:700;
+  font-weight:600;
   color:var(--c-ink);
-  letter-spacing:-.02em;
+  letter-spacing:.01em;
 }
 .topbar-sub{
   font-size:12px;
@@ -286,11 +290,11 @@ img{display:block;max-width:100%}
   margin-bottom:14px;
 }
 .card-title{
-  font-family:"New Athletic M54",sans-serif;
+  font-family:var(--font-ui);
   font-size:14px;
-  font-weight:700;
+  font-weight:600;
   color:var(--c-ink);
-  letter-spacing:-.02em;
+  letter-spacing:.01em;
 }
 .card-desc{font-size:12px;color:var(--c-ink-3);margin-top:2px;line-height:1.5}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -315,10 +319,10 @@ img{display:block;max-width:100%}
   background:radial-gradient(circle,rgba(255,255,255,.08),transparent 70%);
 }
 .hero-banner h2{
-  font-family:"New Athletic M54",sans-serif;
-  font-size:20px;
-  font-weight:800;
-  letter-spacing:-.03em;
+  font-family:var(--font-ui);
+  font-size:19px;
+  font-weight:700;
+  letter-spacing:-.01em;
   margin-bottom:6px;
 }
 .hero-banner p{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;max-width:640px}
@@ -335,7 +339,7 @@ img{display:block;max-width:100%}
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.10);
 }
-.hero-stat strong{display:block;font-size:18px;font-family:"New Athletic M54",sans-serif;font-weight:700}
+.hero-stat strong{display:block;font-size:17px;font-family:var(--font-ui);font-weight:700}
 .hero-stat span{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px;display:block}
 
 /* stat tiles */
@@ -347,7 +351,7 @@ img{display:block;max-width:100%}
   box-shadow:var(--sh-xs);
 }
 .stat-tile small{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ink-3)}
-.stat-tile strong{display:block;font-size:22px;font-family:"New Athletic M54",sans-serif;font-weight:700;color:var(--c-ink);margin-top:4px}
+.stat-tile strong{display:block;font-size:20px;font-family:var(--font-ui);font-weight:700;color:var(--c-ink);margin-top:4px}
 .stat-tile span{display:block;font-size:12px;color:var(--c-ink-3);margin-top:4px}
 
 /* Buttons */
@@ -617,7 +621,7 @@ img{display:block;max-width:100%}
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:18px;
 }
-.modal-head h3{font-family:"New Athletic M54",sans-serif;font-size:15px;font-weight:700}
+.modal-head h3{font-family:var(--font-ui);font-size:15px;font-weight:600}
 .modal-close{
   width:28px;height:28px;
   display:grid;place-items:center;
@@ -654,7 +658,7 @@ img{display:block;max-width:100%}
 .branch-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .branch-item{padding:10px 12px;border-radius:var(--r-md);background:var(--c-surface-alt);border:1px solid var(--c-border)}
 .branch-item small{font-size:11px;color:var(--c-ink-3)}
-.branch-item strong{display:block;font-size:18px;font-weight:700;font-family:"New Athletic M54",sans-serif;margin-top:2px}
+.branch-item strong{display:block;font-size:17px;font-weight:700;font-family:var(--font-ui);margin-top:2px}
 
 /* Toast */
 #toast{
