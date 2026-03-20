@@ -50,10 +50,13 @@ html {
 body {
     margin: 0;
     font-family: 'New Athletic M54', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.012em;
     color: var(--ink);
     background: var(--white);
-    line-height: 1.6;
+    line-height: 1.72;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
 }
 
 img {
@@ -116,8 +119,8 @@ textarea {
     align-items: center;
     gap: 12px;
     font-family: 'New Athletic M54', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: 0.015em;
 }
 
 .brand-text {
@@ -174,11 +177,12 @@ textarea {
 }
 
 .site-nav a {
-    padding: 10px 16px;
+    padding: 10px 14px;
     border-radius: 999px;
     color: var(--text);
-    font-size: 0.92rem;
+    font-size: 0.82rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
     transition: var(--transition);
 }
 
@@ -264,11 +268,12 @@ textarea {
     align-items: center;
     gap: 8px;
     color: var(--blue-500);
-    font-size: 0.76rem;
-    font-weight: 800;
-    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     margin-bottom: 14px;
+    opacity: 0.92;
 }
 
 .eyebrow-light {
@@ -282,9 +287,10 @@ h4,
 h5 {
     margin: 0;
     font-family: 'New Athletic M54', sans-serif;
-    letter-spacing: -0.04em;
-    line-height: 1.04;
+    letter-spacing: -0.018em;
+    line-height: 1.08;
     color: var(--blue-900);
+    text-wrap: balance;
 }
 
 h1 em,
@@ -295,8 +301,8 @@ h2 em {
 
 .section-head h2,
 .section-title {
-    font-size: clamp(2rem, 4vw, 3rem);
-    margin-bottom: 14px;
+    font-size: clamp(1.85rem, 3.6vw, 2.7rem);
+    margin-bottom: 16px;
 }
 
 .section-title.left {
@@ -321,6 +327,9 @@ h2 em {
 .panel-note {
     color: var(--text);
     margin: 0;
+    font-size: 0.96rem;
+    line-height: 1.82;
+    letter-spacing: 0.015em;
 }
 
 .section-text+.section-text {
@@ -344,11 +353,13 @@ h2 em {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 50px;
-    padding: 0 24px;
+    min-height: 48px;
+    padding: 0 22px;
     border-radius: 999px;
     border: none;
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.015em;
     transition: transform var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
 }
 
@@ -357,9 +368,9 @@ h2 em {
 }
 
 .btn-primary {
-    background: var(--blue-500);
+    background: linear-gradient(180deg, #2b86ee 0%, var(--blue-500) 100%);
     color: var(--white);
-    box-shadow: 0 14px 32px rgba(0, 113, 227, 0.24);
+    box-shadow: 0 12px 28px rgba(0, 113, 227, 0.18);
 }
 
 .btn-primary:hover {
@@ -367,9 +378,9 @@ h2 em {
 }
 
 .btn-ghost {
-    background: rgba(255, 255, 255, 0.12);
-    color: var(--white);
-    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .btn-outline {
@@ -396,7 +407,9 @@ h2 em {
 }
 
 .hero-home {
-    background: linear-gradient(180deg, var(--blue-950) 0%, var(--blue-900) 100%);
+    background:
+        radial-gradient(circle at top right, rgba(120, 191, 255, 0.12), transparent 26%),
+        linear-gradient(180deg, #071326 0%, #0a1f3c 58%, #0d2648 100%);
     min-height: calc(100vh - var(--nav-height));
     display: grid;
     align-items: center;
@@ -410,8 +423,8 @@ h2 em {
 }
 
 .hero-pattern {
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: 34px 34px;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 38px 38px;
 }
 
 
@@ -444,28 +457,33 @@ h2 em {
 .hero-layout {
     position: relative;
     z-index: 1;
-    padding: 84px 0 52px;
+    padding: 96px 0 60px;
 }
 
 .hero-copy h1 {
-    font-size: clamp(3rem, 6vw, 5.5rem);
+    max-width: 7.8ch;
+    font-size: clamp(2.7rem, 4.8vw, 4.4rem);
+    letter-spacing: -0.012em;
+    line-height: 1.02;
     color: var(--white);
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 
 .hero-copy p {
-    max-width: 520px;
-    font-size: 1.06rem;
-    color: rgba(255, 255, 255, 0.72);
+    max-width: 46ch;
+    font-size: 0.98rem;
+    line-height: 1.82;
+    letter-spacing: 0.015em;
+    color: rgba(255, 255, 255, 0.78);
 }
 
 .hero-motto {
-    margin-top: 14px;
-    color: var(--blue-300);
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    margin-top: 18px;
+    color: rgba(184, 220, 255, 0.9);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: none;
 }
 
 .hero-media {
@@ -496,32 +514,37 @@ h2 em {
 .hero-photo-frame,
 .media-card {
     box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .floating-card {
     position: absolute;
-    border-radius: 22px;
-    padding: 16px 20px;
-    box-shadow: var(--shadow-md);
+    border-radius: 24px;
+    padding: 18px 22px;
+    box-shadow: 0 18px 44px rgba(8, 23, 45, 0.18);
 }
 
 .floating-light {
     top: -16px;
     right: -16px;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(8, 23, 45, 0.06);
 }
 
 .floating-light strong {
     display: block;
-    font-size: 2.2rem;
+    font-size: 1.65rem;
+    letter-spacing: 0.01em;
     color: var(--blue-600);
 }
 
 .floating-light span,
 .floating-blue span {
     display: block;
-    font-size: 0.82rem;
-    font-weight: 700;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+    line-height: 1.5;
 }
 
 .floating-blue {
@@ -544,29 +567,31 @@ h2 em {
     z-index: 1;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    padding: 20px 0 40px;
+    gap: 18px;
+    padding: 18px 0 40px;
 }
 
 .hero-stats div {
-    text-align: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 20px;
+    text-align: left;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 18px;
     min-width: 0;
 }
 
 .hero-stats strong {
     display: block;
     color: var(--white);
-    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-size: clamp(1.45rem, 2.3vw, 1.9rem);
+    letter-spacing: -0.004em;
 }
 
 .hero-stats span {
-    color: rgba(255, 255, 255, 0.56);
+    color: rgba(255, 255, 255, 0.62);
     font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+    text-transform: none;
+    line-height: 1.45;
 }
 
 .media-card,
@@ -1890,8 +1915,8 @@ textarea {
     }
 
     .hero-layout {
-        padding-top: 56px;
-        gap: 24px;
+        padding-top: 64px;
+        gap: 28px;
     }
 
     .hero-copy {
@@ -1910,6 +1935,10 @@ textarea {
     .hero-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 20px;
+    }
+
+    .hero-stats div {
+        text-align: center;
     }
 
     .branch-row.reverse .branch-media,
@@ -1965,11 +1994,14 @@ textarea {
     }
 
     .hero-copy h1 {
-        font-size: 2.6rem;
+        max-width: none;
+        font-size: 2.2rem;
+        line-height: 1.06;
     }
 
     .hero-copy p {
-        font-size: 0.96rem;
+        font-size: 0.92rem;
+        line-height: 1.76;
     }
 
     .hero-stats,
@@ -2013,12 +2045,12 @@ textarea {
     }
 
     .hero-stats strong {
-        font-size: 2rem;
+        font-size: 1.55rem;
     }
 
     .hero-stats span {
-        font-size: 0.68rem;
-        line-height: 1.4;
+        font-size: 0.72rem;
+        line-height: 1.45;
     }
 
     .panel,
