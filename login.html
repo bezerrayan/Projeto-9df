@@ -7,17 +7,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(180deg, #eff6ff 0%, #d9eaff 100%); }
-        .login-shell { width: min(460px, calc(100vw - 32px)); padding: 32px; background: #fff; border: 1px solid rgba(13,45,90,.1); border-radius: 28px; box-shadow: 0 24px 60px rgba(13,45,90,.12); }
-        .login-shell h1 { font-size: 2rem; margin-bottom: 10px; }
-        .login-shell p { color: var(--muted); margin-bottom: 22px; }
+        :root { --font-admin-ui: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+        body { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(180deg, #eff6ff 0%, #d9eaff 100%); font-family: var(--font-admin-ui); }
+        .login-shell { width: min(460px, calc(100vw - 32px)); padding: 34px; background: rgba(255,255,255,.96); border: 1px solid rgba(13,45,90,.08); border-radius: 28px; box-shadow: 0 20px 48px rgba(13,45,90,.10); }
+        .login-shell h1 { font-family: var(--font-admin-ui); font-size: 1.9rem; font-weight: 700; letter-spacing: -.01em; margin-bottom: 10px; }
+        .login-shell p { color: var(--muted); margin-bottom: 22px; font-size: .96rem; line-height: 1.75; letter-spacing: .01em; }
         .login-form { display: grid; gap: 16px; }
-        .login-form label { display: grid; gap: 7px; font-weight: 700; color: var(--ink); }
-        .login-form input { width: 100%; border: 1px solid rgba(13,45,90,.14); border-radius: 14px; padding: 14px 16px; font: 500 0.95rem/1.4 'New Athletic M54', sans-serif; }
+        .login-form label { display: grid; gap: 7px; font-weight: 600; color: var(--ink); font-size: .92rem; letter-spacing: .01em; }
+        .login-form input { width: 100%; border: 1px solid rgba(13,45,90,.14); border-radius: 14px; padding: 14px 16px; font: 500 0.95rem/1.4 var(--font-admin-ui); background: #fff; }
         .login-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
         .login-feedback { min-height: 22px; font-size: 0.9rem; color: #b42318; }
-        .login-back { color: var(--blue-700); font-weight: 700; }
-        .login-hint { margin-top: 6px; font-size: 0.86rem; line-height: 1.6; color: var(--muted); }
+        .login-back { color: var(--blue-700); font-weight: 600; }
+        .login-hint { margin-top: 6px; font-size: 0.86rem; line-height: 1.65; letter-spacing: .01em; color: var(--muted); }
+        .login-shell .eyebrow { font-family: var(--font-admin-ui); font-size: .74rem; letter-spacing: .08em; }
+        .login-shell .btn { font-family: var(--font-admin-ui); font-weight: 600; }
     </style>
 </head>
 <body>
