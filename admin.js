@@ -1,743 +1,1375 @@
-const PAGES=[["Principal","dashboard","fa-th-large","Dashboard"],["Principal","calendario","fa-calendar-alt","Calendário"],["Principal","galeria","fa-images","Galeria"],["Principal","projetos","fa-hands-helping","Projetos"],["Principal","ramos","fa-layer-group","Ramos"],["Principal","atividades","fa-star","Atividades"],["Principal","membros","fa-users","Membros"],["Conteúdo","sobre","fa-info-circle","Página Sobre"],["Conteúdo","contato","fa-map-marker-alt","Contato"],["Sistema","ia","fa-robot","Assistente IA"],["Sistema","config","fa-cog","Configurações"]];
-const MONTHS=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],MONTHS_SHORT=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],MEMBER_COLORS=[["#E6F1FB","#185FA5"],["#d1fae5","#065f46"],["#fef3c7","#92400e"],["#fee2e2","#991b1b"],["#ede9fe","#5b21b6"]];
-const GALLERY_ALLOWED_EXTENSIONS=["webp","jpg","jpeg","png","svg"],GALLERY_MAX_BYTES=2*1024*1024,GALLERY_MAX_LABEL="2 MB";
-const PUBLIC_PAGE_OPTIONS=[["index.html","Inicio"],["sobre.html","Sobre"],["atividades.html","Atividades"],["galeria.html","Galeria"],["ramo.html","Ramos"],["projetos.html","Projetos"],["contato.html","Contato"],["documentos.html","Documentos"],["equipe.html","Equipe"],["participar.html","Participar"],["links.html","Links uteis"]];
-let STATE={pages:{},adminPanel:{}},PAGE="dashboard",BRANCH="filhotes",MONTH=2,YEAR=2026,SAVING=false,TOAST_TIMER=null,CONTENT_PAGE="index.html";
-const CONTENT_SCHEMA_CACHE={};
-PAGES.splice(7,0,["ConteÃºdo","siteContent","fa-pen-ruler","Conteudo do site"]);
+// ── Constants ────────────────────────────────────────────────────
+const NAV = [
+  { section: "Principal",  id: "dashboard",    icon: "fa-gauge",           label: "Dashboard" },
+  { section: "Principal",  id: "calendario",   icon: "fa-calendar-days",   label: "Calendário" },
+  { section: "Principal",  id: "galeria",       icon: "fa-images",          label: "Galeria" },
+  { section: "Principal",  id: "projetos",      icon: "fa-hands-helping",   label: "Projetos" },
+  { section: "Principal",  id: "ramos",         icon: "fa-layer-group",     label: "Ramos" },
+  { section: "Principal",  id: "atividades",    icon: "fa-star",            label: "Atividades" },
+  { section: "Principal",  id: "membros",       icon: "fa-users",           label: "Membros" },
+  { section: "Páginas",    id: "paginas",       icon: "fa-pen-ruler",       label: "Conteúdo do site" },
+  { section: "Sistema",    id: "contato",       icon: "fa-envelope",        label: "Contato" },
+  { section: "Sistema",    id: "config",        icon: "fa-sliders",         label: "Configurações" },
+];
 
-document.addEventListener("DOMContentLoaded",init);
+const PAGE_META = {
+  "index.html":      { icon: "fa-house",        label: "Home",        desc: "Hero, avisos e chamadas principais." },
+  "sobre.html":      { icon: "fa-circle-info",  label: "Sobre",       desc: "Apresentação institucional e história." },
+  "atividades.html": { icon: "fa-star",          label: "Atividades",  desc: "Atividades em destaque." },
+  "galeria.html":    { icon: "fa-images",        label: "Galeria",     desc: "Textos e imagens da galeria." },
+  "ramo.html":       { icon: "fa-layer-group",   label: "Ramos",       desc: "Ramos e faixas etárias." },
+  "projetos.html":   { icon: "fa-hands-helping", label: "Projetos",    desc: "Projetos em destaque." },
+  "contato.html":    { icon: "fa-envelope",      label: "Contato",     desc: "Canais e localização." },
+  "documentos.html": { icon: "fa-file-lines",    label: "Documentos",  desc: "Arquivos e explicações." },
+  "equipe.html":     { icon: "fa-users",         label: "Equipe",      desc: "Chefia e referências." },
+  "participar.html": { icon: "fa-user-plus",     label: "Participar",  desc: "Como entrar no grupo." },
+  "links.html":      { icon: "fa-link",          label: "Links",       desc: "Links externos de apoio." },
+};
 
-async function init(){
-  try{
-    const session=await (await fetch("/api/auth/session")).json();
-    if(!session.authenticated){window.location.href="/login";return;}
-    document.getElementById("admin-email-short").textContent=session.email||"Admin";
-    document.getElementById("logout-button").addEventListener("click",logout);
-    document.getElementById("save-btn").addEventListener("click",()=>save(false));
-    const content=await (await fetch("/api/admin/content")).json();
-    STATE=content&&typeof content==="object"?content:{pages:{},adminPanel:{}};
-    if(!STATE.pages||typeof STATE.pages!=="object")STATE.pages={};
-    ensureState();renderSidebar();renderPage(PAGE);
-  }catch(e){alert("Não foi possível carregar o painel.");}
+const PUBLIC_PAGES = Object.keys(PAGE_META);
+
+const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const MONTHS_SHORT = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const GALLERY_EXTENSIONS = ["webp","jpg","jpeg","png","svg"];
+const MEMBER_COLORS = [["#eff6ff","#1d4ed8"],["#f0fdf4","#15803d"],["#fefce8","#a16207"],["#fef2f2","#b91c1c"],["#f5f3ff","#6d28d9"]];
+
+// ── State ─────────────────────────────────────────────────────────
+let STATE = { pages: {}, adminPanel: {} };
+let PAGE = "dashboard";
+let BRANCH = "filhotes";
+let CAL_MONTH = new Date().getMonth();
+let CAL_YEAR = new Date().getFullYear();
+let CONTENT_PAGE = "index.html";
+let SAVING = false;
+let DIRTY = false;
+let TOAST_TIMER = null;
+const SCHEMA_CACHE = {};
+
+// ── Boot ──────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", boot);
+
+async function boot() {
+  try {
+    const session = await apiFetch("/api/auth/session");
+    if (!session.authenticated) { location.href = "/login"; return; }
+    setUserInfo(session.email || "Admin");
+    document.getElementById("logout-btn").addEventListener("click", doLogout);
+    document.getElementById("save-btn").addEventListener("click", () => doSave());
+    document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave(); } });
+    document.getElementById("content-area").addEventListener("input", markDirty);
+    STATE = normalizeContent(await apiFetch("/api/admin/content"));
+    ensureState();
+    buildSidebar();
+    navigate(PAGE);
+  } catch {
+    alert("Não foi possível carregar o painel. Verifique sua conexão.");
+  }
 }
 
-function ensureState(){
-  const p=STATE.adminPanel||{};
-  p.events=Array.isArray(p.events)?p.events:[{id:id("ev"),date:"2026-03-07",title:"Abertura Regional",type:"regional",description:""},{id:id("ev"),date:"2026-03-14",title:"Atividade de seções",type:"grupo",description:""},{id:id("ev"),date:"2026-03-21",title:"Atividade das seções",type:"grupo",description:""},{id:id("ev"),date:"2026-03-28",title:"Atividade das seções",type:"grupo",description:""}];
-  p.photos=Array.isArray(p.photos)?p.photos:[{id:id("ph"),title:"Acampamento CENIPA 2025",category:"acampamento",caption:"Acampamento\nCENIPA 2025",src:"images/mult_verde/dsc08692.webp"},{id:id("ph"),title:"Trilha Chapada 2025",category:"atividade",caption:"Trilha\nChapada 2025",src:"images/higiene/photo_4958569241523630116_y.webp"},{id:id("ph"),title:"Abertura Regional 2026",category:"evento",caption:"Abertura\nRegional 2026",src:"images/photo_4909301671674973021_x.jpg"},{id:id("ph"),title:"Mutirão Verde 2025",category:"comunidade",caption:"Mutirão\nVerde 2025",src:"images/mult_verde/photo_4909301671674973015_y.jpg"}];
-  p.photos=p.photos.map((photo,index)=>normalizePhoto(photo,index));
-  p.projects=Array.isArray(p.projects)?p.projects:[{id:id("pr"),icon:"🌱",title:"Mutirão Verde",status:"ativo",meta:"#MeioAmbiente · #Comunidade · Nov 2025 · 40 participantes",description:"Reflorestar áreas degradadas e promover consciência ecológica na vizinhança.",progress:75},{id:id("pr"),icon:"🤝",title:"Campanha Higiene é Dignidade",status:"ativo",meta:"#Solidariedade · #Inverno · Jul 2025 · 60 participantes",description:"Coleta e distribuição de produtos de higiene para famílias em vulnerabilidade.",progress:90},{id:id("pr"),icon:"🎁",title:"Doação de Brinquedos da Alcateia",status:"planejado",meta:"#NatalSolidário · #Crianças · Dez 2025 · 25 participantes",description:"Levar a magia do Natal a crianças de uma creche carente.",progress:40}];
-  p.activities=Array.isArray(p.activities)?p.activities:[{id:id("at"),icon:"⛺",title:"Acampamentos",description:"Vivência intensa na natureza, autonomia e trabalho em equipe sob as estrelas."},{id:id("at"),icon:"🥾",title:"Trilhas",description:"Exploração de caminhos, orientação e respeito ao meio ambiente."},{id:id("at"),icon:"🔥",title:"Fogueiras",description:"Integração, canções e reflexões que fortalecem valores."},{id:id("at"),icon:"⭐",title:"Especialidades",description:"Habilidades em primeiros socorros, técnicas escoteiras e muito mais."}];
-  p.members=Array.isArray(p.members)?p.members:[{id:id("mb"),name:"Gustavo S.",branch:"Pioneiros",role:"Chefe",since:"2019",status:"ativo"},{id:id("mb"),name:"Yan F.",branch:"Seniores",role:"Chefe",since:"2020",status:"ativo"},{id:id("mb"),name:"Maria C.",branch:"Escoteiros",role:"Monitor",since:"2022",status:"ativo"},{id:id("mb"),name:"Pedro T.",branch:"Lobinhos",role:"Jovem",since:"2023",status:"ativo"}];
-  p.branches=p.branches||{filhotes:{name:"Filhotes",age:"5 a 7 anos",short:"Primeiros passos no escotismo com acolhimento, descobertas e atividades pensadas para aprender brincando.",long:"Nessa fase, a criança fortalece confiança, convivência e autonomia em encontros leves e dinâmicos.",bullets:["Jogos cooperativos e integração em grupo","Histórias e atividades de valores escoteiros","Experiências ao ar livre com segurança"]},lobinhos:{name:"Lobinhos",age:"7 a 10 anos",short:"Na alcateia, crianças desenvolvem responsabilidade, amizade e autonomia.",long:"As atividades estimulam iniciativa e respeito ao grupo, com aprendizagem pela ação.",bullets:["Jogos, canções e aprendizagem pela ação","Acantonamentos e trilhas leves","Boas ações e cooperação no dia a dia"]},escoteiros:{name:"Escoteiros",age:"10 a 15 anos",short:"No sistema de patrulhas, o jovem assume responsabilidades reais e cresce em técnica e liderança.",long:"Cada patrulha tem autonomia para planejar e executar suas atividades com orientação dos chefes.",bullets:["Acampamentos, pioneirias e desafios de campo","Técnicas mateiras e orientação","Liderança prática com autonomia crescente"]},seniores:{name:"Seniores",age:"15 a 18 anos",short:"Fase de superação com desafios mais intensos, protagonismo juvenil e preparação para a vida adulta.",long:"Os jovens assumem papel central na gestão das atividades e desenvolvem visão crítica do mundo.",bullets:["Expedições e técnicas avançadas","Projetos de impacto social","Maturidade, disciplina e visão crítica"]},pioneiros:{name:"Pioneiros",age:"18 a 22 anos",short:"Ramo de jovens adultos com foco em projeto de vida, serviço ao próximo e liderança com propósito.",long:"O Pioneiro é o escoteiro que escolheu continuar e liderar. Seu lema é servir.",bullets:["Mutirões e ações sociais contínuas","Gestão de projetos e equipes","Liderança servidora na comunidade"]}};
-  p.about=p.about||{worldTitle:"O Escotismo pelo mundo",worldText:"O Escotismo nasceu em 1907, na Inglaterra, idealizado por Robert Baden-Powell, com uma proposta simples e poderosa: educar jovens por meio da aventura, do trabalho em equipe e do aprendizado na prática.",worldComplement:"No Brasil, o Escotismo chegou em 1910 e contribui há mais de um século para a formação de cidadãos ativos e conscientes.",historyIntro:"O Grupo Escoteiro do Ar Salgado Filho 9º DF foi fundado em 17 de outubro de 1971, movido por um sonho ousado: unir o Escotismo à paixão pela aviação.",milestones:["1971 — Ano Base: estruturação do grupo e primeiras atividades regionais","1972 — Ano da Afirmação: identidade no contexto Escotismo e Aeronáutica","1974 — Ano da Consolidação: sede própria e crescimento em número e qualidade","Hoje — Bicampeões da Olimpíada Escoteira do Ar"]};
-  p.contact=p.contact||{email:"contato@escoteiro.com",phonePrimary:"(61) 99999-9999",phoneSecondary:"(61) 3333-3333",instagram:"@gear9df",schedule:"Sábados: 14h30 às 18h",address:"SHIS QI 3 - s/n",cep:"71605-500",cityState:"Brasília, DF",mapsSrc:"https://www.google.com/maps/embed"};
-  p.settings=p.settings||{shortName:"GEAR 9º DF",fullName:"Grupo Escoteiro do Ar Salgado Filho",motto:"Sempre Alerta para Servir",founded:"1971",slogan:"Passou, passou, passou um avião, e nele está escrito: Salgado Filho é amigão!",visibility:{gallery:true,projects:true,calendar:true,championBadge:true,contactForm:true}};
-  p.iaHistory=Array.isArray(p.iaHistory)?p.iaHistory:[];
-  STATE.adminPanel=p;
+function setUserInfo(email) {
+  document.getElementById("user-email").textContent = email;
+  const parts = email.split("@")[0].split(/[._-]/);
+  document.getElementById("user-initials").textContent = parts.slice(0,2).map(s => s[0]?.toUpperCase() || "").join("") || "AD";
 }
 
-function renderSidebar(){
-  const nav=document.getElementById("sidebar-nav"); let section="";
-  nav.innerHTML=PAGES.map(([group,id,icon,title])=>{const head=group!==section?`<div class="sb-section">${group}</div>`:""; section=group; return `${head}<div class="sb-item${id===PAGE?" on":""}" data-page="${id}"><i class="fas ${icon}"></i><span>${title}</span></div>`;}).join("");
-  nav.querySelectorAll(".sb-item").forEach(item=>item.addEventListener("click",()=>{captureForms(); PAGE=item.dataset.page; renderSidebar(); renderPage(PAGE);}));
+// ── Sidebar ───────────────────────────────────────────────────────
+function buildSidebar() {
+  const nav = document.getElementById("sidebar-nav");
+  const sections = {};
+  NAV.forEach(item => {
+    sections[item.section] = sections[item.section] || [];
+    sections[item.section].push(item);
+  });
+  nav.innerHTML = Object.entries(sections).map(([sec, items]) =>
+    `<div class="sb-section">
+      <div class="sb-section-label">${esc(sec)}</div>
+      <div class="sb-section-row">
+        ${items.map(item =>
+          `<div class="sb-item${item.id === PAGE ? " active" : ""}" data-page="${item.id}">
+            <i class="fas ${item.icon}"></i><span>${esc(item.label)}</span>
+          </div>`
+        ).join("")}
+      </div>
+    </div>`
+  ).join("");
+  nav.querySelectorAll(".sb-item").forEach(el =>
+    el.addEventListener("click", () => { captureCurrent(); PAGE = el.dataset.page; buildSidebar(); navigate(PAGE); })
+  );
 }
 
-function renderPage(page){
-  const meta=PAGES.find(item=>item[1]===page);
-  document.getElementById("topbar-title").textContent=meta?meta[3]:"Painel";
-  document.getElementById("content").innerHTML=template(page);
-  renderModals(); bindShared(); bindPage(page); setStatus("ready","Pronto");
+// ── Navigation ────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard: ["Dashboard", "Visão geral do grupo"],
+  calendario: ["Calendário", "Agenda de eventos e atividades"],
+  galeria: ["Galeria", "Fotos para o site público"],
+  projetos: ["Projetos", "Projetos e frentes especiais"],
+  ramos: ["Ramos", "Apresentação das seções por faixa etária"],
+  atividades: ["Atividades", "Vivências em destaque no site"],
+  membros: ["Membros", "Cadastro interno da equipe"],
+  paginas: ["Conteúdo do site", "Edite textos e imagens por página"],
+  contato: ["Contato", "Canais e informações de primeira visita"],
+  config: ["Configurações", "Identidade e visibilidade do site"],
+};
+
+function navigate(page) {
+  const [title, sub] = PAGE_TITLES[page] || ["Painel", ""];
+  document.getElementById("topbar-title").textContent = title;
+  document.getElementById("topbar-sub").textContent = sub;
+  renderModals();
+  const area = document.getElementById("content-area");
+  area.innerHTML = renderPage(page);
+  bindPage(page);
+  bindGlobal();
+  setStatus("ready");
 }
 
-function template(page){
-  if(page==="dashboard") return dashboardTpl();
-  if(page==="calendario") return calendarioTpl();
-  if(page==="galeria") return galeriaTpl();
-  if(page==="projetos") return projetosTpl();
-  if(page==="ramos") return ramosTpl();
-  if(page==="atividades") return atividadesTpl();
-  if(page==="membros") return membrosTpl();
-  if(page==="siteContent") return siteContentTpl();
-  if(page==="sobre") return sobreTpl();
-  if(page==="contato") return contatoTpl();
-  if(page==="ia") return iaTpl();
-  if(page==="config") return configTpl();
+function renderPage(page) {
+  if (page === "dashboard")  return tplDashboard();
+  if (page === "calendario") return tplCalendario();
+  if (page === "galeria")    return tplGaleria();
+  if (page === "projetos")   return tplProjetos();
+  if (page === "ramos")      return tplRamos();
+  if (page === "atividades") return tplAtividades();
+  if (page === "membros")    return tplMembros();
+  if (page === "paginas")    return tplPaginas();
+  if (page === "contato")    return tplContato();
+  if (page === "config")     return tplConfig();
   return "";
 }
 
-function dashboardTpl(){
-  const activeMembers=STATE.adminPanel.members.filter(x=>x.status==="ativo").length;
-  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date); return d.getMonth()===MONTH&&d.getFullYear()===YEAR;});
-  const activeProjects=STATE.adminPanel.projects.filter(x=>x.status!=="concluido").length;
-  return `<div class="metrics">${metric("Membros ativos",activeMembers,"base do grupo")}${metric(`Eventos em ${MONTHS_SHORT[MONTH]}/${String(YEAR).slice(-2)}`,monthEvents.length,"agenda do mês")}${metric("Fotos na galeria",STATE.adminPanel.photos.length,"acervo atual")}${metric("Projetos ativos",activeProjects,"em andamento")}</div><div class="grid2"><div class="card"><div class="card-head"><h3><i class="fas fa-calendar-check" style="color:var(--b5);margin-right:6px"></i>Próximos eventos</h3><button class="btn btn-xs btn-ghost" data-nav-page="calendario">Ver todos</button></div>${dashEvents()}</div><div class="card"><div class="card-head"><h3><i class="fas fa-bolt" style="color:var(--b5);margin-right:6px"></i>Resumo rápido</h3></div>${act("Edite cada módulo e salve na própria área","fluxo intuitivo")}${act("O painel persiste em site_content.json","persistente")}${act("Na galeria, só entram arquivos com nome Linux, extensão permitida e até "+GALLERY_MAX_LABEL,"validação ativa")}</div></div><div class="card"><div class="card-head"><h3><i class="fas fa-chart-bar" style="color:var(--b5);margin-right:6px"></i>Distribuição por ramo</h3></div>${branchMetrics()}</div>`;
+// ── Template: Dashboard ───────────────────────────────────────────
+function tplDashboard() {
+  const p = STATE.adminPanel;
+  const ativos = p.members.filter(m => m.status === "ativo").length;
+  const eventos = p.events.filter(e => {
+    const d = new Date(e.date); return d.getMonth() === CAL_MONTH && d.getFullYear() === CAL_YEAR;
+  }).length;
+  const projAbertos = p.projects.filter(pr => pr.status !== "concluido").length;
+
+  return `
+  <div class="hero-banner">
+    <h2>Painel central do GEAR 9º DF</h2>
+    <p>Gerencie o site, a agenda e as rotinas do grupo em um único fluxo. Use as frentes de trabalho acima para alternar entre conteúdo, calendário, mídia e configurações.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-nav="paginas"><i class="fas fa-pen-ruler"></i> Editar site</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" data-nav="calendario"><i class="fas fa-calendar-check"></i> Agenda</button>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" data-nav="config"><i class="fas fa-sliders"></i> Configurações</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>${ativos}</strong><span>Membros ativos</span></div>
+      <div class="hero-stat"><strong>${eventos}</strong><span>Eventos em ${MONTHS_SHORT[CAL_MONTH]}/${String(CAL_YEAR).slice(-2)}</span></div>
+      <div class="hero-stat"><strong>${projAbertos}</strong><span>Projetos em andamento</span></div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    ${statTile("Membros ativos", ativos, "cadastro atual", "fa-users", "blue")}
+    ${statTile("Fotos na galeria", p.photos.length, "visíveis no site", "fa-images", "green")}
+    ${statTile("Projetos ativos", p.projects.filter(pr => pr.status === "ativo").length, "em andamento", "fa-hands-helping", "amber")}
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Próximos eventos</div>
+          <div class="card-desc">Os mais próximos primeiro.</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" data-nav="calendario"><i class="fas fa-arrow-right"></i></button>
+      </div>
+      ${dashboardEvents()}
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Distribuição por ramo</div>
+          <div class="card-desc">Membros cadastrados no painel.</div>
+        </div>
+      </div>
+      ${dashboardBranches()}
+    </div>
+  </div>`;
 }
 
-function calendarioTpl(){
-  return `<div class="notice"><i class="fas fa-calendar-check"></i> Use o calendário para cadastrar os eventos do grupo. Clique em <strong>Novo evento</strong>, preencha os dados e depois salve.</div><div class="grid2"><div class="card" style="margin-bottom:0"><div class="card-head"><h3 id="cal-month-lbl"></h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button><button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button></div></div><div class="cal-grid-wrap" id="cal-grid"></div><div style="display:flex;gap:12px;margin-top:12px;font-size:.72rem;color:var(--g400)"><span><i class="fas fa-circle" style="color:var(--b5);font-size:.45rem;margin-right:4px"></i>Grupo</span><span><i class="fas fa-circle" style="color:var(--success);font-size:.45rem;margin-right:4px"></i>Regional</span><span><i class="fas fa-circle" style="color:var(--warn);font-size:.45rem;margin-right:4px"></i>Nacional</span></div></div><div class="card" style="margin-bottom:0"><div class="card-head"><h3>Eventos de <span id="cal-month-short"></span></h3><button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button></div><div id="cal-events-panel" style="max-height:280px;overflow-y:auto"></div><div style="margin-top:12px"><button class="btn btn-primary" data-save-page="calendario"><i class="fas fa-save"></i> Salvar calendário</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-head"><h3>Todos os eventos</h3></div><table><thead><tr><th>Data</th><th>Título</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="all-events-tbody"></tbody></table></div>`;
+function statTile(label, value, sub, icon, color) {
+  const colors = { blue: ["#eff6ff","#2563eb"], green: ["#f0fdf4","#16a34a"], amber: ["#fffbeb","#d97706"] };
+  const [bg, fg] = colors[color] || colors.blue;
+  return `<div class="stat-tile" style="border-left:3px solid ${fg}">
+    <small>${esc(label)}</small>
+    <strong style="color:${fg}">${value}</strong>
+    <span>${esc(sub)}</span>
+  </div>`;
 }
 
-function galeriaTpl(){
-  return `<div class="notice"><i class="fas fa-shield-alt"></i> Antes de cadastrar uma foto, coloque o arquivo dentro de <strong>images/</strong> e use apenas letras minúsculas, números e hífen. Formatos aceitos: ${GALLERY_ALLOWED_EXTENSIONS.join(", ")}. Tamanho máximo: ${GALLERY_MAX_LABEL}.</div><div class="card"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="btn btn-primary" data-open-modal="modal-upload"><i class="fas fa-upload"></i> Adicionar fotos</button><div style="display:flex;gap:6px;flex-wrap:wrap" id="gal-filters">${filterBtn("all","Todas",true)}${filterBtn("acampamento","Acampamentos")}${filterBtn("atividade","Atividades")}${filterBtn("evento","Eventos")}${filterBtn("comunidade","Ações Sociais")}</div><span style="margin-left:auto;font-size:.78rem;color:var(--g600)" id="gal-count"></span><button class="btn btn-primary" data-save-page="galeria"><i class="fas fa-save"></i> Salvar galeria</button></div></div><div class="photo-grid" id="photo-grid" data-filter="all"></div>`;
+function dashboardEvents() {
+  const upcoming = STATE.adminPanel.events
+    .slice().sort((a,b) => a.date.localeCompare(b.date))
+    .filter(e => e.date >= dateKey(new Date()))
+    .slice(0, 5);
+  if (!upcoming.length) return `<div class="empty-state"><i class="fas fa-calendar"></i><p>Nenhum evento próximo cadastrado.</p></div>`;
+  return `<div class="ev-list">${upcoming.map(e => `
+    <div class="ev-item">
+      <div class="ev-dot" style="background:${typeColor(e.type)}"></div>
+      <div class="ev-body">
+        <div class="ev-title">${esc(e.title)}</div>
+        <div class="ev-date">${fmtDate(e.date)} · <span class="badge ${badgeForType(e.type)}">${esc(e.type)}</span></div>
+      </div>
+    </div>`).join("")}</div>`;
 }
 
-function projetosTpl(){ return `<div class="notice"><i class="fas fa-hands-helping"></i> Cadastre aqui os projetos sociais e institucionais do grupo. Comece por <strong>Novo projeto</strong>.</div><div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-proj"><i class="fas fa-plus"></i> Novo projeto</button><button class="btn btn-primary" data-save-page="projetos"><i class="fas fa-save"></i> Salvar projetos</button></div><div id="projetos-container"></div>`; }
-function atividadesTpl(){ return `<div class="notice"><i class="fas fa-star"></i> Use esta área para listar as atividades principais apresentadas no site.</div><div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:8px"><button class="btn btn-primary" data-open-modal="modal-new-ativ"><i class="fas fa-plus"></i> Nova atividade</button><button class="btn btn-primary" data-save-page="atividades"><i class="fas fa-save"></i> Salvar atividades</button></div><div class="grid3" id="ativ-grid">${STATE.adminPanel.activities.map(activityCard).join("")}</div>`; }
-function membrosTpl(){ return `<div class="notice"><i class="fas fa-users"></i> Cadastre os membros do grupo e use a busca para localizar rapidamente. Os dados podem ser filtrados por ramo.</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar membro..."></div><select id="member-branch-filter" style="margin:0;width:160px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--g200)"><option value="">Todos os ramos</option><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select><button class="btn btn-primary" data-open-modal="modal-new-membro"><i class="fas fa-user-plus"></i> Novo membro</button><button class="btn btn-primary" data-save-page="membros"><i class="fas fa-save"></i> Salvar membros</button></div><div class="card"><table><thead><tr><th>Membro</th><th>Ramo</th><th>Função</th><th>Ingresso</th><th>Status</th><th>Ações</th></tr></thead><tbody id="membros-tbody"></tbody></table></div>`; }
-
-function ramosTpl(){
-  const b=STATE.adminPanel.branches[BRANCH];
-  return `<div class="ramo-tabs">${Object.keys(STATE.adminPanel.branches).map(key=>`<div class="ramo-tab${key===BRANCH?" on":""}" data-branch-tab="${key}">${esc(STATE.adminPanel.branches[key].name)}</div>`).join("")}</div><div class="notice"><i class="fas fa-info-circle"></i> Edite o ramo atual e salve nesta própria área.</div><div class="card"><div class="card-head"><h3 id="ramo-card-title">${esc(`${b.name} — ${b.age}`)}</h3></div><div class="form-row"><div class="fg"><label>Nome do ramo</label><input id="ramo-nome" value="${esc(b.name)}"></div><div class="fg"><label>Faixa etária</label><input id="ramo-idade" value="${esc(b.age)}"></div></div><div class="fg"><label>Descrição curta</label><textarea id="ramo-desc1" rows="2">${esc(b.short)}</textarea></div><div class="fg"><label>Descrição longa</label><textarea id="ramo-desc2" rows="3">${esc(b.long)}</textarea></div><div class="fg"><label>Bullets (um por linha)</label><textarea id="ramo-bullets" rows="4">${esc(b.bullets.join("\n"))}</textarea></div><div class="ai-box"><div class="ai-box-head"><i class="fas fa-magic"></i><span>Melhorar texto</span></div><div class="ai-input-row"><input class="ai-input" id="ramo-ai-input" placeholder="Ex: deixe mais inspirador e claro para pais"><button class="btn btn-primary btn-sm" id="ramo-ai-btn"><i class="fas fa-wand-magic-sparkles"></i> Gerar</button></div><div class="ai-result" id="ramo-ai-result"></div></div><div style="display:flex;gap:8px"><button class="btn btn-primary" data-save-page="ramos"><i class="fas fa-save"></i> Salvar ramo</button><button class="btn" id="ramo-apply-ai">Aplicar sugestão</button></div></div>`;
+function dashboardBranches() {
+  const counts = { Filhotes:0, Lobinhos:0, Escoteiros:0, Seniores:0, Pioneiros:0 };
+  STATE.adminPanel.members.forEach(m => { if (counts[m.branch] !== undefined) counts[m.branch]++; });
+  return `<div class="branch-bar">${Object.entries(counts).map(([name, count]) =>
+    `<div class="branch-item"><small>${esc(name)}</small><strong>${count}</strong>
+      <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(count / Math.max(1, STATE.adminPanel.members.length) * 100)}%"></div></div>
+    </div>`).join("")}</div>`;
 }
 
-function sobreTpl(){
-  const a=STATE.adminPanel.about;
-  return `<div class="card"><div class="card-head"><h3>Seção: O Escotismo pelo mundo</h3></div><div class="fg"><label>Título</label><input id="about-world-title" value="${esc(a.worldTitle)}"></div><div class="fg"><label>Texto principal</label><textarea id="about-world-text" rows="4">${esc(a.worldText)}</textarea></div><div class="fg"><label>Texto complementar</label><textarea id="about-world-complement" rows="3">${esc(a.worldComplement)}</textarea></div><div class="ai-box"><div class="ai-box-head"><i class="fas fa-magic"></i><span>Reescrever trecho</span></div><div class="ai-input-row"><input class="ai-input" id="sobre-ai-input" placeholder="Ex: deixe mais inspirador e institucional"><button class="btn btn-primary btn-sm" id="about-ai-btn"><i class="fas fa-wand-magic-sparkles"></i> Gerar</button></div><div class="ai-result" id="sobre-ai-result"></div></div><div style="display:flex;gap:8px"><button class="btn btn-primary" data-save-page="sobre"><i class="fas fa-save"></i> Salvar bloco</button><button class="btn" id="about-apply-ai">Aplicar sugestão</button></div></div><div class="card"><div class="card-head"><h3>Seção: Nossa história</h3></div><div class="fg"><label>Texto de abertura</label><textarea id="about-history-intro" rows="3">${esc(a.historyIntro)}</textarea></div><div class="fg"><label>Marcos históricos (um por linha)</label><textarea id="about-milestones" rows="5">${esc(a.milestones.join("\n"))}</textarea></div><button class="btn btn-primary" data-save-page="sobre"><i class="fas fa-save"></i> Salvar história</button></div>`;
+// ── Template: Calendário ──────────────────────────────────────────
+function tplCalendario() {
+  return `
+  <div class="hero-banner">
+    <h2>Calendário</h2>
+    <p>Mantenha a agenda clara e confiável para a equipe, famílias e visitantes.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button>
+    </div>
+  </div>
+  <div id="cal-wrap"></div>
+  <div class="card" id="all-events-card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Todos os eventos</div>
+        <div class="card-desc">Edite ou remova itens conforme necessário.</div>
+      </div>
+      <span class="badge badge-blue" id="all-events-count">0</span>
+    </div>
+    <div id="all-events-list" class="scroll-y items-list" style="max-height:400px"></div>
+  </div>`;
 }
 
-function contatoTpl(){
-  const c=STATE.adminPanel.contact;
-  return `<div class="grid2"><div class="card"><div class="card-head"><h3>Informações de contato</h3></div><div class="fg"><label>E-mail</label><input id="contact-email" value="${esc(c.email)}"></div><div class="fg"><label>Telefone principal</label><input id="contact-phone-primary" value="${esc(c.phonePrimary)}"></div><div class="fg"><label>Telefone secundário</label><input id="contact-phone-secondary" value="${esc(c.phoneSecondary)}"></div><div class="fg"><label>Instagram</label><input id="contact-instagram" value="${esc(c.instagram)}"></div><div class="fg"><label>Horário de atividades</label><input id="contact-schedule" value="${esc(c.schedule)}"></div><button class="btn btn-primary" data-save-page="contato"><i class="fas fa-save"></i> Salvar contato</button></div><div class="card"><div class="card-head"><h3>Endereço</h3></div><div class="fg"><label>Rua / Endereço</label><input id="contact-address" value="${esc(c.address)}"></div><div class="fg"><label>CEP</label><input id="contact-cep" value="${esc(c.cep)}"></div><div class="fg"><label>Cidade / Estado</label><input id="contact-city" value="${esc(c.cityState)}"></div><div class="fg"><label>Link Google Maps (iframe src)</label><textarea id="contact-maps" rows="3">${esc(c.mapsSrc)}</textarea></div><button class="btn btn-primary" data-save-page="contato"><i class="fas fa-save"></i> Salvar endereço</button></div></div>`;
+function renderCal() {
+  const wrap = document.getElementById("cal-wrap");
+  if (!wrap) return;
+  const today = new Date();
+  const firstDay = new Date(CAL_YEAR, CAL_MONTH, 1).getDay();
+  const lastDay = new Date(CAL_YEAR, CAL_MONTH + 1, 0).getDate();
+  const monthEvents = STATE.adminPanel.events.filter(e => {
+    const d = new Date(e.date); return d.getMonth() === CAL_MONTH && d.getFullYear() === CAL_YEAR;
+  }).sort((a,b) => a.date.localeCompare(b.date));
+  const allEvents = STATE.adminPanel.events.slice().sort((a,b) => a.date.localeCompare(b.date));
+
+  wrap.innerHTML = `
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title" id="cal-month-label">${MONTHS[CAL_MONTH]} de ${CAL_YEAR}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button>
+        <button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="cal-shell">
+      <div>
+        <div class="cal-grid">
+          ${["D","S","T","Q","Q","S","S"].map(d => `<div class="cal-wday">${d}</div>`).join("")}
+          ${"<div class='cal-cell empty'></div>".repeat(firstDay)}
+          ${Array.from({length: lastDay}, (_, i) => i+1).map(day => {
+            const key = dateKey(new Date(CAL_YEAR, CAL_MONTH, day));
+            const evs = STATE.adminPanel.events.filter(e => e.date === key);
+            const hasReg = evs.some(e => e.type === "regional");
+            const isToday = day === today.getDate() && CAL_MONTH === today.getMonth() && CAL_YEAR === today.getFullYear();
+            return `<div class="cal-cell${evs.length ? " has-ev" : ""}${hasReg ? " has-reg" : ""}${isToday ? " today" : ""}">${day}</div>`;
+          }).join("")}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--c-ink-3)"><span style="width:8px;height:8px;border-radius:99px;background:var(--c-green);display:inline-block"></span>Grupo</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--c-ink-3)"><span style="width:8px;height:8px;border-radius:99px;background:var(--c-amber);display:inline-block"></span>Regional</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--c-ink-3)"><span style="width:8px;height:8px;border-radius:99px;background:var(--c-red);display:inline-block"></span>Nacional</span>
+        </div>
+      </div>
+      <div>
+        <div class="card-title" style="margin-bottom:10px">Eventos de ${MONTHS_SHORT[CAL_MONTH]}</div>
+        ${monthEvents.length
+          ? `<div class="ev-list">${monthEvents.map(e => `
+            <div class="ev-item">
+              <div class="ev-dot" style="background:${typeColor(e.type)}"></div>
+              <div class="ev-body"><div class="ev-title">${esc(e.title)}</div><div class="ev-date">${fmtDate(e.date)}</div></div>
+              <button class="btn btn-xs btn-danger" data-rm-event="${esc(e.id)}"><i class="fas fa-times"></i></button>
+            </div>`).join("")}</div>`
+          : `<div class="empty-state"><i class="fas fa-calendar"></i><p>Nenhum evento neste mês.</p></div>`}
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById("cal-prev").addEventListener("click", () => {
+    if (CAL_MONTH === 0) { CAL_MONTH = 11; CAL_YEAR--; } else CAL_MONTH--;
+    renderCal();
+  });
+  document.getElementById("cal-next").addEventListener("click", () => {
+    if (CAL_MONTH === 11) { CAL_MONTH = 0; CAL_YEAR++; } else CAL_MONTH++;
+    renderCal();
+  });
+  wrap.querySelectorAll("[data-rm-event]").forEach(btn =>
+    btn.addEventListener("click", () => {
+      STATE.adminPanel.events = STATE.adminPanel.events.filter(e => e.id !== btn.dataset.rmEvent);
+      renderCal(); renderAllEvents(); markDirty(); toast("Evento removido.");
+    })
+  );
+  renderAllEvents(allEvents);
 }
 
-function iaTpl(){ return `<div class="notice success"><i class="fas fa-robot"></i> Assistente local para ajudar com rascunhos rápidos. Ele não chama API externa.</div><div class="card"><div class="card-head"><h3><i class="fas fa-robot" style="color:var(--b5);margin-right:6px"></i>Assistente de conteúdo</h3><span class="badge b-blue">Local</span></div><div id="ia-chat" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:4px 0"></div><div style="display:flex;gap:8px"><input class="ai-input" id="ia-input" placeholder="Ex: gere um texto para divulgar o sábado do grupo" style="flex:1"><button class="btn btn-primary" id="ia-send-btn"><i class="fas fa-paper-plane"></i> Enviar</button></div><div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-xs btn-ghost" data-ia-quick="Escreva uma descrição inspiradora para o ramo Escoteiros do GEAR 9º DF">Descrição Escoteiros</button><button class="btn btn-xs btn-ghost" data-ia-quick="Crie um post para Instagram anunciando as atividades do sábado do GEAR 9º DF">Post Instagram</button><button class="btn btn-xs btn-ghost" data-ia-quick="Escreva um texto sobre a importância do escotismo para formação de jovens líderes">Texto sobre escotismo</button></div></div>`; }
-
-function configTpl(){
-  const s=STATE.adminPanel.settings;
-  return `<div class="card"><div class="card-head"><h3>Identidade do grupo</h3></div><div class="form-row"><div class="fg"><label>Nome curto</label><input id="cfg-short-name" value="${esc(s.shortName)}"></div><div class="fg"><label>Nome completo</label><input id="cfg-full-name" value="${esc(s.fullName)}"></div></div><div class="form-row"><div class="fg"><label>Lema</label><input id="cfg-motto" value="${esc(s.motto)}"></div><div class="fg"><label>Ano de fundação</label><input id="cfg-founded" value="${esc(s.founded)}"></div></div><div class="fg"><label>Slogan completo</label><input id="cfg-slogan" value="${esc(s.slogan)}"></div><button class="btn btn-primary" data-save-page="config"><i class="fas fa-save"></i> Salvar identidade</button></div><div class="card"><div class="card-head"><h3>Visibilidade de seções</h3></div><div style="display:grid;gap:14px">${visibilityRows(s.visibility)}</div><div style="margin-top:14px"><button class="btn btn-primary" data-save-page="config"><i class="fas fa-save"></i> Salvar visibilidade</button></div></div>`;
+function renderAllEvents(evs) {
+  evs = evs || STATE.adminPanel.events.slice().sort((a,b) => a.date.localeCompare(b.date));
+  const cnt = document.getElementById("all-events-count");
+  if (cnt) cnt.textContent = String(evs.length);
+  const list = document.getElementById("all-events-list");
+  if (!list) return;
+  list.innerHTML = evs.length
+    ? evs.map(e => itemCard({
+        id: e.id, type: "event",
+        title: e.title, sub: `${fmtDate(e.date)} · ${e.type}`,
+        badges: [{ label: e.type, cls: badgeForType(e.type) }],
+        desc: e.description || "",
+        fields: `
+          <div class="form-row">
+            <div class="fg"><label>Data</label><input type="date" data-event-date="${e.id}" value="${esc(e.date)}"></div>
+            <div class="fg"><label>Tipo</label><select data-event-type="${e.id}">
+              ${["grupo","regional","nacional"].map(t => `<option value="${t}"${e.type===t?" selected":""}>${cap(t)}</option>`).join("")}
+            </select></div>
+          </div>
+          <div class="fg"><label>Título</label><input data-event-title="${e.id}" value="${esc(e.title)}"></div>
+          <div class="fg"><label>Descrição</label><textarea rows="2" data-event-desc="${e.id}">${esc(e.description||"")}</textarea></div>`,
+      })).join("")
+    : `<div class="empty-state"><i class="fas fa-calendar-day"></i><p>Nenhum evento cadastrado.</p></div>`;
+  bindItemCards("event", id => {
+    const ev = STATE.adminPanel.events.find(e => e.id === id);
+    if (!ev) return;
+    ev.date = val(`[data-event-date="${id}"]`, ev.date);
+    ev.type = val(`[data-event-type="${id}"]`, ev.type);
+    ev.title = val(`[data-event-title="${id}"]`, ev.title);
+    ev.description = val(`[data-event-desc="${id}"]`, ev.description);
+    renderCal(); toast("Evento atualizado."); markDirty();
+  }, id => {
+    STATE.adminPanel.events = STATE.adminPanel.events.filter(e => e.id !== id);
+    renderCal(); toast("Evento removido."); markDirty();
+  });
 }
 
-function siteContentTpl(){ return `<div class="notice"><i class="fas fa-pen-ruler"></i> Edite o conteudo publico por pagina sem sair do painel. Os dados salvos aqui alimentam o site que o visitante enxerga.</div><div class="card"><div class="card-head"><h3>Pagina publica</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" id="site-open-link" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Abrir pagina</a><button class="btn btn-sm" id="site-reload-schema"><i class="fas fa-rotate-right"></i> Recarregar estrutura</button><button class="btn btn-primary btn-sm" data-save-page="siteContent"><i class="fas fa-save"></i> Salvar pagina</button></div></div><div class="form-row"><div class="fg"><label>Pagina</label><select id="site-content-page">${PUBLIC_PAGE_OPTIONS.map(([file,label])=>`<option value="${file}"${file===CONTENT_PAGE?" selected":""}>${label} (${file})</option>`).join("")}</select></div><div class="fg"><label>Resumo</label><div id="site-content-summary" style="padding:9px 12px;border-radius:var(--r-md);border:1.5px solid var(--g200);background:var(--g50);font-size:.83rem;color:var(--g600)">Carregando estrutura...</div></div></div></div><div id="site-content-editor"><div class="card"><div class="empty-state"><i class="fas fa-file-lines"></i><p>Carregando editor da pagina...</p></div></div></div>`; }
-
-function renderModals(){
-  const root=document.getElementById("modal-root");
-  if(!root)return;
-  root.innerHTML=`${eventModal()}${photoModal()}${projectModal()}${activityModal()}${memberModal()}`;
+// ── Template: Galeria ─────────────────────────────────────────────
+function tplGaleria() {
+  GAL_FILTER = "all";
+  return `
+  <div class="hero-banner">
+    <h2>Galeria de fotos</h2>
+    <p>Gerencie as imagens que aparecem no site. Os arquivos devem existir em <strong>images/</strong>.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-photo"><i class="fas fa-plus"></i> Adicionar foto</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="toolbar-left" id="gal-filters">
+      ${["all","acampamento","atividade","evento","comunidade"].map(c =>
+        `<button class="btn btn-sm${c===GAL_FILTER?" btn-primary":""}" data-gal-filter="${c}">${c==="all"?"Todas":cap(c)}</button>`).join("")}
+    </div>
+    <div class="toolbar-right"><span class="badge badge-blue" id="gal-count">0</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px">Fotos cadastradas</div>
+    <div id="photo-grid"></div>
+  </div>`;
 }
 
-function bindShared(){
-  document.querySelectorAll("[data-open-modal]").forEach(btn=>btn.addEventListener("click",()=>openModal(btn.dataset.openModal)));
-  document.querySelectorAll("[data-close-modal]").forEach(btn=>btn.addEventListener("click",()=>closeModal(btn.dataset.closeModal)));
-  document.querySelectorAll(".modal-overlay").forEach(overlay=>overlay.addEventListener("click",event=>{if(event.target===overlay)closeModal(overlay.id);}));
-  document.querySelectorAll("[data-save-page]").forEach(btn=>btn.addEventListener("click",()=>{captureForms(); save(false);}));
-  document.querySelectorAll("[data-nav-page]").forEach(btn=>btn.addEventListener("click",()=>{PAGE=btn.dataset.navPage; renderSidebar(); renderPage(PAGE);}));
-  document.getElementById("content").addEventListener("input",()=>setStatus("dirty","Alterações pendentes"));
-}
+let GAL_FILTER = "all";
 
-function bindPage(page){
-  if(page==="calendario"){document.getElementById("cal-prev").addEventListener("click",()=>{MONTH=MONTH===0?11:MONTH-1;if(MONTH===11)YEAR-=1;renderCalendar();});document.getElementById("cal-next").addEventListener("click",()=>{MONTH=MONTH===11?0:MONTH+1;if(MONTH===0)YEAR+=1;renderCalendar();});document.getElementById("add-event-btn").addEventListener("click",addEvent);renderCalendar();}
-  if(page==="galeria"){document.getElementById("add-photo-btn").addEventListener("click",addPhoto);document.querySelectorAll("[data-filter-gallery]").forEach(btn=>btn.addEventListener("click",()=>filterGallery(btn.dataset.filterGallery)));renderGallery();}
-  if(page==="projetos"){document.getElementById("add-project-btn").addEventListener("click",addProject);renderProjects();}
-  if(page==="ramos"){document.querySelectorAll("[data-branch-tab]").forEach(tab=>tab.addEventListener("click",()=>{captureBranch();BRANCH=tab.dataset.branchTab;renderPage("ramos");}));document.getElementById("ramo-ai-btn").addEventListener("click",()=>{const box=document.getElementById("ramo-ai-result");box.textContent=generateText(document.getElementById("ramo-ai-input").value,document.getElementById("ramo-desc1").value);box.classList.add("show");});document.getElementById("ramo-apply-ai").addEventListener("click",()=>{const box=document.getElementById("ramo-ai-result");if(box.textContent.trim())document.getElementById("ramo-desc1").value=box.textContent.trim();});}
-  if(page==="atividades"){document.getElementById("add-activity-btn").addEventListener("click",addActivity);document.querySelectorAll("[data-remove-activity]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.activities=STATE.adminPanel.activities.filter(x=>x.id!==btn.dataset.removeActivity);renderPage("atividades");showToast("Atividade removida.");setStatus("dirty","Alterações pendentes");}));}
-  if(page==="membros"){document.getElementById("add-member-btn").addEventListener("click",addMember);document.getElementById("member-search").addEventListener("input",renderMembers);document.getElementById("member-branch-filter").addEventListener("change",renderMembers);renderMembers();}
-  if(page==="siteContent"){initSiteContentEditor();}
-  if(page==="sobre"){document.getElementById("about-ai-btn").addEventListener("click",()=>{const box=document.getElementById("sobre-ai-result");box.textContent=generateText(document.getElementById("sobre-ai-input").value,document.getElementById("about-world-text").value);box.classList.add("show");});document.getElementById("about-apply-ai").addEventListener("click",()=>{const box=document.getElementById("sobre-ai-result");if(box.textContent.trim())document.getElementById("about-world-text").value=box.textContent.trim();});}
-  if(page==="ia"){document.getElementById("ia-send-btn").addEventListener("click",sendIA);document.getElementById("ia-input").addEventListener("keydown",e=>{if(e.key==="Enter")sendIA();});document.querySelectorAll("[data-ia-quick]").forEach(btn=>btn.addEventListener("click",()=>{document.getElementById("ia-input").value=btn.dataset.iaQuick;sendIA();}));renderIA();}
-}
-
-function renderCalendar(){
-  document.getElementById("cal-month-lbl").textContent=`${MONTHS[MONTH]} de ${YEAR}`; document.getElementById("cal-month-short").textContent=MONTHS_SHORT[MONTH];
-  const grid=document.getElementById("cal-grid"), first=new Date(YEAR,MONTH,1).getDay(), last=new Date(YEAR,MONTH+1,0).getDate(), now=new Date();
-  grid.innerHTML=["D","S","T","Q","Q","S","S"].map(d=>`<div class="cal-wday">${d}</div>`).join("");
-  for(let i=0;i<first;i+=1) grid.innerHTML+='<div class="cal-day empty">0</div>';
-  for(let d=1;d<=last;d+=1){const key=dateKey(YEAR,MONTH,d), has=STATE.adminPanel.events.some(x=>x.date===key), reg=STATE.adminPanel.events.some(x=>x.date===key&&x.type==="regional"), today=d===now.getDate()&&MONTH===now.getMonth()&&YEAR===now.getFullYear(); grid.innerHTML+=`<div class="cal-day${has?" has-ev":""}${reg?" has-reg":""}${today?" today":""}">${d}</div>`;}
-  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date);return d.getMonth()===MONTH&&d.getFullYear()===YEAR;}).sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById("cal-events-panel").innerHTML=monthEvents.map(x=>`<div class="cal-ev-item"><div class="cal-ev-dot" style="background:${typeColor(x.type)}"></div><div class="cal-ev-info"><div class="cal-ev-title">${esc(x.title)}</div><div class="cal-ev-date">${esc(formatDate(x.date))} · <span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></div></div><button class="btn btn-xs btn-danger" data-remove-event="${x.id}"><i class="fas fa-times"></i></button></div>`).join("")||'<div class="empty-state"><i class="fas fa-calendar"></i><p>Sem eventos especiais este mês.</p></div>';
-  document.getElementById("all-events-tbody").innerHTML=STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(x=>`<tr><td>${esc(formatDate(x.date))}</td><td>${esc(x.title)}</td><td><span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></td><td class="td-actions"><button class="btn btn-xs btn-danger" data-remove-event-row="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`).join("");
-  document.querySelectorAll("[data-remove-event],[data-remove-event-row]").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.removeEvent||btn.dataset.removeEventRow; STATE.adminPanel.events=STATE.adminPanel.events.filter(x=>x.id!==id); renderCalendar(); showToast("Evento removido."); setStatus("dirty","Alterações pendentes");}));
-}
-
-function renderGallery(){
-  const grid=document.getElementById("photo-grid"), filter=grid.dataset.filter||"all", photos=STATE.adminPanel.photos.filter(x=>filter==="all"||x.category===filter);
-  document.getElementById("gal-count").textContent=`${photos.length} foto${photos.length===1?"":"s"}`;
-  grid.innerHTML=photos.map(x=>`<div class="photo-item">${x.src?`<img src="${esc(x.src)}" alt="${esc(x.title)}" style="width:100%;height:100%;object-fit:cover">`:`<div class="photo-ph"><i class="fas fa-image" style="font-size:1.5rem;margin-bottom:4px;display:block"></i>${esc(x.caption).replace(/\n/g,"<br>")}</div>`}<div class="photo-ov"><button class="btn btn-sm btn-danger" style="font-size:.72rem" data-remove-photo="${x.id}"><i class="fas fa-trash"></i></button></div><span class="photo-cat badge b-blue">${esc(x.category)}</span></div>`).join("");
-  grid.querySelectorAll("[data-remove-photo]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.photos=STATE.adminPanel.photos.filter(x=>x.id!==btn.dataset.removePhoto);renderGallery();showToast("Foto removida.");setStatus("dirty","Alterações pendentes");}));
-}
-
-function renderProjects(){
-  document.getElementById("projetos-container").innerHTML=STATE.adminPanel.projects.map(x=>`<div class="proj-card"><div style="display:flex;gap:14px;align-items:flex-start"><div class="proj-icon" style="background:${projectBg(x.status)};color:${projectFg(x.status)}">${esc(x.icon)}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:.9rem;font-weight:700">${esc(x.title)}</span><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></div><div style="font-size:.75rem;color:var(--g400);margin-bottom:6px">${esc(x.meta)}</div><p style="font-size:.82rem;color:var(--g600)">${esc(x.description)}</p><div class="prog-bar" style="max-width:220px"><div class="prog-fill" style="width:${x.progress}%"></div></div><div style="font-size:.72rem;color:var(--g400);margin-top:3px">${x.progress}% concluído</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-danger" data-remove-project="${x.id}"><i class="fas fa-trash"></i></button></div></div></div>`).join("");
-  document.querySelectorAll("[data-remove-project]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.projects=STATE.adminPanel.projects.filter(x=>x.id!==btn.dataset.removeProject);renderProjects();showToast("Projeto removido.");setStatus("dirty","Alterações pendentes");}));
-}
-
-function renderMembers(){
-  const search=(document.getElementById("member-search").value||"").toLowerCase(), branch=document.getElementById("member-branch-filter").value||"";
-  const rows=STATE.adminPanel.members.filter(x=>(!search||x.name.toLowerCase().includes(search))&&(!branch||x.branch===branch));
-  document.getElementById("membros-tbody").innerHTML=rows.map(x=>{const initials=x.name.split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join(""), colors=MEMBER_COLORS[hash(x.name)%MEMBER_COLORS.length]; return `<tr><td><div style="display:flex;align-items:center;gap:8px"><div class="mv" style="background:${colors[0]};color:${colors[1]}">${initials}</div>${esc(x.name)}</div></td><td>${esc(x.branch)}</td><td><span class="badge ${badgeClass(x.role==="Chefe"?"planejado":x.role==="Monitor"?"grupo":"rascunho")}">${esc(x.role)}</span></td><td>${esc(x.since)}</td><td><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></td><td class="td-actions"><button class="btn btn-xs btn-danger" data-remove-member="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`;}).join("");
-  document.querySelectorAll("[data-remove-member]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.members=STATE.adminPanel.members.filter(x=>x.id!==btn.dataset.removeMember);renderMembers();showToast("Membro removido.");setStatus("dirty","Alterações pendentes");}));
-}
-
-function renderIA(){document.getElementById("ia-chat").innerHTML=STATE.adminPanel.iaHistory.map(x=>`<div style="display:flex;justify-content:${x.role==="user"?"flex-end":"flex-start"}"><div style="max-width:80%;padding:10px 14px;border-radius:${x.role==="user"?"14px 14px 4px 14px":"14px 14px 14px 4px"};font-size:.83rem;line-height:1.6;${x.role==="user"?"background:var(--b5);color:#fff":"background:var(--g50);color:var(--ink);border:1px solid var(--g100)"}">${esc(x.content)}</div></div>`).join("");}
-
-function renderCalendar(){
-  document.getElementById("cal-month-lbl").textContent=`${MONTHS[MONTH]} de ${YEAR}`;
-  document.getElementById("cal-month-short").textContent=MONTHS_SHORT[MONTH];
-  const grid=document.getElementById("cal-grid"), first=new Date(YEAR,MONTH,1).getDay(), last=new Date(YEAR,MONTH+1,0).getDate(), now=new Date();
-  grid.innerHTML=["D","S","T","Q","Q","S","S"].map(d=>`<div class="cal-wday">${d}</div>`).join("");
-  for(let i=0;i<first;i+=1) grid.innerHTML+='<div class="cal-day empty">0</div>';
-  for(let d=1;d<=last;d+=1){
-    const key=dateKey(YEAR,MONTH,d), has=STATE.adminPanel.events.some(x=>x.date===key), reg=STATE.adminPanel.events.some(x=>x.date===key&&x.type==="regional"), today=d===now.getDate()&&MONTH===now.getMonth()&&YEAR===now.getFullYear();
-    grid.innerHTML+=`<div class="cal-day${has?" has-ev":""}${reg?" has-reg":""}${today?" today":""}">${d}</div>`;
+function renderGallery() {
+  const photos = STATE.adminPanel.photos.filter(p => GAL_FILTER === "all" || p.category === GAL_FILTER);
+  const cnt = document.getElementById("gal-count");
+  if (cnt) cnt.textContent = `${photos.length} foto${photos.length !== 1 ? "s" : ""}`;
+  const grid = document.getElementById("photo-grid");
+  if (!grid) return;
+  if (!photos.length) {
+    grid.innerHTML = `<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma foto nesta categoria.</p></div>`;
+    return;
   }
-  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date);return d.getMonth()===MONTH&&d.getFullYear()===YEAR;}).sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById("cal-events-panel").innerHTML=monthEvents.length?monthEvents.map(x=>`<div class="cal-ev-item"><div class="cal-ev-dot" style="background:${typeColor(x.type)}"></div><div class="cal-ev-info"><div class="cal-ev-title">${esc(x.title)}</div><div class="cal-ev-date">${esc(formatDate(x.date))} · <span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></div></div><button class="btn btn-xs btn-danger" data-remove-event="${x.id}"><i class="fas fa-times"></i></button></div>`).join(""):`<div class="empty-state"><i class="fas fa-calendar"></i><p>Nenhum evento especial neste mês. Clique em "Novo evento".</p></div>`;
-  const allEvents=STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById("all-events-tbody").innerHTML=allEvents.length?allEvents.map(x=>`<tr><td><input type="date" data-event-date="${x.id}" value="${esc(x.date)}"></td><td><input data-event-title="${x.id}" value="${esc(x.title)}"></td><td><select data-event-type="${x.id}"><option value="grupo"${x.type==="grupo"?" selected":""}>Grupo</option><option value="regional"${x.type==="regional"?" selected":""}>Regional</option><option value="nacional"${x.type==="nacional"?" selected":""}>Nacional</option></select></td><td class="td-actions"><button class="btn btn-xs" data-save-event-row="${x.id}"><i class="fas fa-floppy-disk"></i></button><button class="btn btn-xs btn-danger" data-remove-event-row="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(""):`<tr><td colspan="4"><div class="empty-state"><i class="fas fa-calendar-day"></i><p>Nenhum evento cadastrado ainda. Use "Novo evento" para adicionar o primeiro.</p></div></td></tr>`;
-  document.querySelectorAll("[data-remove-event],[data-remove-event-row]").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.removeEvent||btn.dataset.removeEventRow; STATE.adminPanel.events=STATE.adminPanel.events.filter(x=>x.id!==id); renderCalendar(); showToast("Evento removido."); setStatus("dirty","Alterações pendentes");}));
-  document.querySelectorAll("[data-save-event-row]").forEach(btn=>btn.addEventListener("click",()=>saveEventRow(btn.dataset.saveEventRow)));
+  grid.innerHTML = `<div class="gallery-grid">${photos.map(p => `
+    <div class="photo-card">
+      <div class="photo-thumb">${p.src ? `<img src="${esc(p.src)}" alt="${esc(p.title)}" loading="lazy">` : `<i class="fas fa-image"></i>`}</div>
+      <div class="photo-info">
+        <div class="photo-name">${esc(p.title)}</div>
+        <div class="photo-cat"><span class="badge badge-gray">${esc(p.category)}</span></div>
+      </div>
+      <div class="photo-actions">
+        <button class="btn btn-xs btn-ghost" data-edit-photo="${esc(p.id)}"><i class="fas fa-pen"></i> Editar</button>
+        <button class="btn btn-xs btn-danger" data-rm-photo="${esc(p.id)}"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join("")}</div>
+  <div id="photo-edit-area" class="scroll-y" style="margin-top:14px;max-height:none"></div>`;
+
+  grid.querySelectorAll("[data-edit-photo]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const p = STATE.adminPanel.photos.find(x => x.id === btn.dataset.editPhoto);
+      if (!p) return;
+      const area = document.getElementById("photo-edit-area");
+      area.innerHTML = `<div class="card" style="margin-top:0">
+        <div class="card-title" style="margin-bottom:12px">Editando: ${esc(p.title)}</div>
+        <div class="form-row">
+          <div class="fg"><label>Título</label><input id="pe-title" value="${esc(p.title)}"></div>
+          <div class="fg"><label>Categoria</label><select id="pe-cat">
+            ${["acampamento","atividade","evento","comunidade"].map(c => `<option value="${c}"${p.category===c?" selected":""}>${cap(c)}</option>`).join("")}
+          </select></div>
+        </div>
+        <div class="fg"><label>Caminho da imagem</label><input id="pe-src" value="${esc(p.src)}"></div>
+        <div class="fg"><label>Legenda</label><input id="pe-caption" value="${esc(p.caption)}"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+          <button class="btn btn-sm" id="pe-cancel">Cancelar</button>
+          <button class="btn btn-sm btn-primary" id="pe-save">Salvar</button>
+        </div>
+      </div>`;
+      document.getElementById("pe-cancel").addEventListener("click", () => area.innerHTML = "");
+      document.getElementById("pe-save").addEventListener("click", () => {
+        p.title   = document.getElementById("pe-title").value.trim() || p.title;
+        p.category = document.getElementById("pe-cat").value;
+        p.src     = normPath(document.getElementById("pe-src").value);
+        p.caption = document.getElementById("pe-caption").value.trim();
+        area.innerHTML = "";
+        renderGallery(); toast("Foto atualizada."); markDirty();
+      });
+      area.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  });
+  grid.querySelectorAll("[data-rm-photo]").forEach(btn =>
+    btn.addEventListener("click", () => {
+      STATE.adminPanel.photos = STATE.adminPanel.photos.filter(p => p.id !== btn.dataset.rmPhoto);
+      renderGallery(); toast("Foto removida."); markDirty();
+    })
+  );
 }
 
-function renderProjects(){
-  const container=document.getElementById("projetos-container");
-  container.innerHTML=STATE.adminPanel.projects.length?STATE.adminPanel.projects.map(x=>`<div class="proj-card"><div class="form-row"><div class="fg"><label>Nome do projeto</label><input data-project-title="${x.id}" value="${esc(x.title)}"></div><div class="fg"><label>Status</label><select data-project-status="${x.id}"><option value="planejado"${x.status==="planejado"?" selected":""}>Planejado</option><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="concluido"${x.status==="concluido"?" selected":""}>Concluído</option></select></div></div><div class="form-row"><div class="fg"><label>Emoji</label><input data-project-icon="${x.id}" value="${esc(x.icon)}"></div><div class="fg"><label>Progresso (%)</label><input type="number" min="0" max="100" data-project-progress="${x.id}" value="${esc(String(x.progress))}"></div></div><div class="fg"><label>Meta / tags</label><input data-project-meta="${x.id}" value="${esc(x.meta)}"></div><div class="fg"><label>Descrição</label><textarea rows="3" data-project-description="${x.id}">${esc(x.description)}</textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-save-project="${x.id}"><i class="fas fa-floppy-disk"></i> Salvar este projeto</button><button class="btn btn-sm btn-danger" data-remove-project="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div>`).join(""):`<div class="card" style="margin-bottom:0"><div class="empty-state"><i class="fas fa-diagram-project"></i><p>Nenhum projeto cadastrado ainda. Clique em "Novo projeto" para criar o primeiro.</p></div></div>`;
-  document.querySelectorAll("[data-save-project]").forEach(btn=>btn.addEventListener("click",()=>saveProjectCard(btn.dataset.saveProject)));
-  document.querySelectorAll("[data-remove-project]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.projects=STATE.adminPanel.projects.filter(x=>x.id!==btn.dataset.removeProject);renderProjects();showToast("Projeto removido.");setStatus("dirty","Alterações pendentes");}));
+// ── Template: Projetos ────────────────────────────────────────────
+function tplProjetos() {
+  return `
+  <div class="hero-banner">
+    <h2>Projetos</h2>
+    <p>Mostre os projetos que merecem destaque. Menos volume, mais contexto.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-project"><i class="fas fa-plus"></i> Novo projeto</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Projetos cadastrados</div>
+    </div>
+    <div id="projetos-list" class="items-list"></div>
+  </div>`;
 }
 
-function renderMembers(){
-  const search=(document.getElementById("member-search").value||"").toLowerCase(), branch=document.getElementById("member-branch-filter").value||"";
-  const rows=STATE.adminPanel.members.filter(x=>(!search||x.name.toLowerCase().includes(search))&&(!branch||x.branch===branch));
-  document.getElementById("membros-tbody").innerHTML=rows.length?rows.map(x=>`<tr><td><input data-member-name="${x.id}" value="${esc(x.name)}"></td><td><select data-member-branch="${x.id}"><option${x.branch==="Filhotes"?" selected":""}>Filhotes</option><option${x.branch==="Lobinhos"?" selected":""}>Lobinhos</option><option${x.branch==="Escoteiros"?" selected":""}>Escoteiros</option><option${x.branch==="Seniores"?" selected":""}>Seniores</option><option${x.branch==="Pioneiros"?" selected":""}>Pioneiros</option></select></td><td><select data-member-role="${x.id}"><option${x.role==="Jovem"?" selected":""}>Jovem</option><option${x.role==="Monitor"?" selected":""}>Monitor</option><option${x.role==="Chefe"?" selected":""}>Chefe</option></select></td><td><input data-member-since="${x.id}" value="${esc(x.since)}"></td><td><select data-member-status="${x.id}"><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="pendente"${x.status==="pendente"?" selected":""}>Pendente</option><option value="inativo"${x.status==="inativo"?" selected":""}>Inativo</option></select></td><td class="td-actions"><button class="btn btn-xs" data-save-member="${x.id}"><i class="fas fa-floppy-disk"></i></button><button class="btn btn-xs btn-danger" data-remove-member="${x.id}"><i class="fas fa-trash"></i></button></td></tr>`).join(""):`<tr><td colspan="6"><div class="empty-state"><i class="fas fa-user-plus"></i><p>${search||branch?"Nenhum membro encontrado com esse filtro.":"Nenhum membro cadastrado ainda. Clique em \"Novo membro\" para começar."}</p></div></td></tr>`;
-  document.querySelectorAll("[data-save-member]").forEach(btn=>btn.addEventListener("click",()=>saveMemberRow(btn.dataset.saveMember)));
-  document.querySelectorAll("[data-remove-member]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.members=STATE.adminPanel.members.filter(x=>x.id!==btn.dataset.removeMember);renderMembers();showToast("Membro removido.");setStatus("dirty","Alterações pendentes");}));
+function renderProjetos() {
+  const list = document.getElementById("projetos-list");
+  if (!list) return;
+  list.innerHTML = STATE.adminPanel.projects.length
+    ? STATE.adminPanel.projects.map(p => itemCard({
+        id: p.id, type: "project",
+        title: `${p.icon || "🌟"} ${p.title}`, sub: p.meta,
+        badges: [
+          { label: p.status, cls: p.status === "ativo" ? "badge-green" : p.status === "concluido" ? "badge-blue" : "badge-amber" },
+          { label: `${p.progress}%`, cls: "badge-gray" },
+        ],
+        desc: p.description,
+        fields: `
+          <div class="form-row">
+            <div class="fg"><label>Nome</label><input data-proj-title="${p.id}" value="${esc(p.title)}"></div>
+            <div class="fg"><label>Emoji</label><input data-proj-icon="${p.id}" value="${esc(p.icon||"🌟")}" style="max-width:80px"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>Status</label><select data-proj-status="${p.id}">
+              ${["planejado","ativo","concluido"].map(s => `<option value="${s}"${p.status===s?" selected":""}>${cap(s)}</option>`).join("")}
+            </select></div>
+            <div class="fg"><label>Progresso (%)</label><input type="number" min="0" max="100" data-proj-progress="${p.id}" value="${esc(String(p.progress||0))}"></div>
+          </div>
+          <div class="fg"><label>Tags / meta</label><input data-proj-meta="${p.id}" value="${esc(p.meta||"")}"></div>
+          <div class="fg"><label>Descrição</label><textarea rows="3" data-proj-desc="${p.id}">${esc(p.description||"")}</textarea></div>
+          <div class="prog-bar" style="margin-bottom:4px"><div class="prog-fill" id="prog-preview-${p.id}" style="width:${p.progress||0}%"></div></div>`,
+      })).join("")
+    : `<div class="empty-state"><i class="fas fa-hands-helping"></i><p>Nenhum projeto cadastrado.</p></div>`;
+  bindItemCards("project", id => {
+    const p = STATE.adminPanel.projects.find(x => x.id === id);
+    if (!p) return;
+    p.title    = val(`[data-proj-title="${id}"]`, p.title);
+    p.icon     = val(`[data-proj-icon="${id}"]`, p.icon) || "🌟";
+    p.status   = val(`[data-proj-status="${id}"]`, p.status);
+    p.progress = Math.min(100, Math.max(0, Number(val(`[data-proj-progress="${id}"]`, String(p.progress))) || 0));
+    p.meta     = val(`[data-proj-meta="${id}"]`, p.meta);
+    p.description = val(`[data-proj-desc="${id}"]`, p.description);
+    renderProjetos(); toast("Projeto atualizado."); markDirty();
+  }, id => {
+    STATE.adminPanel.projects = STATE.adminPanel.projects.filter(p => p.id !== id);
+    renderProjetos(); toast("Projeto removido."); markDirty();
+  });
 }
 
-function saveEventRow(id){
-  const event=STATE.adminPanel.events.find(item=>item.id===id);
-  if(!event)return;
-  event.date=document.querySelector(`[data-event-date="${id}"]`)?.value||event.date;
-  event.title=(document.querySelector(`[data-event-title="${id}"]`)?.value||event.title).trim();
-  event.type=document.querySelector(`[data-event-type="${id}"]`)?.value||event.type;
-  renderCalendar();
-  showToast("Evento atualizado.");
-  setStatus("dirty","Alterações pendentes");
+// ── Template: Ramos ───────────────────────────────────────────────
+function tplRamos() {
+  const branch = STATE.adminPanel.branches[BRANCH];
+  return `
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title">Ramos</div>
+        <div class="card-desc">Edite a apresentação de cada seção para famílias e jovens.</div>
+      </div>
+    </div>
+    <div class="ramo-tabs">
+      ${Object.keys(STATE.adminPanel.branches).map(k =>
+        `<div class="ramo-tab${k === BRANCH ? " active" : ""}" data-branch="${k}">${esc(STATE.adminPanel.branches[k].name)}</div>`
+      ).join("")}
+    </div>
+    <div class="fg"><label>Nome do ramo</label><input id="ramo-nome" value="${esc(branch.name)}"></div>
+    <div class="fg"><label>Faixa etária</label><input id="ramo-idade" value="${esc(branch.age)}"></div>
+    <div class="fg"><label>Descrição curta</label><textarea id="ramo-desc1" rows="2">${esc(branch.short)}</textarea></div>
+    <div class="fg"><label>Descrição longa</label><textarea id="ramo-desc2" rows="3">${esc(branch.long)}</textarea></div>
+    <div class="fg"><label>Pontos principais (um por linha)</label><textarea id="ramo-bullets" rows="4">${esc(branch.bullets.join("\n"))}</textarea></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+      <button class="btn btn-primary btn-sm" id="ramo-save"><i class="fas fa-floppy-disk"></i> Salvar ramo</button>
+    </div>
+  </div>`;
 }
 
-function saveProjectCard(id){
-  const project=STATE.adminPanel.projects.find(item=>item.id===id);
-  if(!project)return;
-  project.title=(document.querySelector(`[data-project-title="${id}"]`)?.value||project.title).trim();
-  project.status=document.querySelector(`[data-project-status="${id}"]`)?.value||project.status;
-  project.icon=(document.querySelector(`[data-project-icon="${id}"]`)?.value||project.icon).trim()||"🌟";
-  project.progress=Number(document.querySelector(`[data-project-progress="${id}"]`)?.value||project.progress);
-  project.meta=(document.querySelector(`[data-project-meta="${id}"]`)?.value||project.meta).trim();
-  project.description=(document.querySelector(`[data-project-description="${id}"]`)?.value||project.description).trim();
-  renderProjects();
-  showToast("Projeto atualizado.");
-  setStatus("dirty","Alterações pendentes");
+// ── Template: Atividades ──────────────────────────────────────────
+function tplAtividades() {
+  return `
+  <div class="hero-banner">
+    <h2>Atividades</h2>
+    <p>Liste as vivências que melhor explicam o dia a dia do grupo para quem está chegando.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-activity"><i class="fas fa-plus"></i> Nova atividade</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Atividades em destaque</div></div>
+    <div id="atividades-list" class="items-list"></div>
+  </div>`;
 }
 
-function saveMemberRow(id){
-  const member=STATE.adminPanel.members.find(item=>item.id===id);
-  if(!member)return;
-  member.name=(document.querySelector(`[data-member-name="${id}"]`)?.value||member.name).trim();
-  member.branch=document.querySelector(`[data-member-branch="${id}"]`)?.value||member.branch;
-  member.role=document.querySelector(`[data-member-role="${id}"]`)?.value||member.role;
-  member.since=(document.querySelector(`[data-member-since="${id}"]`)?.value||member.since).trim();
-  member.status=document.querySelector(`[data-member-status="${id}"]`)?.value||member.status;
-  renderMembers();
-  showToast("Membro atualizado.");
-  setStatus("dirty","Alterações pendentes");
+function renderAtividades() {
+  const list = document.getElementById("atividades-list");
+  if (!list) return;
+  list.innerHTML = STATE.adminPanel.activities.length
+    ? STATE.adminPanel.activities.map(a => itemCard({
+        id: a.id, type: "activity",
+        title: `${a.icon || "⭐"} ${a.title}`, sub: "Destaque no site",
+        badges: [],
+        desc: a.description,
+        fields: `
+          <div class="form-row">
+            <div class="fg"><label>Emoji</label><input data-ativ-icon="${a.id}" value="${esc(a.icon||"⭐")}" style="max-width:80px"></div>
+            <div class="fg"><label>Título</label><input data-ativ-title="${a.id}" value="${esc(a.title)}"></div>
+          </div>
+          <div class="fg"><label>Descrição</label><textarea rows="3" data-ativ-desc="${a.id}">${esc(a.description||"")}</textarea></div>`,
+      })).join("")
+    : `<div class="empty-state"><i class="fas fa-star"></i><p>Nenhuma atividade cadastrada.</p></div>`;
+  bindItemCards("activity", id => {
+    const a = STATE.adminPanel.activities.find(x => x.id === id);
+    if (!a) return;
+    a.icon = val(`[data-ativ-icon="${id}"]`, a.icon) || "⭐";
+    a.title = val(`[data-ativ-title="${id}"]`, a.title);
+    a.description = val(`[data-ativ-desc="${id}"]`, a.description);
+    renderAtividades(); toast("Atividade atualizada."); markDirty();
+  }, id => {
+    STATE.adminPanel.activities = STATE.adminPanel.activities.filter(a => a.id !== id);
+    renderAtividades(); toast("Atividade removida."); markDirty();
+  });
 }
 
-async function initSiteContentEditor(){
-  const select=document.getElementById("site-content-page"),reloadBtn=document.getElementById("site-reload-schema"),openLink=document.getElementById("site-open-link");
-  if(!select||!reloadBtn||!openLink)return;
-  select.addEventListener("change",async()=>{captureSiteContent();CONTENT_PAGE=select.value;openLink.href=`/${CONTENT_PAGE}`;await renderSiteContentEditor(false);});
-  reloadBtn.addEventListener("click",async()=>{await renderSiteContentEditor(true);showToast("Estrutura da pagina recarregada.");});
-  openLink.href=`/${CONTENT_PAGE}`;
-  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
-  if(container)container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(CONTENT_PAGE)}...</p></div></div>`;
-  if(summary)summary.textContent="Lendo estrutura da pagina...";
-  await renderSiteContentEditor(false);
+// ── Template: Membros ─────────────────────────────────────────────
+function tplMembros() {
+  return `
+  <div class="hero-banner">
+    <h2>Membros</h2>
+    <p>Cadastro interno da equipe. Rápido para consultar, objetivo para manter.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-member"><i class="fas fa-user-plus"></i> Novo membro</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar por nome..."></div>
+      <select id="member-branch" style="height:32px;padding:0 8px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:12px;background:var(--c-surface);color:var(--c-ink-2)">
+        <option value="">Todos os ramos</option>
+        ${["Filhotes","Lobinhos","Escoteiros","Seniores","Pioneiros"].map(b => `<option>${b}</option>`).join("")}
+      </select>
+    </div>
+    <div class="toolbar-right"><span class="badge badge-blue" id="members-count">0</span></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Perfis</div></div>
+    <div id="membros-list" class="items-list"></div>
+  </div>`;
 }
 
-async function renderSiteContentEditor(forceReload){
-  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
-  if(!container||!summary)return;
-  container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(CONTENT_PAGE)}...</p></div></div>`;
-  try{
-    const schema=await getContentSchema(CONTENT_PAGE,forceReload);
-    const pageState=ensureManagedPageState(CONTENT_PAGE);
-    summary.textContent=`${schema.texts.length} textos, ${schema.images.length} imagens, ${schema.sections.length} secoes e ${pageState.extras.length} blocos extras.`;
-    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Textos editaveis</h3><span class="badge b-blue">${schema.texts.length}</span></div>${schema.texts.length?schema.texts.map(entry=>`<div class="fg"><label>${esc(entry.label)}</label><textarea rows="${textareaRows(entry.value)}" data-site-text="${esc(entry.key)}">${esc(pageState.text[entry.key]??entry.value)}</textarea><div style="font-size:.72rem;color:var(--g400);margin-top:5px">Chave: ${esc(entry.key)}</div></div>`).join(""):'<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum texto identificado nesta pagina.</p></div>'}</div><div class="card"><div class="card-head"><h3>Imagens editaveis</h3><span class="badge b-blue">${schema.images.length}</span></div>${schema.images.length?schema.images.map(entry=>{const override=pageState.images[entry.key]||{};return `<div style="padding:12px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:12px;background:var(--g50)"><div style="font-size:.78rem;font-weight:700;color:var(--b9);margin-bottom:8px">${esc(entry.label)}</div><div class="fg"><label>Src</label><input data-site-image-src="${esc(entry.key)}" value="${esc(override.src??entry.src)}"></div><div class="fg" style="margin-bottom:0"><label>Alt</label><input data-site-image-alt="${esc(entry.key)}" value="${esc(override.alt??entry.alt)}"></div></div>`;}).join(""):'<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem identificada nesta pagina.</p></div>'}</div></div><div class="grid2"><div class="card"><div class="card-head"><h3>Secoes</h3><span class="badge b-blue">${schema.sections.length}</span></div>${schema.sections.length?schema.sections.map(entry=>{const sectionState=pageState.sections[entry.key]||{};return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:10px"><div><div style="font-size:.83rem;font-weight:700;color:var(--b9)">${esc(entry.label)}</div><div style="font-size:.72rem;color:var(--g400);margin-top:4px">${esc(entry.key)}</div></div><label class="tog"><input type="checkbox" data-site-section-hidden="${esc(entry.key)}"${sectionState.hidden?" checked":""}><span class="tog-sl"></span></label></div>`;}).join(""):'<div class="empty-state"><i class="fas fa-layer-group"></i><p>Nenhuma secao principal identificada.</p></div>'}</div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
-    bindSiteContentEditor();
-  }catch(error){
-    const pageState=ensureManagedPageState(CONTENT_PAGE);
-    summary.textContent="Leitura automatica indisponivel. Fallback exibido.";
-    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Diagnostico</h3><span class="badge b-amber">Fallback</span></div><div class="notice"><i class="fas fa-triangle-exclamation"></i> Nao foi possivel mapear automaticamente os textos, imagens e secoes de ${esc(CONTENT_PAGE)} neste carregamento. Tente recarregar a estrutura.</div><div class="fg"><label>Pagina atual</label><input value="${esc(CONTENT_PAGE)}" disabled></div><div class="fg" style="margin-bottom:0"><label>Motivo</label><textarea rows="4" disabled>${esc(error&&error.message?error.message:"schema_load_failed")}</textarea></div></div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
-    bindSiteContentEditor();
+function renderMembros() {
+  const search = (document.getElementById("member-search")?.value || "").toLowerCase();
+  const branch = document.getElementById("member-branch")?.value || "";
+  const rows = STATE.adminPanel.members.filter(m =>
+    (!search || m.name.toLowerCase().includes(search)) && (!branch || m.branch === branch)
+  );
+  const cnt = document.getElementById("members-count");
+  if (cnt) cnt.textContent = String(rows.length);
+  const list = document.getElementById("membros-list");
+  if (!list) return;
+  list.innerHTML = rows.length
+    ? rows.map(m => {
+        const [bg, fg] = MEMBER_COLORS[hashStr(m.name) % MEMBER_COLORS.length];
+        return itemCard({
+          id: m.id, type: "member",
+          title: m.name, sub: `${m.branch} · ${m.role} · desde ${m.since}`,
+          badges: [
+            { label: m.branch, cls: "badge-gray" },
+            { label: m.status, cls: m.status === "ativo" ? "badge-green" : m.status === "pendente" ? "badge-amber" : "badge-red" },
+          ],
+          desc: "",
+          avatar: { bg, fg, initials: initials(m.name) },
+          fields: `
+            <div class="form-row">
+              <div class="fg"><label>Nome</label><input data-mb-name="${m.id}" value="${esc(m.name)}"></div>
+              <div class="fg"><label>Ramo</label><select data-mb-branch="${m.id}">
+                ${["Filhotes","Lobinhos","Escoteiros","Seniores","Pioneiros"].map(b => `<option${m.branch===b?" selected":""}>${b}</option>`).join("")}
+              </select></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label>Função</label><select data-mb-role="${m.id}">
+                ${["Jovem","Monitor","Chefe"].map(r => `<option${m.role===r?" selected":""}>${r}</option>`).join("")}
+              </select></div>
+              <div class="fg"><label>Ingresso</label><input type="number" data-mb-since="${m.id}" value="${esc(m.since)}"></div>
+            </div>
+            <div class="fg"><label>Status</label><select data-mb-status="${m.id}">
+              ${["ativo","pendente","inativo"].map(s => `<option value="${s}"${m.status===s?" selected":""}>${cap(s)}</option>`).join("")}
+            </select></div>`,
+        });
+      }).join("")
+    : `<div class="empty-state"><i class="fas fa-users"></i><p>${search || branch ? "Nenhum resultado." : "Nenhum membro cadastrado."}</p></div>`;
+  bindItemCards("member", id => {
+    const m = STATE.adminPanel.members.find(x => x.id === id);
+    if (!m) return;
+    m.name   = val(`[data-mb-name="${id}"]`, m.name);
+    m.branch = val(`[data-mb-branch="${id}"]`, m.branch);
+    m.role   = val(`[data-mb-role="${id}"]`, m.role);
+    m.since  = val(`[data-mb-since="${id}"]`, m.since);
+    m.status = val(`[data-mb-status="${id}"]`, m.status);
+    renderMembros(); toast("Membro atualizado."); markDirty();
+  }, id => {
+    STATE.adminPanel.members = STATE.adminPanel.members.filter(m => m.id !== id);
+    renderMembros(); toast("Membro removido."); markDirty();
+  });
+}
+
+// ── Template: Páginas do site ─────────────────────────────────────
+function tplPaginas() {
+  const meta = PAGE_META[CONTENT_PAGE] || { label: "Página", icon: "fa-file", desc: "" };
+  return `
+  <div class="hero-banner">
+    <h2>Conteúdo do site</h2>
+    <p>Edite textos e imagens por página sem precisar mexer no código-fonte.</p>
+    <div class="hero-actions">
+      <a class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Ver página</a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="card-title"><i class="fas ${meta.icon}" style="color:var(--c-blue);margin-right:6px"></i>${esc(meta.label)}</div>
+        <div class="card-desc">${esc(meta.desc)}</div>
+      </div>
+    </div>
+    <div class="tab-strip" id="page-tabs">
+      ${PUBLIC_PAGES.map(p => {
+        const m = PAGE_META[p];
+        return `<button class="tab-btn${p === CONTENT_PAGE ? " active" : ""}" data-page-tab="${p}"><i class="fas ${m.icon}"></i> ${esc(m.label)}</button>`;
+      }).join("")}
+    </div>
+  </div>
+  <div id="content-editor-wrap">
+    <div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando editor...</p></div></div>
+  </div>`;
+}
+
+async function initPaginasEditor() {
+  document.querySelectorAll("[data-page-tab]").forEach(btn =>
+    btn.addEventListener("click", () => {
+      if (btn.dataset.pageTab === CONTENT_PAGE) return;
+      capturePaginasContent();
+      CONTENT_PAGE = btn.dataset.pageTab;
+      navigate("paginas");
+    })
+  );
+  await renderPaginasEditor();
+}
+
+async function renderPaginasEditor() {
+  const wrap = document.getElementById("content-editor-wrap");
+  if (!wrap) return;
+  wrap.innerHTML = `<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo ${esc(CONTENT_PAGE)}...</p></div></div>`;
+  try {
+    const schema = await getPageSchema(CONTENT_PAGE);
+    const pState = ensurePageState(CONTENT_PAGE);
+    const texts = getFeaturedEntries(CONTENT_PAGE, schema.texts, false);
+    const images = getFeaturedEntries(CONTENT_PAGE, schema.images, true);
+    wrap.innerHTML = `
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">Textos principais</div><span class="badge badge-blue">${texts.length}</span></div>
+          ${texts.length
+            ? texts.map(f => `<div style="margin-bottom:14px">
+                <div class="fg">
+                  <label>${esc(f.title)}</label>
+                  <textarea data-site-text="${esc(f.key)}" rows="${Math.max(2, Math.min(6, (f.value || "").split("\n").length + 1))}">${esc(pState.text[f.key] ?? f.value)}</textarea>
+                </div>
+                <div style="font-size:11px;color:var(--c-ink-3);margin-top:-8px">${esc(f.hint)}</div>
+              </div>`).join("")
+            : `<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum campo identificado.</p></div>`}
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Imagens</div><span class="badge badge-blue">${images.length}</span></div>
+          ${images.length
+            ? images.map(f => {
+                const ov = pState.images[f.key] || {};
+                return `<div style="margin-bottom:14px">
+                  <div class="fg"><label>${esc(f.title)}</label><input data-site-img-src="${esc(f.key)}" value="${esc(ov.src ?? f.src)}"></div>
+                  <div class="fg"><label>Texto alternativo</label><input data-site-img-alt="${esc(f.key)}" value="${esc(ov.alt ?? f.alt)}"></div>
+                </div>`;
+              }).join("")
+            : `<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem identificada.</p></div>`}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Blocos extras</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge badge-blue">${pState.extras.length}</span>
+            <button class="btn btn-sm btn-primary" id="add-extra-btn"><i class="fas fa-plus"></i> Novo bloco</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--c-ink-3);margin-bottom:12px">Use blocos extras para adicionar destaques sem alterar a estrutura principal.</p>
+        <div id="extras-list">${renderExtras(pState.extras)}</div>
+      </div>`;
+    bindPaginasEditor();
+  } catch {
+    wrap.innerHTML = `<div class="card"><div class="notice notice-warn"><i class="fas fa-triangle-exclamation"></i> Não foi possível ler esta página automaticamente.</div></div>`;
   }
 }
 
-function bindSiteContentEditor(){
-  const addBtn=document.getElementById("add-extra-section");
-  if(addBtn)addBtn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras.push({id:id("extra"),title:"",text:"",buttonLabel:"",buttonHref:"",imageSrc:"",imageAlt:"",tone:"default"});renderSiteContentEditor(false);setStatus("dirty","AlteraÃ§Ãµes pendentes");});
-  document.querySelectorAll("[data-remove-extra]").forEach(btn=>btn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras=ensureManagedPageState(CONTENT_PAGE).extras.filter(extra=>extra.id!==btn.dataset.removeExtra);renderSiteContentEditor(false);showToast("Bloco extra removido.");setStatus("dirty","AlteraÃ§Ãµes pendentes");}));
+function renderExtras(extras) {
+  if (!extras.length) return `<div class="empty-state"><i class="fas fa-puzzle-piece"></i><p>Nenhum bloco extra ainda.</p></div>`;
+  return extras.map(ex => `
+    <div data-extra-id="${esc(ex.id)}" style="padding:14px;border:1px solid var(--c-border);border-radius:var(--r-md);margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:12px;font-weight:600;color:var(--c-ink)">Bloco extra</span>
+        <button class="btn btn-xs btn-danger" data-rm-extra="${esc(ex.id)}"><i class="fas fa-trash"></i></button>
+      </div>
+      <div class="fg"><label>Título</label><input data-extra-title value="${esc(ex.title)}"></div>
+      <div class="fg"><label>Texto</label><textarea rows="3" data-extra-text>${esc(ex.text)}</textarea></div>
+      <div class="form-row">
+        <div class="fg"><label>Botão</label><input data-extra-btn-label value="${esc(ex.buttonLabel)}"></div>
+        <div class="fg"><label>Link do botão</label><input data-extra-btn-href value="${esc(ex.buttonHref)}"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Imagem</label><input data-extra-img-src value="${esc(ex.imageSrc)}"></div>
+        <div class="fg"><label>Alt da imagem</label><input data-extra-img-alt value="${esc(ex.imageAlt)}"></div>
+      </div>
+    </div>`).join("");
 }
 
-async function getContentSchema(pageName,forceReload){
-  if(!forceReload&&CONTENT_SCHEMA_CACHE[pageName])return CONTENT_SCHEMA_CACHE[pageName];
-  const cacheBust=forceReload?`?t=${Date.now()}`:"";
-  const response=await fetch(`/${pageName}${cacheBust}`,{credentials:"same-origin",cache:"no-store"});
-  if(!response.ok)throw new Error("page_fetch_failed");
-  const html=await response.text(),doc=new DOMParser().parseFromString(html,"text/html"),root=doc.querySelector("main")||doc.body;
-  const schema={texts:getEditableTextNodesForAdmin(root).map(entry=>({key:entry.key,label:entry.label,value:readEditableTextForAdmin(entry.element)})),images:getEditableImagesForAdmin(root).map(entry=>({key:entry.key,label:entry.label,src:entry.element.getAttribute("src")||"",alt:entry.element.getAttribute("alt")||""})),sections:getEditableSectionsForAdmin(root).map(entry=>({key:entry.key,label:entry.label}))};
-  CONTENT_SCHEMA_CACHE[pageName]=schema;
+function bindPaginasEditor() {
+  document.getElementById("add-extra-btn")?.addEventListener("click", () => {
+    capturePaginasContent();
+    ensurePageState(CONTENT_PAGE).extras.push({ id: uid("ex"), title: "", text: "", buttonLabel: "", buttonHref: "", imageSrc: "", imageAlt: "" });
+    document.getElementById("extras-list").innerHTML = renderExtras(ensurePageState(CONTENT_PAGE).extras);
+    bindPaginasEditor(); markDirty();
+  });
+  document.querySelectorAll("[data-rm-extra]").forEach(btn =>
+    btn.addEventListener("click", () => {
+      capturePaginasContent();
+      const ps = ensurePageState(CONTENT_PAGE);
+      ps.extras = ps.extras.filter(ex => ex.id !== btn.dataset.rmExtra);
+      document.getElementById("extras-list").innerHTML = renderExtras(ps.extras);
+      bindPaginasEditor(); toast("Bloco removido."); markDirty();
+    })
+  );
+}
+
+function capturePaginasContent() {
+  const schema = SCHEMA_CACHE[CONTENT_PAGE] || { texts: [], images: [] };
+  const ps = ensurePageState(CONTENT_PAGE);
+  const nextText = {};
+  schema.texts.forEach(f => {
+    const el = document.querySelector(`[data-site-text="${cssescape(f.key)}"]`);
+    if (!el) return;
+    const v = el.value.trim();
+    if (v && v !== f.value) nextText[f.key] = v;
+  });
+  ps.text = nextText;
+  const nextImages = {};
+  schema.images.forEach(f => {
+    const src = document.querySelector(`[data-site-img-src="${cssescape(f.key)}"]`);
+    const alt = document.querySelector(`[data-site-img-alt="${cssescape(f.key)}"]`);
+    if (!src) return;
+    const obj = {};
+    if (src.value.trim() && src.value.trim() !== f.src) obj.src = src.value.trim();
+    if (alt && alt.value.trim() !== f.alt) obj.alt = alt.value.trim();
+    if (Object.keys(obj).length) nextImages[f.key] = obj;
+  });
+  ps.images = nextImages;
+  ps.extras = Array.from(document.querySelectorAll("[data-extra-id]")).map(card => ({
+    id: card.dataset.extraId || uid("ex"),
+    title:       (card.querySelector("[data-extra-title]")?.value || "").trim(),
+    text:        (card.querySelector("[data-extra-text]")?.value || "").trim(),
+    buttonLabel: (card.querySelector("[data-extra-btn-label]")?.value || "").trim(),
+    buttonHref:  (card.querySelector("[data-extra-btn-href]")?.value || "").trim(),
+    imageSrc:    (card.querySelector("[data-extra-img-src]")?.value || "").trim(),
+    imageAlt:    (card.querySelector("[data-extra-img-alt]")?.value || "").trim(),
+  }));
+}
+
+async function getPageSchema(page) {
+  if (SCHEMA_CACHE[page]) return SCHEMA_CACHE[page];
+  const res = await fetch(`/${page}?nocache=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("fetch_failed");
+  const html = await res.text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const root = doc.querySelector("main") || doc.body;
+  const schema = {
+    texts: Array.from(root.querySelectorAll("h1,h2,h3,h4,p,.eyebrow,.btn"))
+      .filter(n => n.textContent.trim())
+      .map(n => ({ key: buildKey(n, root), label: `${n.tagName.toLowerCase()} — ${n.textContent.trim().replace(/\s+/g," ").slice(0,70)}`, value: n.textContent.trim() })),
+    images: Array.from(root.querySelectorAll("img"))
+      .map((n, i) => ({ key: buildKey(n, root), label: `img ${i+1} — ${n.alt || n.src || ""}`, src: n.getAttribute("src") || "", alt: n.getAttribute("alt") || "" })),
+  };
+  SCHEMA_CACHE[page] = schema;
   return schema;
 }
 
-function ensureManagedPageState(pageName){
-  if(!STATE.pages||typeof STATE.pages!=="object")STATE.pages={};
-  if(!STATE.pages[pageName]||typeof STATE.pages[pageName]!=="object")STATE.pages[pageName]={text:{},images:{},sections:{},extras:[]};
-  const pageState=STATE.pages[pageName];
-  pageState.text=pageState.text&&typeof pageState.text==="object"?pageState.text:{};
-  pageState.images=pageState.images&&typeof pageState.images==="object"?pageState.images:{};
-  pageState.sections=pageState.sections&&typeof pageState.sections==="object"?pageState.sections:{};
-  pageState.extras=Array.isArray(pageState.extras)?pageState.extras:[];
-  return pageState;
-}
-
-function captureSiteContent(){
-  const editor=document.getElementById("site-content-editor");
-  if(!editor)return;
-  const pageState=ensureManagedPageState(CONTENT_PAGE),schema=CONTENT_SCHEMA_CACHE[CONTENT_PAGE]||{texts:[],images:[],sections:[]},nextText={},nextImages={},nextSections={};
-  schema.texts.forEach(entry=>{const field=document.querySelector(`[data-site-text="${cssEscape(entry.key)}"]`);if(!field)return;const value=field.value.trim();if(value&&value!==entry.value)nextText[entry.key]=value;});
-  schema.images.forEach(entry=>{const srcField=document.querySelector(`[data-site-image-src="${cssEscape(entry.key)}"]`),altField=document.querySelector(`[data-site-image-alt="${cssEscape(entry.key)}"]`);if(!srcField||!altField)return;const src=srcField.value.trim(),alt=altField.value.trim(),imageState={};if(src&&src!==entry.src)imageState.src=src;if(alt!==entry.alt)imageState.alt=alt;if(Object.keys(imageState).length)nextImages[entry.key]=imageState;});
-  schema.sections.forEach(entry=>{const field=document.querySelector(`[data-site-section-hidden="${cssEscape(entry.key)}"]`);if(field&&field.checked)nextSections[entry.key]={hidden:true};});
-  pageState.text=nextText;
-  pageState.images=nextImages;
-  pageState.sections=nextSections;
-  pageState.extras=Array.from(document.querySelectorAll("[data-extra-card]")).map(card=>({id:card.dataset.extraCard||id("extra"),title:valueFrom(card,"[data-extra-title]"),text:valueFrom(card,"[data-extra-text]"),buttonLabel:valueFrom(card,"[data-extra-button-label]"),buttonHref:valueFrom(card,"[data-extra-button-href]"),imageSrc:valueFrom(card,"[data-extra-image-src]"),imageAlt:valueFrom(card,"[data-extra-image-alt]"),tone:valueFrom(card,"[data-extra-tone]")||"default"}));
-}
-
-function renderExtraSectionCards(extras){
-  if(!extras.length)return '<div class="empty-state"><i class="fas fa-puzzle-piece"></i><p>Nenhum bloco extra adicionado para esta pagina.</p></div>';
-  return extras.map(extra=>`<div data-extra-card="${esc(extra.id||id("extra"))}" style="padding:14px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:12px;background:var(--g50)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Bloco extra</div><button class="btn btn-xs btn-danger" data-remove-extra="${esc(extra.id||"")}"><i class="fas fa-trash"></i></button></div><div class="fg"><label>Titulo</label><input data-extra-title value="${esc(extra.title)}"></div><div class="fg"><label>Texto</label><textarea rows="4" data-extra-text>${esc(extra.text)}</textarea></div><div class="form-row"><div class="fg"><label>Botao label</label><input data-extra-button-label value="${esc(extra.buttonLabel)}"></div><div class="fg"><label>Botao link</label><input data-extra-button-href value="${esc(extra.buttonHref)}"></div></div><div class="form-row"><div class="fg"><label>Imagem src</label><input data-extra-image-src value="${esc(extra.imageSrc)}"></div><div class="fg"><label>Imagem alt</label><input data-extra-image-alt value="${esc(extra.imageAlt)}"></div></div><div class="fg" style="margin-bottom:0"><label>Tom visual</label><select data-extra-tone><option value="default"${extra.tone==="default"?" selected":""}>Padrao</option><option value="soft"${extra.tone==="soft"?" selected":""}>Suave</option><option value="dark"${extra.tone==="dark"?" selected":""}>Escuro</option></select></div></div>`).join("");
-}
-
-function buildAdminPathForEditor(element,root){
-  const parts=[]; let current=element;
-  while(current&&current!==root){const tag=current.tagName.toLowerCase();let index=1,sibling=current.previousElementSibling;while(sibling){if(sibling.tagName===current.tagName)index+=1;sibling=sibling.previousElementSibling;}parts.unshift(`${tag}:nth-of-type(${index})`);current=current.parentElement;}
-  return parts.join(" > ");
-}
-
-function getEditableTextNodesForAdmin(root){return Array.from(root.querySelectorAll("h1, h2, h3, h4, p, .eyebrow, .btn")).filter(node=>node.textContent&&node.textContent.trim()&&!node.closest(".admin-shell")).map((node,index)=>({index,key:buildAdminPathForEditor(node,root),element:node,label:`${node.tagName.toLowerCase()} - ${node.textContent.trim().replace(/\s+/g," ").slice(0,60)}`}));}
-function getEditableImagesForAdmin(root){return Array.from(root.querySelectorAll("img")).filter(node=>!node.closest(".admin-shell")).map((node,index)=>({index,key:buildAdminPathForEditor(node,root),element:node,label:`Imagem ${index+1} - ${node.getAttribute("alt")||node.getAttribute("src")||"sem descricao"}`}));}
-function getEditableSectionsForAdmin(root){return Array.from(root.children).filter(node=>node.tagName==="SECTION"&&!node.classList.contains("admin-extra-section")).map((node,index)=>{const heading=node.querySelector("h1, h2, h3");return {index,key:buildAdminPathForEditor(node,root),element:node,label:heading?heading.textContent.trim():`Secao ${index+1}`};});}
-function readEditableTextForAdmin(node){if(node.classList.contains("btn")){const clone=node.cloneNode(true);clone.querySelectorAll("i").forEach(icon=>icon.remove());return clone.textContent.trim();}return node.innerHTML.trim();}
-function textareaRows(value){return Math.max(3,Math.min(8,String(value||"").split("\n").length+1));}
-function cssEscape(value){return String(value||"").replace(/\\/g,"\\\\").replace(/"/g,'\\"');}
-function valueFrom(root,selector){const field=root.querySelector(selector);return field?field.value.trim():"";}
-
-function captureForms(){if(PAGE==="ramos")captureBranch();if(PAGE==="siteContent")captureSiteContent();if(PAGE==="sobre")captureAbout();if(PAGE==="contato")captureContact();if(PAGE==="config")captureConfig();}
-function captureBranch(){if(!document.getElementById("ramo-nome"))return; const b=STATE.adminPanel.branches[BRANCH]; b.name=document.getElementById("ramo-nome").value.trim(); b.age=document.getElementById("ramo-idade").value.trim(); b.short=document.getElementById("ramo-desc1").value.trim(); b.long=document.getElementById("ramo-desc2").value.trim(); b.bullets=document.getElementById("ramo-bullets").value.split("\n").map(x=>x.trim()).filter(Boolean);}
-function captureAbout(){if(!document.getElementById("about-world-title"))return; const a=STATE.adminPanel.about; a.worldTitle=document.getElementById("about-world-title").value.trim(); a.worldText=document.getElementById("about-world-text").value.trim(); a.worldComplement=document.getElementById("about-world-complement").value.trim(); a.historyIntro=document.getElementById("about-history-intro").value.trim(); a.milestones=document.getElementById("about-milestones").value.split("\n").map(x=>x.trim()).filter(Boolean);}
-function captureContact(){if(!document.getElementById("contact-email"))return; const c=STATE.adminPanel.contact; c.email=document.getElementById("contact-email").value.trim(); c.phonePrimary=document.getElementById("contact-phone-primary").value.trim(); c.phoneSecondary=document.getElementById("contact-phone-secondary").value.trim(); c.instagram=document.getElementById("contact-instagram").value.trim(); c.schedule=document.getElementById("contact-schedule").value.trim(); c.address=document.getElementById("contact-address").value.trim(); c.cep=document.getElementById("contact-cep").value.trim(); c.cityState=document.getElementById("contact-city").value.trim(); c.mapsSrc=document.getElementById("contact-maps").value.trim();}
-function captureConfig(){if(!document.getElementById("cfg-short-name"))return; const s=STATE.adminPanel.settings; s.shortName=document.getElementById("cfg-short-name").value.trim(); s.fullName=document.getElementById("cfg-full-name").value.trim(); s.motto=document.getElementById("cfg-motto").value.trim(); s.founded=document.getElementById("cfg-founded").value.trim(); s.slogan=document.getElementById("cfg-slogan").value.trim(); document.querySelectorAll("[data-config-toggle]").forEach(t=>{s.visibility[t.dataset.configToggle]=t.checked;});}
-
-async function save(isAuto){
-  if(SAVING)return; captureForms(); SAVING=true; setStatus("saving","Salvando...");
-  try{const response=await fetch("/api/admin/content",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(STATE)}),data=await response.json().catch(()=>({})); if(!response.ok)throw new Error(data.error||"save_failed"); setStatus("ready","Salvo"); if(!isAuto)showToast("Alterações salvas com sucesso.");}catch(e){setStatus("error","Falha ao salvar"); if(!isAuto)showToast(messageForSaveError(e));}finally{SAVING=false;}
-}
-
-async function logout(){await fetch("/api/auth/logout",{method:"POST"}); window.location.href="/login";}
-function openModal(id){const modal=document.getElementById(id); if(modal)modal.classList.add("open");}
-function closeModal(id){const modal=document.getElementById(id); if(modal)modal.classList.remove("open");}
-function setStatus(mode,label){const badge=document.getElementById("save-status-badge"), saveBtn=document.getElementById("save-btn"); let color="var(--success)"; if(mode==="dirty")color="var(--warn)"; if(mode==="saving")color="var(--b5)"; if(mode==="error")color="var(--danger)"; badge.innerHTML=`<i class="fas fa-circle" style="color:${color};font-size:.5rem;margin-right:4px"></i>${label}`; saveBtn.classList.toggle("saving",mode==="saving");}
-function showToast(message){const toast=document.getElementById("toast"); document.getElementById("toast-msg").textContent=message; toast.classList.add("show"); clearTimeout(TOAST_TIMER); TOAST_TIMER=setTimeout(()=>toast.classList.remove("show"),2500);}
-
-function addEvent(){const date=document.getElementById("ev-date").value, title=document.getElementById("ev-title").value.trim(); if(!date||!title)return alert("Preencha data e título."); STATE.adminPanel.events.push({id:id("ev"),date,title,type:document.getElementById("ev-type").value,description:document.getElementById("ev-desc").value.trim()}); closeModal("modal-new-event"); renderCalendar(); showToast("Evento adicionado."); setStatus("dirty","Alterações pendentes");}
-function addPhoto(){const title=document.getElementById("photo-title").value.trim(),src=normalizeImagePath(document.getElementById("photo-src").value); if(!title)return alert("Preencha o título da foto."); if(!src)return alert("Informe o caminho da imagem dentro de images/."); if(!isSafeLinuxPath(src))return alert("Use apenas minúsculas, números, hífen, underline, barra e ponto no caminho da imagem."); if(!hasAllowedImageExtension(src))return alert(`Use um dos formatos permitidos: ${GALLERY_ALLOWED_EXTENSIONS.join(", ")}.`); STATE.adminPanel.photos.push({id:id("ph"),title,category:document.getElementById("photo-category").value,caption:document.getElementById("photo-caption").value.trim()||title,src}); closeModal("modal-upload"); renderGallery(); showToast("Foto adicionada. Salve para validar o arquivo."); setStatus("dirty","Alterações pendentes");}
-function addProject(){const title=document.getElementById("np-nome").value.trim(); if(!title)return alert("Preencha o nome do projeto."); STATE.adminPanel.projects.push({id:id("pr"),icon:document.getElementById("np-icon").value||"🌟",title,status:document.getElementById("np-status").value,meta:document.getElementById("np-meta").value.trim(),description:document.getElementById("np-desc").value.trim(),progress:Number(document.getElementById("np-prog").value||0)}); closeModal("modal-new-proj"); renderProjects(); showToast("Projeto criado."); setStatus("dirty","Alterações pendentes");}
-function addActivity(){const title=document.getElementById("na-title").value.trim(); if(!title)return alert("Preencha o título da atividade."); STATE.adminPanel.activities.push({id:id("at"),icon:document.getElementById("na-icon").value||"⭐",title,description:document.getElementById("na-desc").value.trim()}); closeModal("modal-new-ativ"); renderPage("atividades"); showToast("Atividade adicionada."); setStatus("dirty","Alterações pendentes");}
-function addMember(){const name=document.getElementById("nm-nome").value.trim(); if(!name)return alert("Preencha o nome do membro."); STATE.adminPanel.members.push({id:id("mb"),name,branch:document.getElementById("nm-ramo").value,role:document.getElementById("nm-func").value,since:document.getElementById("nm-ano").value,status:document.getElementById("nm-status").value}); closeModal("modal-new-membro"); renderMembers(); showToast("Membro cadastrado."); setStatus("dirty","Alterações pendentes");}
-function filterGallery(category){document.getElementById("photo-grid").dataset.filter=category; document.querySelectorAll("[data-filter-gallery]").forEach(btn=>btn.classList.toggle("btn-primary",btn.dataset.filterGallery===category)); renderGallery();}
-function sendIA(){const input=document.getElementById("ia-input"), prompt=input.value.trim(); if(!prompt)return; STATE.adminPanel.iaHistory.push({role:"user",content:prompt}); STATE.adminPanel.iaHistory.push({role:"assistant",content:generateText(prompt,"GEAR 9º DF")}); input.value=""; renderIA(); setStatus("dirty","Alterações pendentes");}
-
-function metric(label,value,sub){return `<div class="metric"><div class="metric-lbl">${esc(label)}</div><div class="metric-val">${esc(String(value))}</div><div class="metric-sub"><i class="fas fa-check"></i>${esc(sub)}</div></div>`;}
-function act(text,info){return `<div class="act-item"><div class="act-dot"></div><div class="act-text">${esc(text)}</div><div class="act-time">${esc(info)}</div></div>`;}
-function dashEvents(){return STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5).map(x=>act(x.title,formatDate(x.date))).join("")||'<div class="empty-state"><i class="fas fa-calendar"></i><p>Sem eventos cadastrados.</p></div>';}
-function branchMetrics(){const counts={Filhotes:0,Lobinhos:0,Escoteiros:0,Seniores:0,Pioneiros:0}; STATE.adminPanel.members.forEach(x=>{if(counts[x.branch]!==undefined)counts[x.branch]+=1;}); const total=STATE.adminPanel.members.length||1; return `<div class="grid3" style="grid-template-columns:repeat(5,1fr)">${Object.keys(counts).map(key=>`<div><div style="font-size:.75rem;color:var(--g600);margin-bottom:4px">${esc(key)}</div><div style="font-size:1.2rem;font-weight:700">${counts[key]}</div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(counts[key]/total*100)}%"></div></div></div>`).join("")}</div>`;}
-function activityCard(x){return `<div class="card" style="margin-bottom:0"><div style="font-size:1.5rem;margin-bottom:8px">${esc(x.icon)}</div><div style="font-size:.9rem;font-weight:700;margin-bottom:5px">${esc(x.title)}</div><div style="font-size:.8rem;color:var(--g600);margin-bottom:12px">${esc(x.description)}</div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-danger" data-remove-activity="${x.id}"><i class="fas fa-trash"></i></button></div></div>`;}
-function filterBtn(cat,label,on=false){return `<button class="btn btn-sm${on?" btn-primary":""}" data-filter-gallery="${cat}">${label}</button>`;}
-function visibilityRows(v){const rows=[["gallery","Galeria de fotos","Exibir galeria no site público"],["projects","Projetos sociais","Exibir seção de projetos"],["calendar","Calendário","Exibir calendário na página inicial"],["championBadge","Banner de conquista","Exibir badge de destaque no hero"],["contactForm","Formulário de contato","Permitir envio de mensagens"]]; return rows.map(([key,title,desc])=>`<div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:.85rem;font-weight:600">${title}</div><div style="font-size:.75rem;color:var(--g400)">${desc}</div></div><label class="tog"><input type="checkbox" data-config-toggle="${key}"${v[key]?" checked":""}><span class="tog-sl"></span></label></div>`).join("");}
-function eventModal(){return `<div class="modal-overlay" id="modal-new-event"><div class="modal-box"><div class="modal-head"><h3><i class="fas fa-calendar-plus" style="color:var(--b5);margin-right:6px"></i>Novo evento</h3><button class="modal-close" data-close-modal="modal-new-event">×</button></div><div class="form-row"><div class="fg"><label>Data</label><input type="date" id="ev-date"></div><div class="fg"><label>Tipo</label><select id="ev-type"><option value="grupo">Grupo</option><option value="regional">Regional</option><option value="nacional">Nacional</option></select></div></div><div class="fg"><label>Título do evento</label><input id="ev-title"></div><div class="fg"><label>Descrição (opcional)</label><textarea id="ev-desc" rows="2"></textarea></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-event">Cancelar</button><button class="btn btn-primary" id="add-event-btn"><i class="fas fa-check"></i> Adicionar</button></div></div></div>`;}
-function photoModal(){return `<div class="modal-overlay" id="modal-upload"><div class="modal-box"><div class="modal-head"><h3><i class="fas fa-upload" style="color:var(--b5);margin-right:6px"></i>Adicionar foto</h3><button class="modal-close" data-close-modal="modal-upload">×</button></div><div class="notice" style="margin-bottom:16px"><i class="fas fa-circle-info"></i> O arquivo deve existir em <strong>images/</strong>. Exemplo: <strong>images/galeria/atividade-campo-01.webp</strong>.</div><div class="form-row"><div class="fg"><label>Título</label><input id="photo-title"></div><div class="fg"><label>Categoria</label><select id="photo-category"><option value="acampamento">acampamento</option><option value="atividade">atividade</option><option value="evento">evento</option><option value="comunidade">comunidade</option></select></div></div><div class="fg"><label>Caminho do arquivo</label><input id="photo-src" placeholder="images/galeria/atividade-campo-01.webp"></div><div class="fg"><label>Legenda</label><input id="photo-caption"></div><div class="modal-foot"><button class="btn" data-close-modal="modal-upload">Cancelar</button><button class="btn btn-primary" id="add-photo-btn"><i class="fas fa-check"></i> Adicionar</button></div></div></div>`;}
-function projectModal(){return `<div class="modal-overlay" id="modal-new-proj"><div class="modal-box"><div class="modal-head"><h3><i class="fas fa-hands-helping" style="color:var(--b5);margin-right:6px"></i>Novo projeto</h3><button class="modal-close" data-close-modal="modal-new-proj">×</button></div><div class="fg"><label>Nome do projeto</label><input id="np-nome"></div><div class="form-row"><div class="fg"><label>Status</label><select id="np-status"><option value="planejado">Planejado</option><option value="ativo">Ativo</option><option value="concluido">Concluído</option></select></div><div class="fg"><label>Progresso (%)</label><input type="number" id="np-prog" min="0" max="100" value="0"></div></div><div class="fg"><label>Meta / tags</label><input id="np-meta"></div><div class="fg"><label>Descrição</label><textarea id="np-desc" rows="3"></textarea></div><div class="fg"><label>Emoji</label><input id="np-icon" value="🌟"></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-proj">Cancelar</button><button class="btn btn-primary" id="add-project-btn"><i class="fas fa-check"></i> Criar projeto</button></div></div></div>`;}
-function activityModal(){return `<div class="modal-overlay" id="modal-new-ativ"><div class="modal-box"><div class="modal-head"><h3>Nova atividade</h3><button class="modal-close" data-close-modal="modal-new-ativ">×</button></div><div class="form-row"><div class="fg"><label>Emoji / ícone</label><input id="na-icon" value="🏕️"></div><div class="fg"><label>Título</label><input id="na-title"></div></div><div class="fg"><label>Descrição</label><textarea id="na-desc" rows="3"></textarea></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-ativ">Cancelar</button><button class="btn btn-primary" id="add-activity-btn"><i class="fas fa-check"></i> Adicionar</button></div></div></div>`;}
-function memberModal(){return `<div class="modal-overlay" id="modal-new-membro"><div class="modal-box"><div class="modal-head"><h3>Novo membro</h3><button class="modal-close" data-close-modal="modal-new-membro">×</button></div><div class="form-row"><div class="fg"><label>Nome completo</label><input id="nm-nome"></div><div class="fg"><label>Ramo</label><select id="nm-ramo"><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select></div></div><div class="form-row"><div class="fg"><label>Função</label><select id="nm-func"><option>Jovem</option><option>Monitor</option><option>Chefe</option></select></div><div class="fg"><label>Ano de ingresso</label><input id="nm-ano" type="number" value="2026"></div></div><div class="fg"><label>Status</label><select id="nm-status"><option value="ativo">Ativo</option><option value="pendente">Pendente</option><option value="inativo">Inativo</option></select></div><div class="modal-foot"><button class="btn" data-close-modal="modal-new-membro">Cancelar</button><button class="btn btn-primary" id="add-member-btn"><i class="fas fa-check"></i> Cadastrar</button></div></div></div>`;}
-function badgeClass(v){if(v==="regional"||v==="ativo")return"b-green"; if(v==="planejado"||v==="nacional"||v==="pendente")return"b-amber"; if(v==="grupo")return"b-blue"; if(v==="concluido"||v==="inativo")return"b-red"; return"b-gray";}
-function typeColor(v){if(v==="regional")return"var(--success)"; if(v==="nacional")return"var(--warn)"; return"var(--b5)";}
-function projectBg(v){if(v==="concluido")return"#d1fae5"; if(v==="planejado")return"#fef3c7"; return"var(--b0)";}
-function projectFg(v){if(v==="concluido")return"#065f46"; if(v==="planejado")return"#92400e"; return"var(--b7)";}
-function dateKey(y,m,d){return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;}
-function formatDate(v){const p=String(v).split("-"); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:v;}
-function id(prefix){return `${prefix}-${Math.random().toString(36).slice(2,10)}`;}
-function generateText(prompt,base){return `Sugestão de rascunho:\n\n${base||"texto base"}\n\nVersão ajustada com foco no pedido: ${prompt||"melhorar clareza"}.`;}
-function hash(v){return v.split("").reduce((sum,char)=>sum+char.charCodeAt(0),0);}
-function esc(v){return String(v||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}
-
-function calendarioTpl(){
-  return `<div class="notice"><i class="fas fa-calendar-check"></i> Use o calendário para cadastrar os eventos do grupo. Clique em <strong>Novo evento</strong>, preencha os dados e depois salve.</div><div class="grid2"><div class="card" style="margin-bottom:0"><div class="card-head"><h3 id="cal-month-lbl"></h3><div style="display:flex;gap:6px"><button class="btn btn-sm btn-icon" id="cal-prev"><i class="fas fa-chevron-left"></i></button><button class="btn btn-sm btn-icon" id="cal-next"><i class="fas fa-chevron-right"></i></button></div></div><div class="cal-grid-wrap" id="cal-grid"></div><div style="display:flex;gap:12px;margin-top:12px;font-size:.72rem;color:var(--g400)"><span><i class="fas fa-circle" style="color:var(--b5);font-size:.45rem;margin-right:4px"></i>Grupo</span><span><i class="fas fa-circle" style="color:var(--success);font-size:.45rem;margin-right:4px"></i>Regional</span><span><i class="fas fa-circle" style="color:var(--warn);font-size:.45rem;margin-right:4px"></i>Nacional</span></div></div><div class="card" style="margin-bottom:0"><div class="card-head"><h3>Eventos de <span id="cal-month-short"></span></h3><button class="btn btn-primary btn-sm" data-open-modal="modal-new-event"><i class="fas fa-plus"></i> Novo evento</button></div><div id="cal-events-panel" style="max-height:280px;overflow-y:auto"></div><div style="margin-top:12px"><button class="btn btn-primary" data-save-page="calendario"><i class="fas fa-save"></i> Salvar calendário</button></div></div></div><div class="card" style="margin-top:16px"><div class="card-head"><h3>Todos os eventos</h3><span class="badge b-blue" id="all-events-count">0</span></div><div id="all-events-tbody" style="display:grid;gap:12px"></div></div>`;
-}
-
-function membrosTpl(){
-  return `<div class="notice"><i class="fas fa-users"></i> Cadastre os membros do grupo e use a busca para localizar rapidamente. Os dados podem ser filtrados por ramo.</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap"><div class="search-wrap"><i class="fas fa-search"></i><input id="member-search" placeholder="Buscar membro..."></div><select id="member-branch-filter" style="margin:0;width:180px;padding:8px 10px;border-radius:var(--r-md);border:1px solid var(--g200)"><option value="">Todos os ramos</option><option>Filhotes</option><option>Lobinhos</option><option>Escoteiros</option><option>Seniores</option><option>Pioneiros</option></select><button class="btn btn-primary" data-open-modal="modal-new-membro"><i class="fas fa-user-plus"></i> Novo membro</button><button class="btn btn-primary" data-save-page="membros"><i class="fas fa-save"></i> Salvar membros</button></div><div class="card"><div class="card-head"><h3>Perfis cadastrados</h3><span class="badge b-blue" id="members-count">0</span></div><div id="membros-tbody" style="display:grid;gap:12px"></div></div>`;
-}
-
-function renderCalendar(){
-  document.getElementById("cal-month-lbl").textContent=`${MONTHS[MONTH]} de ${YEAR}`;
-  document.getElementById("cal-month-short").textContent=MONTHS_SHORT[MONTH];
-  const grid=document.getElementById("cal-grid"), first=new Date(YEAR,MONTH,1).getDay(), last=new Date(YEAR,MONTH+1,0).getDate(), now=new Date();
-  grid.innerHTML=["D","S","T","Q","Q","S","S"].map(d=>`<div class="cal-wday">${d}</div>`).join("");
-  for(let i=0;i<first;i+=1) grid.innerHTML+='<div class="cal-day empty">0</div>';
-  for(let d=1;d<=last;d+=1){
-    const key=dateKey(YEAR,MONTH,d), has=STATE.adminPanel.events.some(x=>x.date===key), reg=STATE.adminPanel.events.some(x=>x.date===key&&x.type==="regional"), today=d===now.getDate()&&MONTH===now.getMonth()&&YEAR===now.getFullYear();
-    grid.innerHTML+=`<div class="cal-day${has?" has-ev":""}${reg?" has-reg":""}${today?" today":""}">${d}</div>`;
+function buildKey(el, root) {
+  const parts = [];
+  let cur = el;
+  while (cur && cur !== root) {
+    const tag = cur.tagName.toLowerCase();
+    let idx = 1, sib = cur.previousElementSibling;
+    while (sib) { if (sib.tagName === cur.tagName) idx++; sib = sib.previousElementSibling; }
+    parts.unshift(`${tag}:nth-of-type(${idx})`);
+    cur = cur.parentElement;
   }
-  const monthEvents=STATE.adminPanel.events.filter(x=>{const d=new Date(x.date);return d.getMonth()===MONTH&&d.getFullYear()===YEAR;}).sort((a,b)=>a.date.localeCompare(b.date));
-  document.getElementById("cal-events-panel").innerHTML=monthEvents.length?monthEvents.map(x=>`<div class="cal-ev-item"><div class="cal-ev-dot" style="background:${typeColor(x.type)}"></div><div class="cal-ev-info"><div class="cal-ev-title">${esc(x.title)}</div><div class="cal-ev-date">${esc(formatDate(x.date))} · <span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span></div></div><button class="btn btn-xs btn-danger" data-remove-event="${x.id}"><i class="fas fa-times"></i></button></div>`).join(""):`<div class="empty-state"><i class="fas fa-calendar"></i><p>Nenhum evento especial neste mês. Clique em "Novo evento".</p></div>`;
-  const allEvents=STATE.adminPanel.events.slice().sort((a,b)=>a.date.localeCompare(b.date));
-  const count=document.getElementById("all-events-count");
-  if(count)count.textContent=String(allEvents.length);
-  document.getElementById("all-events-tbody").innerHTML=allEvents.length?allEvents.map(x=>`<div class="proj-card" data-event-card="${x.id}" style="margin-bottom:0"><div class="event-view"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap"><div><div style="font-size:.72rem;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">${esc(formatDate(x.date))}</div><div style="font-size:1rem;font-weight:700;color:var(--b9);margin-bottom:6px">${esc(x.title)}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge ${badgeClass(x.type)}">${esc(x.type)}</span>${x.description?`<span style="font-size:.78rem;color:var(--g600)">${esc(x.description)}</span>`:""}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" data-edit-event="${x.id}"><i class="fas fa-pen"></i> Editar</button><button class="btn btn-sm btn-danger" data-remove-event-row="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div></div><div class="event-edit" style="display:none"><div class="form-row"><div class="fg"><label>Data</label><input type="date" data-event-date="${x.id}" value="${esc(x.date)}"></div><div class="fg"><label>Tipo</label><select data-event-type="${x.id}"><option value="grupo"${x.type==="grupo"?" selected":""}>Grupo</option><option value="regional"${x.type==="regional"?" selected":""}>Regional</option><option value="nacional"${x.type==="nacional"?" selected":""}>Nacional</option></select></div></div><div class="fg"><label>Título</label><input data-event-title="${x.id}" value="${esc(x.title)}"></div><div class="fg"><label>Descrição</label><textarea rows="3" data-event-description="${x.id}">${esc(x.description||"")}</textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-cancel-event="${x.id}">Cancelar</button><button class="btn btn-sm btn-primary" data-save-event-row="${x.id}"><i class="fas fa-save"></i> Salvar evento</button></div></div></div>`).join(""):`<div class="empty-state"><i class="fas fa-calendar-day"></i><p>Nenhum evento cadastrado ainda. Use "Novo evento" para adicionar o primeiro.</p></div>`;
-  document.querySelectorAll("[data-remove-event],[data-remove-event-row]").forEach(btn=>btn.addEventListener("click",()=>{const id=btn.dataset.removeEvent||btn.dataset.removeEventRow; STATE.adminPanel.events=STATE.adminPanel.events.filter(x=>x.id!==id); renderCalendar(); showToast("Evento removido."); setStatus("dirty","Alterações pendentes");}));
-  document.querySelectorAll("[data-save-event-row]").forEach(btn=>btn.addEventListener("click",()=>saveEventRow(btn.dataset.saveEventRow)));
-  document.querySelectorAll("[data-edit-event]").forEach(btn=>btn.addEventListener("click",()=>toggleEventEdit(btn.dataset.editEvent,true)));
-  document.querySelectorAll("[data-cancel-event]").forEach(btn=>btn.addEventListener("click",()=>toggleEventEdit(btn.dataset.cancelEvent,false)));
+  return parts.join(">");
 }
 
-function renderProjects(){
-  const container=document.getElementById("projetos-container");
-  container.innerHTML=STATE.adminPanel.projects.length?STATE.adminPanel.projects.map(x=>`<div class="proj-card" data-project-card="${x.id}"><div class="project-view"><div style="display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap"><div style="display:flex;gap:14px;align-items:flex-start;flex:1;min-width:280px"><div class="proj-icon" style="background:${projectBg(x.status)};color:${projectFg(x.status)}">${esc(x.icon)}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span style="font-size:1rem;font-weight:700;color:var(--b9)">${esc(x.title)}</span><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></div><div style="font-size:.78rem;color:var(--g400);margin-bottom:8px">${esc(x.meta)}</div><p style="font-size:.83rem;color:var(--g600);line-height:1.6">${esc(x.description)}</p><div class="prog-bar" style="max-width:260px"><div class="prog-fill" style="width:${x.progress}%"></div></div><div style="font-size:.72rem;color:var(--g400);margin-top:4px">${x.progress}% concluído</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" data-edit-project="${x.id}"><i class="fas fa-pen"></i> Editar</button><button class="btn btn-sm btn-danger" data-remove-project="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div></div><div class="project-edit" style="display:none"><div class="form-row"><div class="fg"><label>Nome do projeto</label><input data-project-title="${x.id}" value="${esc(x.title)}"></div><div class="fg"><label>Status</label><select data-project-status="${x.id}"><option value="planejado"${x.status==="planejado"?" selected":""}>Planejado</option><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="concluido"${x.status==="concluido"?" selected":""}>Concluído</option></select></div></div><div class="form-row"><div class="fg"><label>Emoji</label><input data-project-icon="${x.id}" value="${esc(x.icon)}"></div><div class="fg"><label>Progresso (%)</label><input type="number" min="0" max="100" data-project-progress="${x.id}" value="${esc(String(x.progress))}"></div></div><div class="fg"><label>Meta / tags</label><input data-project-meta="${x.id}" value="${esc(x.meta)}"></div><div class="fg"><label>Descrição</label><textarea rows="3" data-project-description="${x.id}">${esc(x.description)}</textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-cancel-project="${x.id}">Cancelar</button><button class="btn btn-sm btn-primary" data-save-project="${x.id}"><i class="fas fa-save"></i> Salvar projeto</button></div></div></div>`).join(""):`<div class="card" style="margin-bottom:0"><div class="empty-state"><i class="fas fa-diagram-project"></i><p>Nenhum projeto cadastrado ainda. Clique em "Novo projeto" para criar o primeiro.</p></div></div>`;
-  document.querySelectorAll("[data-save-project]").forEach(btn=>btn.addEventListener("click",()=>saveProjectCard(btn.dataset.saveProject)));
-  document.querySelectorAll("[data-edit-project]").forEach(btn=>btn.addEventListener("click",()=>toggleProjectEdit(btn.dataset.editProject,true)));
-  document.querySelectorAll("[data-cancel-project]").forEach(btn=>btn.addEventListener("click",()=>toggleProjectEdit(btn.dataset.cancelProject,false)));
-  document.querySelectorAll("[data-remove-project]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.projects=STATE.adminPanel.projects.filter(x=>x.id!==btn.dataset.removeProject);renderProjects();showToast("Projeto removido.");setStatus("dirty","Alterações pendentes");}));
-}
-
-function renderMembers(){
-  const search=(document.getElementById("member-search").value||"").toLowerCase(), branch=document.getElementById("member-branch-filter").value||"";
-  const rows=STATE.adminPanel.members.filter(x=>(!search||x.name.toLowerCase().includes(search))&&(!branch||x.branch===branch));
-  const count=document.getElementById("members-count");
-  if(count)count.textContent=String(rows.length);
-  document.getElementById("membros-tbody").innerHTML=rows.length?rows.map(x=>{const initials=x.name.split(" ").slice(0,2).map(p=>p[0].toUpperCase()).join(""), colors=MEMBER_COLORS[hash(x.name)%MEMBER_COLORS.length]; return `<div class="proj-card" data-member-card="${x.id}" style="margin-bottom:0"><div class="member-view"><div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="display:flex;gap:12px;align-items:flex-start;flex:1;min-width:280px"><div class="mv" style="width:40px;height:40px;background:${colors[0]};color:${colors[1]}">${initials}</div><div><div style="font-size:1rem;font-weight:700;color:var(--b9);margin-bottom:6px">${esc(x.name)}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px"><span class="badge b-blue">${esc(x.branch)}</span><span class="badge ${badgeClass(x.role==="Chefe"?"planejado":x.role==="Monitor"?"grupo":"rascunho")}">${esc(x.role)}</span><span class="badge ${badgeClass(x.status)}">${esc(x.status)}</span></div><div style="font-size:.78rem;color:var(--g400)">Ingressou em ${esc(x.since)}</div></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" data-edit-member="${x.id}"><i class="fas fa-pen"></i> Editar</button><button class="btn btn-sm btn-danger" data-remove-member="${x.id}"><i class="fas fa-trash"></i> Remover</button></div></div></div><div class="member-edit" style="display:none"><div class="form-row"><div class="fg"><label>Nome</label><input data-member-name="${x.id}" value="${esc(x.name)}"></div><div class="fg"><label>Ramo</label><select data-member-branch="${x.id}"><option${x.branch==="Filhotes"?" selected":""}>Filhotes</option><option${x.branch==="Lobinhos"?" selected":""}>Lobinhos</option><option${x.branch==="Escoteiros"?" selected":""}>Escoteiros</option><option${x.branch==="Seniores"?" selected":""}>Seniores</option><option${x.branch==="Pioneiros"?" selected":""}>Pioneiros</option></select></div></div><div class="form-row"><div class="fg"><label>Função</label><select data-member-role="${x.id}"><option${x.role==="Jovem"?" selected":""}>Jovem</option><option${x.role==="Monitor"?" selected":""}>Monitor</option><option${x.role==="Chefe"?" selected":""}>Chefe</option></select></div><div class="fg"><label>Ano de ingresso</label><input data-member-since="${x.id}" value="${esc(x.since)}"></div></div><div class="fg"><label>Status</label><select data-member-status="${x.id}"><option value="ativo"${x.status==="ativo"?" selected":""}>Ativo</option><option value="pendente"${x.status==="pendente"?" selected":""}>Pendente</option><option value="inativo"${x.status==="inativo"?" selected":""}>Inativo</option></select></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-sm" data-cancel-member="${x.id}">Cancelar</button><button class="btn btn-sm btn-primary" data-save-member="${x.id}"><i class="fas fa-save"></i> Salvar perfil</button></div></div></div>`;}).join(""):`<div class="empty-state"><i class="fas fa-user-plus"></i><p>${search||branch?"Nenhum membro encontrado com esse filtro.":"Nenhum membro cadastrado ainda. Clique em \"Novo membro\" para começar."}</p></div>`;
-  document.querySelectorAll("[data-save-member]").forEach(btn=>btn.addEventListener("click",()=>saveMemberRow(btn.dataset.saveMember)));
-  document.querySelectorAll("[data-edit-member]").forEach(btn=>btn.addEventListener("click",()=>toggleMemberEdit(btn.dataset.editMember,true)));
-  document.querySelectorAll("[data-cancel-member]").forEach(btn=>btn.addEventListener("click",()=>toggleMemberEdit(btn.dataset.cancelMember,false)));
-  document.querySelectorAll("[data-remove-member]").forEach(btn=>btn.addEventListener("click",()=>{STATE.adminPanel.members=STATE.adminPanel.members.filter(x=>x.id!==btn.dataset.removeMember);renderMembers();showToast("Membro removido.");setStatus("dirty","Alterações pendentes");}));
-}
-
-function saveEventRow(id){
-  const event=STATE.adminPanel.events.find(item=>item.id===id);
-  if(!event)return;
-  event.date=document.querySelector(`[data-event-date="${id}"]`)?.value||event.date;
-  event.title=(document.querySelector(`[data-event-title="${id}"]`)?.value||event.title).trim();
-  event.type=document.querySelector(`[data-event-type="${id}"]`)?.value||event.type;
-  event.description=(document.querySelector(`[data-event-description="${id}"]`)?.value||event.description||"").trim();
-  renderCalendar();
-  showToast("Evento atualizado.");
-  setStatus("dirty","Alterações pendentes");
-}
-
-function saveProjectCard(id){
-  const project=STATE.adminPanel.projects.find(item=>item.id===id);
-  if(!project)return;
-  project.title=(document.querySelector(`[data-project-title="${id}"]`)?.value||project.title).trim();
-  project.status=document.querySelector(`[data-project-status="${id}"]`)?.value||project.status;
-  project.icon=(document.querySelector(`[data-project-icon="${id}"]`)?.value||project.icon).trim()||"🌟";
-  project.progress=Number(document.querySelector(`[data-project-progress="${id}"]`)?.value||project.progress);
-  project.meta=(document.querySelector(`[data-project-meta="${id}"]`)?.value||project.meta).trim();
-  project.description=(document.querySelector(`[data-project-description="${id}"]`)?.value||project.description).trim();
-  renderProjects();
-  showToast("Projeto atualizado.");
-  setStatus("dirty","Alterações pendentes");
-}
-
-function saveMemberRow(id){
-  const member=STATE.adminPanel.members.find(item=>item.id===id);
-  if(!member)return;
-  member.name=(document.querySelector(`[data-member-name="${id}"]`)?.value||member.name).trim();
-  member.branch=document.querySelector(`[data-member-branch="${id}"]`)?.value||member.branch;
-  member.role=document.querySelector(`[data-member-role="${id}"]`)?.value||member.role;
-  member.since=(document.querySelector(`[data-member-since="${id}"]`)?.value||member.since).trim();
-  member.status=document.querySelector(`[data-member-status="${id}"]`)?.value||member.status;
-  renderMembers();
-  showToast("Membro atualizado.");
-  setStatus("dirty","Alterações pendentes");
-}
-
-function toggleEventEdit(id,force){
-  const card=document.querySelector(`[data-event-card="${id}"]`);
-  if(!card)return;
-  const next=typeof force==="boolean"?force:!card.classList.contains("editing");
-  card.classList.toggle("editing",next);
-  const view=card.querySelector(".event-view"), edit=card.querySelector(".event-edit");
-  if(view)view.style.display=next?"none":"block";
-  if(edit)edit.style.display=next?"block":"none";
-}
-
-function toggleProjectEdit(id,force){
-  const card=document.querySelector(`[data-project-card="${id}"]`);
-  if(!card)return;
-  const next=typeof force==="boolean"?force:!card.classList.contains("editing");
-  card.classList.toggle("editing",next);
-  const view=card.querySelector(".project-view"), edit=card.querySelector(".project-edit");
-  if(view)view.style.display=next?"none":"block";
-  if(edit)edit.style.display=next?"block":"none";
-}
-
-function toggleMemberEdit(id,force){
-  const card=document.querySelector(`[data-member-card="${id}"]`);
-  if(!card)return;
-  const next=typeof force==="boolean"?force:!card.classList.contains("editing");
-  card.classList.toggle("editing",next);
-  const view=card.querySelector(".member-view"), edit=card.querySelector(".member-edit");
-  if(view)view.style.display=next?"none":"block";
-  if(edit)edit.style.display=next?"block":"none";
-}
-
-const sitePageMeta=pageName=>({
-  "index.html":{title:"Home",icon:"fa-house",desc:"Hero, destaques, avisos, FAQ e chamadas principais."},
-  "sobre.html":{title:"Sobre",icon:"fa-circle-info",desc:"História, missão e apresentação institucional."},
-  "atividades.html":{title:"Atividades",icon:"fa-star",desc:"Experiências, rotina e apresentação das atividades."},
-  "galeria.html":{title:"Galeria",icon:"fa-images",desc:"Textos de apoio e imagens da galeria pública."},
-  "ramo.html":{title:"Ramos",icon:"fa-layer-group",desc:"Apresentação de cada faixa etária e seus textos."},
-  "projetos.html":{title:"Projetos",icon:"fa-hands-helping",desc:"Projetos sociais, títulos, descrições e imagens."},
-  "contato.html":{title:"Contato",icon:"fa-envelope",desc:"Informações para falar com o grupo e visitar."},
-  "documentos.html":{title:"Documentos",icon:"fa-file-lines",desc:"Arquivos, descrições e orientações para famílias."},
-  "equipe.html":{title:"Equipe",icon:"fa-users",desc:"Apresentação da chefia e da equipe do grupo."},
-  "participar.html":{title:"Participar",icon:"fa-user-plus",desc:"Passo a passo para a primeira visita e ingresso."},
-  "links.html":{title:"Links úteis",icon:"fa-link",desc:"Links externos e explicações de apoio."}
-}[pageName]||{title:pageName,icon:"fa-file",desc:"Conteúdo público da página."});
-
-if(PAGES.find(item=>item[1]==="siteContent")){
-  const siteItem=PAGES.find(item=>item[1]==="siteContent");
-  siteItem[0]="Páginas";
-  siteItem[3]="Páginas do site";
-}
-
-function siteContentTpl(){
-  const current=sitePageMeta(CONTENT_PAGE);
-  return `<div class="notice"><i class="fas fa-pen-ruler"></i> Edite o site por página, com campos pensados para quem vai publicar conteúdo e não para quem programa.</div><div class="card"><div class="card-head"><h3><i class="fas ${current.icon}" style="color:var(--b5);margin-right:6px"></i>${current.title}</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" id="site-open-link" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Abrir página</a><button class="btn btn-sm" id="site-reload-schema"><i class="fas fa-rotate-right"></i> Atualizar estrutura</button><button class="btn btn-primary btn-sm" data-save-page="siteContent"><i class="fas fa-save"></i> Salvar página</button></div></div><p style="font-size:.84rem;color:var(--g600);margin-top:-4px">${esc(current.desc)}</p><div id="site-page-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">${PUBLIC_PAGE_OPTIONS.map(([file])=>{const meta=sitePageMeta(file);return `<button class="btn btn-sm${file===CONTENT_PAGE?" btn-primary":""}" data-site-page-tab="${file}"><i class="fas ${meta.icon}"></i> ${meta.title}</button>`;}).join("")}</div><div style="margin-top:16px;padding:12px 14px;border-radius:var(--r-md);border:1px solid var(--g200);background:var(--g50);font-size:.83rem;color:var(--g600)" id="site-content-summary">Carregando campos da página...</div></div><div id="site-content-editor"><div class="card"><div class="empty-state"><i class="fas fa-file-lines"></i><p>Carregando editor da página...</p></div></div></div>`;
-}
-
-async function initSiteContentEditor(){
-  const reloadBtn=document.getElementById("site-reload-schema"),openLink=document.getElementById("site-open-link");
-  if(!reloadBtn||!openLink)return;
-  document.querySelectorAll("[data-site-page-tab]").forEach(btn=>btn.addEventListener("click",async()=>{
-    if(btn.dataset.sitePageTab===CONTENT_PAGE)return;
-    captureSiteContent();
-    CONTENT_PAGE=btn.dataset.sitePageTab;
-    renderPage("siteContent");
-  }));
-  reloadBtn.addEventListener("click",async()=>{await renderSiteContentEditor(true);showToast("Estrutura da página atualizada.");});
-  openLink.href=`/${CONTENT_PAGE}`;
-  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
-  if(container)container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(sitePageMeta(CONTENT_PAGE).title)}...</p></div></div>`;
-  if(summary)summary.textContent="Lendo campos editáveis da página...";
-  await renderSiteContentEditor(false);
-}
-
-async function renderSiteContentEditor(forceReload){
-  const container=document.getElementById("site-content-editor"),summary=document.getElementById("site-content-summary");
-  if(!container||!summary)return;
-  container.innerHTML=`<div class="card"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Lendo a estrutura de ${esc(sitePageMeta(CONTENT_PAGE).title)}...</p></div></div>`;
-  try{
-    const schema=await getContentSchema(CONTENT_PAGE,forceReload);
-    const pageState=ensureManagedPageState(CONTENT_PAGE);
-    const curatedTexts=getCuratedSiteItems(CONTENT_PAGE,schema.texts,false);
-    const curatedImages=getCuratedSiteItems(CONTENT_PAGE,schema.images,true);
-    summary.textContent=`${sitePageMeta(CONTENT_PAGE).title}: ${curatedTexts.length} campos principais, ${curatedImages.length} imagens úteis e ${pageState.extras.length} blocos extras. O restante fica como texto padrão do site.`;
-    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Campos principais</h3><span class="badge b-blue">${curatedTexts.length}</span></div>${renderFriendlyTextEditor(curatedTexts,pageState)}</div><div class="card"><div class="card-head"><h3>Imagens úteis</h3><span class="badge b-blue">${curatedImages.length}</span></div>${renderFriendlyImageEditor(curatedImages,pageState)}</div></div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><p style="font-size:.78rem;color:var(--g400);margin:-4px 0 14px">Use blocos extras quando quiser acrescentar um destaque novo sem mexer na estrutura principal da página.</p><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div>`;
-    bindSiteContentEditor();
-  }catch(error){
-    const pageState=ensureManagedPageState(CONTENT_PAGE);
-    summary.textContent="Não foi possível mapear a página automaticamente. O painel exibiu um modo de segurança.";
-    container.innerHTML=`<div class="grid2"><div class="card"><div class="card-head"><h3>Diagnóstico</h3><span class="badge b-amber">Modo de segurança</span></div><div class="notice"><i class="fas fa-triangle-exclamation"></i> Esta página ainda não pôde ser convertida para o editor amigável. Tente atualizar a estrutura.</div><div class="fg"><label>Página</label><input value="${esc(sitePageMeta(CONTENT_PAGE).title)}" disabled></div><div class="fg" style="margin-bottom:0"><label>Motivo técnico</label><textarea rows="4" disabled>${esc(error&&error.message?error.message:"schema_load_failed")}</textarea></div></div><div class="card"><div class="card-head"><h3>Blocos extras</h3><div style="display:flex;gap:8px"><span class="badge b-blue">${pageState.extras.length}</span><button class="btn btn-sm btn-primary" id="add-extra-section"><i class="fas fa-plus"></i> Novo bloco</button></div></div><div id="site-extra-list">${renderExtraSectionCards(pageState.extras)}</div></div></div>`;
-    bindSiteContentEditor();
-  }
-}
-
-function bindSiteContentEditor(){
-  const addBtn=document.getElementById("add-extra-section");
-  if(addBtn)addBtn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras.push({id:id("extra"),title:"",text:"",buttonLabel:"",buttonHref:"",imageSrc:"",imageAlt:"",tone:"default"});renderSiteContentEditor(false);setStatus("dirty","Alterações pendentes");});
-  document.querySelectorAll("[data-remove-extra]").forEach(btn=>btn.addEventListener("click",()=>{captureSiteContent();ensureManagedPageState(CONTENT_PAGE).extras=ensureManagedPageState(CONTENT_PAGE).extras.filter(extra=>extra.id!==btn.dataset.removeExtra);renderSiteContentEditor(false);showToast("Bloco extra removido.");setStatus("dirty","Alterações pendentes");}));
-}
-
-function renderFriendlyTextEditor(texts,pageState){
-  if(!texts.length)return '<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum texto principal foi identificado nesta página.</p></div>';
-  return texts.map((entry,index)=>`<details style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Texto ${index+1}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">${esc(readableTag(entry.label))}</span></summary><div class="fg" style="margin-top:12px;margin-bottom:0"><label>Conteúdo</label><textarea rows="${textareaRows(entry.value)}" data-site-text="${esc(entry.key)}">${esc(pageState.text[entry.key]??entry.value)}</textarea></div></details>`).join("");
-}
-
-function renderFriendlyImageEditor(images,pageState){
-  if(!images.length)return '<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem principal foi identificada nesta página.</p></div>';
-  return images.map((entry,index)=>{const override=pageState.images[entry.key]||{};return `<details style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Imagem ${index+1}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">imagem</span></summary><div class="fg" style="margin-top:12px"><label>Arquivo / caminho</label><input data-site-image-src="${esc(entry.key)}" value="${esc(override.src??entry.src)}"></div><div class="fg" style="margin-bottom:0"><label>Texto alternativo</label><input data-site-image-alt="${esc(entry.key)}" value="${esc(override.alt??entry.alt)}"></div></details>`;}).join("");
-}
-
-function renderFriendlySectionEditor(sections,pageState){
-  if(!sections.length)return '<div class="empty-state"><i class="fas fa-layer-group"></i><p>Nenhuma seção principal foi identificada nesta página.</p></div>';
-  return sections.map((entry,index)=>{const sectionState=pageState.sections[entry.key]||{};return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--g100);border-radius:var(--r-md);margin-bottom:10px;background:var(--g50)"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">Seção ${index+1}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(summarizeEditorLabel(entry.label))}</div></div><label class="tog"><input type="checkbox" data-site-section-hidden="${esc(entry.key)}"${sectionState.hidden?" checked":""}><span class="tog-sl"></span></label></div>`;}).join("");
-}
-
-function summarizeEditorLabel(label){
-  return String(label||"").replace(/^(h1|h2|h3|h4|p|a|div)\s-\s/i,"").replace(/\s+/g," ").trim().slice(0,90)||"Conteúdo da página";
-}
-
-function readableTag(label){
-  const tag=String(label||"").split(" - ")[0].toLowerCase();
-  return ({h1:"título",h2:"subtítulo",h3:"bloco",h4:"bloco",p:"texto",a:"botão",div:"apoio"})[tag]||"campo";
-}
-
-const SITE_EDITOR_SECTIONS={
-  "index.html":[
-    {title:"Hero principal",description:"Frase de impacto, texto de abertura, imagem principal e botões iniciais.",match:["Aprender","Conheça o grupo","Como participar","Fundado em 1971","jovens vivem aventuras","landing.webp"]},
-    {title:"Missão do grupo",description:"Apresentação institucional e chamada para conhecer a história.",match:["Mais que um grupo","O Escotismo é","Com base na Promessa","Nossa história","Membros do grupo em atividade"]},
-    {title:"Primeira visita",description:"Blocos de orientação para famílias e visitantes.",match:["Entre no grupo","Quem pode participar","Quando visitar","O que levar","Próximo passo","Abrir guia de participação"]},
-    {title:"Ramos e jornada",description:"Introdução sobre as faixas etárias e a jornada no grupo.",match:["Cada idade","Do primeiro passo"]},
-    {title:"Atividades em destaque",description:"Cards visuais e chamada para a página de atividades.",match:["Aventura com","Acampamentos","Fogueiras","Trilhas","Especialidades","Ver tudo","hero2.webp","hero1.webp"]},
-    {title:"Avisos e comunicados",description:"Comunicados rápidos e cartões informativos da home.",match:["O que vale","Visitas abertas","Central de arquivos","Conheça quem conduz"]},
-    {title:"FAQ e chamada final",description:"Respostas rápidas e botões finais para ação.",match:["Não.","Sim.","Na página de documentos","Pronto para a","Quero me juntar","Falar com a chefia"]}
-  ],
-  "sobre.html":[
-    {title:"Hero da página",description:"Título inicial, texto de apresentação e imagem de abertura.",match:["O escotismo que forma","Desde 1971","atividade comunitária"]},
-    {title:"Origem do escotismo",description:"Bloco sobre Baden-Powell e origem do movimento.",match:["Robert Baden-Powell","O Escotismo nasceu","Rapidamente","No Brasil"]},
-    {title:"História do grupo",description:"Fundação, linha do tempo e consolidação do grupo.",match:["Fundado para voar alto","17 de outubro de 1971","Ano Base","Ano da Afirmação","Ano da Consolidação","Hoje","Sede e ambiente"]},
-    {title:"Valores e propósito",description:"Missão, visão, valores e propósito institucional.",match:["Os valores que","Missão","Visão","Valores","Propósito"]},
-    {title:"Chamada final",description:"Faixa de encerramento com convite para contato.",match:["Venha fazer parte","Entre em contato"]}
-  ],
-  "atividades.html":[
-    {title:"Hero da página",description:"Introdução da página de atividades.",match:["O que fazemos","cada atividade é pensada"]},
-    {title:"Cards de atividades",description:"Cards com atividades, descrições e imagens.",match:["Acampamentos","Trilhas","Fogueiras","Especialidades","Liderança","Conquistas","atividade-card"]},
-    {title:"Chamada final",description:"Convite para conhecer o grupo.",match:["Quer viver tudo isso","Quero conhecer o grupo"]}
-  ],
-  "projetos.html":[
-    {title:"Hero da página",description:"Apresentação geral dos projetos.",match:["Projetos","Nossos projetos transformam"]},
-    {title:"Projetos em destaque",description:"Cards de projetos sociais, com imagem, título e texto.",match:["Mutirão Verde","Higiene é Dignidade","Doação de Brinquedos","project-image"]},
-    {title:"Convite para apoiar",description:"Bloco final com CTA de participação e voluntariado.",match:["Quer apoiar o grupo","Saiba como participar","Seja um voluntário"]}
-  ],
-  "contato.html":[
-    {title:"Hero da página",description:"Abertura da página de contato e primeira visita.",match:["Contato e primeira visita","esta página concentra"]},
-    {title:"Informações rápidas",description:"Canal principal, horários, visita e localização.",match:["Informações rápidas","Canal principal","Atendimento presencial","Primeira visita","Localização","Ver documentos"]},
-    {title:"Formulário e orientações",description:"Texto de apoio do formulário e mensagens para contato.",match:["Prepare sua mensagem","O site ainda não usa envio automático"]}
-  ]
+const FEATURED_TEXTS = {
+  "index.html":      ["Hero","Aprender","Crescer","Missão","Aviso","CTA"],
+  "sobre.html":      ["Título","Baden","História","Valores","Resumo"],
+  "atividades.html": ["Título","Cards","CTA"],
+  "projetos.html":   ["Título","Projetos","CTA"],
+  "contato.html":    ["Título","Canal","Visita","Formulário"],
+  "galeria.html":    ["Título","Texto"],
+  "ramo.html":       ["Título","Ramo","Faixa"],
 };
 
-function renderFriendlyTextEditor(texts,pageState){
-  if(!texts.length)return '<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum texto principal foi identificado nesta página.</p></div>';
-  const groups=groupSiteEditorEntries(CONTENT_PAGE,texts);
-  return groups.map(group=>`<div style="border:1px solid var(--g100);border-radius:var(--r-lg);padding:16px;margin-bottom:14px;background:var(--white)"><div style="margin-bottom:12px"><div style="font-size:.88rem;font-weight:700;color:var(--b9)">${esc(group.title)}</div><div style="font-size:.76rem;color:var(--g400);margin-top:3px">${esc(group.description)}</div></div>${group.items.map((entry,index)=>`<details ${index===0?'open':''} style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">${esc(entry.editorTitle||`Campo ${index+1}`)}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(entry.editorHint||summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">${esc(readableTag(entry.label))}</span></summary><div class="fg" style="margin-top:12px;margin-bottom:0"><label>Conteúdo</label><textarea rows="${textareaRows(entry.value)}" data-site-text="${esc(entry.key)}">${esc(pageState.text[entry.key]??entry.value)}</textarea></div></details>`).join("")}</div>`).join("");
-}
-
-function renderFriendlyImageEditor(images,pageState){
-  if(!images.length)return '<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem principal foi identificada nesta página.</p></div>';
-  const groups=groupSiteEditorEntries(CONTENT_PAGE,images,true);
-  return groups.map(group=>`<div style="border:1px solid var(--g100);border-radius:var(--r-lg);padding:16px;margin-bottom:14px;background:var(--white)"><div style="margin-bottom:12px"><div style="font-size:.88rem;font-weight:700;color:var(--b9)">${esc(group.title)}</div><div style="font-size:.76rem;color:var(--g400);margin-top:3px">${esc(group.description)}</div></div>${group.items.map((entry,index)=>{const override=pageState.images[entry.key]||{};return `<details ${index===0?'open':''} style="border:1px solid var(--g100);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;background:var(--g50)"><summary style="cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none"><div><div style="font-size:.82rem;font-weight:700;color:var(--b9)">${esc(entry.editorTitle||`Imagem ${index+1}`)}</div><div style="font-size:.75rem;color:var(--g400);margin-top:3px">${esc(entry.editorHint||summarizeEditorLabel(entry.label))}</div></div><span class="badge b-gray">imagem</span></summary><div class="fg" style="margin-top:12px"><label>Arquivo / caminho</label><input data-site-image-src="${esc(entry.key)}" value="${esc(override.src??entry.src)}"></div><div class="fg" style="margin-bottom:0"><label>Texto alternativo</label><input data-site-image-alt="${esc(entry.key)}" value="${esc(override.alt??entry.alt)}"></div></details>`;}).join("")}</div>`).join("");
-}
-
-function groupSiteEditorEntries(pageName,items,isImage=false){
-  const configs=SITE_EDITOR_SECTIONS[pageName];
-  if(!configs||!configs.length){
-    return [{title:isImage?"Imagens da página":"Conteúdo da página",description:isImage?"Imagens identificadas automaticamente nesta página.":"Campos identificados automaticamente nesta página.",items:items.map((entry,index)=>decorateEditorEntry(entry,index,isImage))}];
-  }
-  const remaining=items.map((entry,index)=>decorateEditorEntry(entry,index,isImage));
-  const groups=configs.map(config=>{
-    const matched=[];
-    for(let i=remaining.length-1;i>=0;i-=1){
-      const haystack=`${remaining[i].label} ${remaining[i].value||""} ${remaining[i].src||""}`.toLowerCase();
-      if(config.match.some(term=>haystack.includes(String(term).toLowerCase()))){
-        matched.unshift(remaining[i]);
-        remaining.splice(i,1);
-      }
-    }
-    return {...config,items:matched};
-  }).filter(group=>group.items.length);
-  return groups.length?groups:[{title:isImage?"Imagens da página":"Campos principais",description:isImage?"Imagens principais identificadas automaticamente.":"Campos principais identificados automaticamente.",items:remaining.slice(0,isImage?2:6)}];
-}
-
-function getCuratedSiteItems(pageName,items,isImage=false){
-  const groups=groupSiteEditorEntries(pageName,items,isImage);
-  const limits=getSiteEditorLimits(pageName,isImage);
-  const flattened=[];
-  groups.forEach(group=>{
-    const limit=limits[group.title]||limits.default;
-    group.items.slice(0,limit).forEach(item=>flattened.push(item));
+function getFeaturedEntries(page, items, isImage) {
+  const limit = isImage ? 4 : 8;
+  const tagMap = { h1:"Título principal", h2:"Subtítulo", h3:"Subtítulo", h4:"Cabeçalho", p:"Parágrafo", eyebrow:"Destaque", btn:"Botão" };
+  return items.slice(0, limit).map((item, i) => {
+    const rawTag = (item.label || "").split(" — ")[0].trim();
+    const title = isImage ? `Imagem ${i+1}` : (tagMap[rawTag] || `Campo ${i+1}`);
+    return { ...item, title, hint: (item.label || "").replace(/\s+/g, " ").slice(0, 80) };
   });
-  return flattened;
 }
 
-function getSiteEditorLimits(pageName,isImage){
-  const base=isImage?{default:1}:{default:2};
-  const pageLimits={
-    "index.html":isImage?{
-      default:1,
-      "Hero principal":1,
-      "Missão do grupo":1,
-      "Atividades em destaque":2
-    }:{
-      default:2,
-      "Hero principal":4,
-      "Missão do grupo":3,
-      "Primeira visita":4,
-      "Ramos e jornada":2,
-      "Atividades em destaque":3,
-      "Avisos e comunicados":3,
-      "FAQ e chamada final":4
-    },
-    "sobre.html":isImage?{
-      default:1,
-      "Hero da página":1,
-      "História do grupo":1
-    }:{
-      default:2,
-      "Hero da página":2,
-      "Origem do escotismo":3,
-      "História do grupo":4,
-      "Valores e propósito":4,
-      "Chamada final":2
-    },
-    "atividades.html":isImage?{
-      default:1,
-      "Cards de atividades":3
-    }:{
-      default:2,
-      "Hero da página":2,
-      "Cards de atividades":6,
-      "Chamada final":2
-    },
-    "projetos.html":isImage?{
-      default:1,
-      "Projetos em destaque":3
-    }:{
-      default:2,
-      "Hero da página":2,
-      "Projetos em destaque":4,
-      "Convite para apoiar":2
-    },
-    "contato.html":isImage?{
-      default:0
-    }:{
-      default:2,
-      "Hero da página":2,
-      "Informações rápidas":5,
-      "Formulário e orientações":2
-    }
-  }[pageName];
-  return pageLimits||base;
+// ── Template: Contato ─────────────────────────────────────────────
+function tplContato() {
+  const c = STATE.adminPanel.contact;
+  return `
+  <div class="notice" style="margin-bottom:0"><i class="fas fa-circle-info"></i> Revise estas informações sempre que houver mudança. São a porta de entrada para famílias e visitantes.</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Contato principal</div></div>
+      <div class="fg"><label>E-mail</label><input id="c-email" value="${esc(c.email)}"></div>
+      <div class="fg"><label>Telefone principal</label><input id="c-phone1" value="${esc(c.phonePrimary)}"></div>
+      <div class="fg"><label>Telefone secundário</label><input id="c-phone2" value="${esc(c.phoneSecondary)}"></div>
+      <div class="fg"><label>Instagram</label><input id="c-instagram" value="${esc(c.instagram)}"></div>
+      <div class="fg"><label>Horário de atividades</label><input id="c-schedule" value="${esc(c.schedule)}"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Endereço</div></div>
+      <div class="fg"><label>Logradouro</label><input id="c-addr" value="${esc(c.address)}"></div>
+      <div class="form-row">
+        <div class="fg"><label>CEP</label><input id="c-cep" value="${esc(c.cep)}"></div>
+        <div class="fg"><label>Cidade / Estado</label><input id="c-city" value="${esc(c.cityState)}"></div>
+      </div>
+      <div class="fg"><label>Link do mapa (Google Maps embed)</label><textarea id="c-maps" rows="3">${esc(c.mapsSrc)}</textarea></div>
+    </div>
+  </div>`;
 }
 
-function decorateEditorEntry(entry,index,isImage){
+// ── Template: Configurações ───────────────────────────────────────
+function tplConfig() {
+  const s = STATE.adminPanel.settings;
+  return `
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-head"><div class="card-title">Identidade do grupo</div></div>
+      <div class="form-row">
+        <div class="fg"><label>Nome curto</label><input id="cfg-short" value="${esc(s.shortName)}"></div>
+        <div class="fg"><label>Ano de fundação</label><input id="cfg-founded" value="${esc(s.founded)}"></div>
+      </div>
+      <div class="fg"><label>Nome completo</label><input id="cfg-full" value="${esc(s.fullName)}"></div>
+      <div class="fg"><label>Lema</label><input id="cfg-motto" value="${esc(s.motto)}"></div>
+      <div class="fg"><label>Slogan</label><input id="cfg-slogan" value="${esc(s.slogan)}"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Visibilidade de seções</div></div>
+      ${[
+        ["gallery",       "Galeria de fotos"],
+        ["projects",      "Projetos sociais"],
+        ["calendar",      "Calendário"],
+        ["championBadge", "Banner de conquista"],
+        ["contactForm",   "Formulário de contato"],
+      ].map(([k, label]) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--c-border)">
+          <span style="font-size:13px;font-weight:500">${esc(label)}</span>
+          <label class="tog"><input type="checkbox" data-vis="${k}"${s.visibility[k] ? " checked" : ""}><span class="tog-sl"></span></label>
+        </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+// ── Modals ────────────────────────────────────────────────────────
+function renderModals() {
+  document.getElementById("modal-root").innerHTML = [
+    modal("modal-new-event", "Novo evento", `
+      <div class="form-row">
+        <div class="fg"><label>Data</label><input type="date" id="ev-date"></div>
+        <div class="fg"><label>Tipo</label><select id="ev-type">
+          <option value="grupo">Grupo</option><option value="regional">Regional</option><option value="nacional">Nacional</option>
+        </select></div>
+      </div>
+      <div class="fg"><label>Título</label><input id="ev-title"></div>
+      <div class="fg"><label>Descrição (opcional)</label><textarea id="ev-desc" rows="2"></textarea></div>`,
+      "add-event-btn", "Adicionar"),
+
+    modal("modal-photo", "Adicionar foto", `
+      <div class="notice" style="margin-bottom:14px"><i class="fas fa-circle-info"></i> O arquivo deve existir em <strong>images/</strong>. Exemplo: <code>images/galeria/foto.webp</code>.</div>
+      <div class="form-row">
+        <div class="fg"><label>Título</label><input id="ph-title"></div>
+        <div class="fg"><label>Categoria</label><select id="ph-cat">
+          ${["acampamento","atividade","evento","comunidade"].map(c => `<option value="${c}">${cap(c)}</option>`).join("")}
+        </select></div>
+      </div>
+      <div class="fg"><label>Caminho (a partir de images/)</label><input id="ph-src" placeholder="images/galeria/foto.webp"></div>
+      <div class="fg"><label>Legenda</label><input id="ph-caption"></div>`,
+      "add-photo-btn", "Adicionar"),
+
+    modal("modal-project", "Novo projeto", `
+      <div class="form-row">
+        <div class="fg"><label>Nome</label><input id="pr-nome"></div>
+        <div class="fg"><label>Emoji</label><input id="pr-icon" value="🌟" style="max-width:80px"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Status</label><select id="pr-status">
+          <option value="planejado">Planejado</option><option value="ativo">Ativo</option><option value="concluido">Concluído</option>
+        </select></div>
+        <div class="fg"><label>Progresso (%)</label><input type="number" id="pr-prog" min="0" max="100" value="0"></div>
+      </div>
+      <div class="fg"><label>Tags / meta</label><input id="pr-meta"></div>
+      <div class="fg"><label>Descrição</label><textarea id="pr-desc" rows="3"></textarea></div>`,
+      "add-project-btn", "Criar"),
+
+    modal("modal-activity", "Nova atividade", `
+      <div class="form-row">
+        <div class="fg"><label>Emoji</label><input id="at-icon" value="⭐" style="max-width:80px"></div>
+        <div class="fg"><label>Título</label><input id="at-title"></div>
+      </div>
+      <div class="fg"><label>Descrição</label><textarea id="at-desc" rows="3"></textarea></div>`,
+      "add-activity-btn", "Adicionar"),
+
+    modal("modal-member", "Novo membro", `
+      <div class="form-row">
+        <div class="fg"><label>Nome completo</label><input id="mb-nome"></div>
+        <div class="fg"><label>Ramo</label><select id="mb-ramo">
+          ${["Filhotes","Lobinhos","Escoteiros","Seniores","Pioneiros"].map(b => `<option>${b}</option>`).join("")}
+        </select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Função</label><select id="mb-func"><option>Jovem</option><option>Monitor</option><option>Chefe</option></select></div>
+        <div class="fg"><label>Ano de ingresso</label><input type="number" id="mb-ano" value="${new Date().getFullYear()}"></div>
+      </div>
+      <div class="fg"><label>Status</label><select id="mb-status">
+        <option value="ativo">Ativo</option><option value="pendente">Pendente</option><option value="inativo">Inativo</option>
+      </select></div>`,
+      "add-member-btn", "Cadastrar"),
+  ].join("");
+}
+
+function modal(id, title, body, confirmId, confirmLabel) {
+  return `<div class="modal-overlay" id="${id}">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>${esc(title)}</h3>
+        <button class="modal-close" data-close="${id}">×</button>
+      </div>
+      ${body}
+      <div class="modal-foot">
+        <button class="btn btn-sm" data-close="${id}">Cancelar</button>
+        <button class="btn btn-sm btn-primary" id="${esc(confirmId)}">${esc(confirmLabel)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── bindPage ──────────────────────────────────────────────────────
+function bindPage(page) {
+  if (page === "calendario") {
+    renderCal();
+    document.getElementById("add-event-btn")?.addEventListener("click", () => {
+      const date = document.getElementById("ev-date")?.value;
+      const title = document.getElementById("ev-title")?.value.trim();
+      if (!date || !title) { toast("Preencha a data e o título do evento."); return; }
+      STATE.adminPanel.events.push({
+        id: uid("ev"), date, title,
+        type: document.getElementById("ev-type")?.value || "grupo",
+        description: document.getElementById("ev-desc")?.value.trim() || "",
+      });
+      closeModal("modal-new-event"); renderCal(); toast("Evento adicionado."); markDirty();
+    });
+  }
+  if (page === "galeria") {
+    document.querySelectorAll("[data-gal-filter]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        GAL_FILTER = btn.dataset.galFilter;
+        document.querySelectorAll("[data-gal-filter]").forEach(b => b.classList.toggle("btn-primary", b.dataset.galFilter === GAL_FILTER));
+        renderGallery();
+      })
+    );
+    renderGallery();
+    document.getElementById("add-photo-btn")?.addEventListener("click", () => {
+      const title = document.getElementById("ph-title")?.value.trim();
+      const src   = normPath(document.getElementById("ph-src")?.value || "");
+      if (!title) { toast("Preencha o título da foto."); return; }
+      if (!src)   { toast("Informe o caminho da imagem."); return; }
+      if (!isSafeImagePath(src)) { toast("Caminho inválido — use letras minúsculas, números, traço e barra."); return; }
+      STATE.adminPanel.photos.push({ id: uid("ph"), title, category: document.getElementById("ph-cat")?.value || "atividade", src, caption: document.getElementById("ph-caption")?.value.trim() || title });
+      closeModal("modal-photo"); renderGallery(); toast("Foto adicionada."); markDirty();
+    });
+  }
+  if (page === "projetos") {
+    renderProjetos();
+    document.getElementById("add-project-btn")?.addEventListener("click", () => {
+      const nome = document.getElementById("pr-nome")?.value.trim();
+      if (!nome) { toast("Preencha o nome do projeto."); return; }
+      STATE.adminPanel.projects.push({
+        id: uid("pr"),
+        title: nome,
+        icon: document.getElementById("pr-icon")?.value || "🌟",
+        status: document.getElementById("pr-status")?.value || "ativo",
+        progress: Number(document.getElementById("pr-prog")?.value || 0),
+        meta: document.getElementById("pr-meta")?.value.trim() || "",
+        description: document.getElementById("pr-desc")?.value.trim() || "",
+      });
+      closeModal("modal-project"); renderProjetos(); toast("Projeto criado."); markDirty();
+    });
+  }
+  if (page === "ramos") {
+    document.querySelectorAll("[data-branch]").forEach(tab =>
+      tab.addEventListener("click", () => {
+        captureBranch();
+        BRANCH = tab.dataset.branch;
+        navigate("ramos");
+      })
+    );
+    document.getElementById("ramo-save")?.addEventListener("click", doSave);
+  }
+  if (page === "atividades") {
+    renderAtividades();
+    document.getElementById("add-activity-btn")?.addEventListener("click", () => {
+      const title = document.getElementById("at-title")?.value.trim();
+      if (!title) { toast("Preencha o título da atividade."); return; }
+      STATE.adminPanel.activities.push({ id: uid("at"), icon: document.getElementById("at-icon")?.value || "⭐", title, description: document.getElementById("at-desc")?.value.trim() || "" });
+      closeModal("modal-activity"); renderAtividades(); toast("Atividade adicionada."); markDirty();
+    });
+  }
+  if (page === "membros") {
+    renderMembros();
+    document.getElementById("member-search")?.addEventListener("input", renderMembros);
+    document.getElementById("member-branch")?.addEventListener("change", renderMembros);
+    document.getElementById("add-member-btn")?.addEventListener("click", () => {
+      const nome = document.getElementById("mb-nome")?.value.trim();
+      if (!nome) { toast("Preencha o nome do membro."); return; }
+      STATE.adminPanel.members.push({
+        id: uid("mb"), name: nome,
+        branch: document.getElementById("mb-ramo")?.value || "Escoteiros",
+        role:   document.getElementById("mb-func")?.value || "Jovem",
+        since:  document.getElementById("mb-ano")?.value || String(new Date().getFullYear()),
+        status: document.getElementById("mb-status")?.value || "ativo",
+      });
+      closeModal("modal-member"); renderMembros(); toast("Membro cadastrado."); markDirty();
+    });
+  }
+  if (page === "paginas") initPaginasEditor();
+}
+
+// ── bindGlobal ────────────────────────────────────────────────────
+function bindGlobal() {
+  document.querySelectorAll("[data-open-modal]").forEach(btn =>
+    btn.addEventListener("click", () => openModal(btn.dataset.openModal))
+  );
+  document.querySelectorAll("[data-close]").forEach(btn =>
+    btn.addEventListener("click", () => closeModal(btn.dataset.close))
+  );
+  document.querySelectorAll(".modal-overlay").forEach(overlay =>
+    overlay.addEventListener("click", e => { if (e.target === overlay) closeModal(overlay.id); })
+  );
+  document.querySelectorAll("[data-nav]").forEach(btn =>
+    btn.addEventListener("click", () => { captureCurrent(); PAGE = btn.dataset.nav; buildSidebar(); navigate(PAGE); })
+  );
+}
+
+// ── Capture current page state ────────────────────────────────────
+function captureCurrent() {
+  if (PAGE === "ramos")   captureBranch();
+  if (PAGE === "paginas") capturePaginasContent();
+  if (PAGE === "contato") captureContato();
+  if (PAGE === "config")  captureConfig();
+}
+
+function captureBranch() {
+  const b = STATE.adminPanel.branches[BRANCH];
+  if (!b) return;
+  const nome = document.getElementById("ramo-nome"); if (nome) b.name = nome.value.trim();
+  const idade = document.getElementById("ramo-idade"); if (idade) b.age = idade.value.trim();
+  const d1 = document.getElementById("ramo-desc1"); if (d1) b.short = d1.value.trim();
+  const d2 = document.getElementById("ramo-desc2"); if (d2) b.long  = d2.value.trim();
+  const bl = document.getElementById("ramo-bullets"); if (bl) b.bullets = bl.value.split("\n").map(s => s.trim()).filter(Boolean);
+}
+
+function captureContato() {
+  const c = STATE.adminPanel.contact;
+  const f = id => document.getElementById(id);
+  if (f("c-email"))    c.email          = f("c-email").value.trim();
+  if (f("c-phone1"))   c.phonePrimary   = f("c-phone1").value.trim();
+  if (f("c-phone2"))   c.phoneSecondary = f("c-phone2").value.trim();
+  if (f("c-instagram")) c.instagram     = f("c-instagram").value.trim();
+  if (f("c-schedule")) c.schedule       = f("c-schedule").value.trim();
+  if (f("c-addr"))     c.address        = f("c-addr").value.trim();
+  if (f("c-cep"))      c.cep            = f("c-cep").value.trim();
+  if (f("c-city"))     c.cityState      = f("c-city").value.trim();
+  if (f("c-maps"))     c.mapsSrc        = f("c-maps").value.trim();
+}
+
+function captureConfig() {
+  const s = STATE.adminPanel.settings;
+  const f = id => document.getElementById(id);
+  if (f("cfg-short"))  s.shortName = f("cfg-short").value.trim();
+  if (f("cfg-full"))   s.fullName  = f("cfg-full").value.trim();
+  if (f("cfg-motto"))  s.motto     = f("cfg-motto").value.trim();
+  if (f("cfg-founded")) s.founded  = f("cfg-founded").value.trim();
+  if (f("cfg-slogan")) s.slogan    = f("cfg-slogan").value.trim();
+  document.querySelectorAll("[data-vis]").forEach(el => {
+    s.visibility[el.dataset.vis] = el.checked;
+  });
+}
+
+// ── Save ──────────────────────────────────────────────────────────
+async function doSave() {
+  if (SAVING) return;
+  captureCurrent();
+  SAVING = true;
+  setStatus("saving");
+  try {
+    const res = await fetch("/api/admin/content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(STATE),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "save_failed");
+    DIRTY = false;
+    setStatus("ready");
+    toast("Alterações salvas com sucesso.");
+  } catch (err) {
+    setStatus("error");
+    toast(saveErrorMsg(err));
+  } finally {
+    SAVING = false;
+  }
+}
+
+async function doLogout() {
+  await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+  location.href = "/login";
+}
+
+// ── Status / Toast ────────────────────────────────────────────────
+function setStatus(mode) {
+  const dot   = document.getElementById("status-dot");
+  const label = document.getElementById("status-label");
+  const btn   = document.getElementById("save-btn");
+  const colors = { ready: "var(--c-green)", dirty: "var(--c-amber)", saving: "var(--c-blue)", error: "var(--c-red)" };
+  const labels = { ready: "Pronto", dirty: "Alterações pendentes", saving: "Salvando…", error: "Falha ao salvar" };
+  if (dot)   dot.style.background = colors[mode] || colors.ready;
+  if (label) label.textContent    = labels[mode] || "Pronto";
+  if (btn)   btn.classList.toggle("saving", mode === "saving");
+}
+
+function markDirty() {
+  if (!DIRTY) { DIRTY = true; setStatus("dirty"); }
+}
+
+function toast(msg) {
+  document.getElementById("toast-msg").textContent = msg;
+  const t = document.getElementById("toast");
+  t.classList.add("show");
+  clearTimeout(TOAST_TIMER);
+  TOAST_TIMER = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+// ── Modals open/close ─────────────────────────────────────────────
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.querySelectorAll("input,textarea").forEach(el => { el.value = el.defaultValue; });
+  m.querySelectorAll("select").forEach(el => { el.selectedIndex = 0; });
+  m.classList.add("open");
+}
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.classList.remove("open");
+}
+
+// ── Item card component ───────────────────────────────────────────
+function itemCard({ id, type, title, sub, badges, desc, fields, avatar, icon }) {
+  const badgeHtml = (badges || []).filter(Boolean).map(b => `<span class="badge ${b.cls || "badge-gray"}">${esc(typeof b === "string" ? b : b.label)}</span>`).join("");
+  const leftMedia = avatar
+    ? `<div style="width:36px;height:36px;border-radius:var(--r-sm);background:${avatar.bg};color:${avatar.fg};display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0">${esc(avatar.initials)}</div>`
+    : icon
+    ? `<div style="font-size:18px;flex-shrink:0">${esc(icon)}</div>`
+    : "";
+  return `<div class="item-card" data-card="${type}:${id}">
+    <div class="item-card-view" data-view>
+      <div style="display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0">
+        ${leftMedia}
+        <div style="flex:1;min-width:0">
+          <div class="item-title">${esc(title)}</div>
+          <div class="item-sub">${esc(sub || "")}</div>
+          <div class="item-meta">${badgeHtml}</div>
+          ${desc ? `<div class="item-desc">${esc(desc)}</div>` : ""}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-xs" data-edit-card="${type}:${id}"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-xs btn-danger" data-del-card="${type}:${id}"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+    <div class="item-edit-form" data-edit style="display:none">
+      ${fields}
+      <div class="item-edit-footer">
+        <button class="btn btn-xs" data-cancel-card="${type}:${id}">Cancelar</button>
+        <button class="btn btn-xs btn-primary" data-save-card="${type}:${id}"><i class="fas fa-floppy-disk"></i> Salvar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindItemCards(type, onSave, onDelete) {
+  document.querySelectorAll(`[data-edit-card^="${type}:"]`).forEach(btn => {
+    btn.addEventListener("click", () => toggleCard(type, btn.dataset.editCard.split(":")[1], true));
+  });
+  document.querySelectorAll(`[data-cancel-card^="${type}:"]`).forEach(btn => {
+    btn.addEventListener("click", () => toggleCard(type, btn.dataset.cancelCard.split(":")[1], false));
+  });
+  document.querySelectorAll(`[data-save-card^="${type}:"]`).forEach(btn => {
+    btn.addEventListener("click", () => { onSave(btn.dataset.saveCard.split(":")[1]); toggleCard(type, btn.dataset.saveCard.split(":")[1], false); });
+  });
+  document.querySelectorAll(`[data-del-card^="${type}:"]`).forEach(btn => {
+    btn.addEventListener("click", () => onDelete(btn.dataset.delCard.split(":")[1]));
+  });
+}
+
+function toggleCard(type, id, open) {
+  const card = document.querySelector(`[data-card="${type}:${id}"]`);
+  if (!card) return;
+  card.classList.toggle("editing", open);
+  const view = card.querySelector("[data-view]");
+  const edit = card.querySelector("[data-edit]");
+  if (view) view.style.display = open ? "none" : "grid";
+  if (edit) edit.style.display = open ? "flex" : "none";
+}
+
+// ── State helpers ─────────────────────────────────────────────────
+function normalizeContent(c) {
   return {
-    ...entry,
-    editorTitle:isImage?`Imagem ${index+1}`:`Campo ${index+1}`,
-    editorHint:summarizeEditorLabel(entry.label)
+    pages: (c && typeof c.pages === "object") ? c.pages : {},
+    adminPanel: (c && typeof c.adminPanel === "object") ? c.adminPanel : {},
   };
 }
-function normalizeImagePath(value){return String(value||"").trim().replace(/\\/g,"/").replace(/^\.?\//,"");}
-function hasAllowedImageExtension(path){const parts=String(path||"").toLowerCase().split("."); return parts.length>1&&GALLERY_ALLOWED_EXTENSIONS.includes(parts.pop());}
-function isSafeLinuxPath(path){return /^images\/[a-z0-9/_-]+\.(webp|jpg|jpeg|png|svg)$/.test(String(path||""));}
-function normalizePhoto(photo,index){const normalized=photo&&typeof photo==="object"?{...photo}:{},fallback=legacyPhotoSrc(index); return {id:normalized.id||id("ph"),title:String(normalized.title||"").trim(),category:String(normalized.category||"atividade").trim()||"atividade",caption:String(normalized.caption||normalized.title||"").trim(),src:normalizeImagePath(normalized.src||fallback)};}
-function legacyPhotoSrc(index){const samples=["images/mult_verde/dsc08692.webp","images/higiene/photo_4958569241523630116_y.webp","images/photo_4909301671674973021_x.jpg","images/mult_verde/photo_4909301671674973015_y.jpg"]; return samples[index%samples.length];}
-function messageForSaveError(error){const code=error&&error.message?error.message:"save_failed"; if(code==="invalid_gallery_photo")return "A galeria tem item inválido. Revise nome, pasta, formato e tamanho da imagem."; if(code.startsWith("invalid_gallery_photo:"))return code.replace("invalid_gallery_photo:","Erro na galeria: "); return "Não foi possível salvar agora.";}
+
+function ensureState() {
+  const p = STATE.adminPanel;
+  p.events = Array.isArray(p.events) ? p.events : [];
+  p.photos = Array.isArray(p.photos) ? p.photos.map(normalizePhoto) : [];
+  p.projects = Array.isArray(p.projects) ? p.projects : [];
+  p.activities = Array.isArray(p.activities) ? p.activities : [];
+  p.members = Array.isArray(p.members) ? p.members : [];
+  p.branches = p.branches || {
+    filhotes: { name: "Filhotes", age: "5 a 7 anos", short: "Primeiros passos no escotismo.", long: "", bullets: [] },
+    lobinhos: { name: "Lobinhos", age: "7 a 10 anos", short: "Alcateia com amizade e responsabilidade.", long: "", bullets: [] },
+    escoteiros: { name: "Escoteiros", age: "10 a 15 anos", short: "Sistema de patrulhas e autonomia crescente.", long: "", bullets: [] },
+    seniores: { name: "Seniores", age: "15 a 18 anos", short: "Desafios intensos e protagonismo juvenil.", long: "", bullets: [] },
+    pioneiros: { name: "Pioneiros", age: "18 a 22 anos", short: "Serviço ao próximo e projeto de vida.", long: "", bullets: [] },
+  };
+  p.contact = p.contact || { email: "", phonePrimary: "", phoneSecondary: "", instagram: "", schedule: "", address: "", cep: "", cityState: "", mapsSrc: "" };
+  p.settings = p.settings || {
+    shortName: "GEAR 9º DF",
+    fullName: "Grupo Escoteiro do Ar Salgado Filho",
+    motto: "Sempre Alerta para Servir",
+    founded: "1971",
+    slogan: "",
+    visibility: { gallery: true, projects: true, calendar: true, championBadge: true, contactForm: true },
+  };
+  if (!p.settings.visibility) p.settings.visibility = { gallery: true, projects: true, calendar: true, championBadge: true, contactForm: true };
+  STATE.adminPanel = p;
+}
+
+function ensurePageState(page) {
+  if (!STATE.pages[page] || typeof STATE.pages[page] !== "object") STATE.pages[page] = { text: {}, images: {}, sections: {}, extras: [] };
+  const s = STATE.pages[page];
+  s.text    = (s.text    && typeof s.text    === "object") ? s.text    : {};
+  s.images  = (s.images  && typeof s.images  === "object") ? s.images  : {};
+  s.sections= (s.sections&& typeof s.sections=== "object") ? s.sections: {};
+  s.extras  = Array.isArray(s.extras) ? s.extras : [];
+  return s;
+}
+
+function normalizePhoto(p) {
+  return { id: p.id || uid("ph"), title: String(p.title || "").trim(), category: String(p.category || "atividade").toLowerCase(), caption: String(p.caption || p.title || "").trim(), src: normPath(p.src || "") };
+}
+
+// ── Utility ───────────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function uid(prefix) { return `${prefix}-${Math.random().toString(36).slice(2,9)}`; }
+function cap(s) { return String(s||"").charAt(0).toUpperCase() + String(s||"").slice(1); }
+function hashStr(s) { return String(s||"").split("").reduce((a,c) => (((a<<5)-a)+c.charCodeAt(0))|0,0)>>>0; }
+function initials(name) { return String(name||"").trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||"").join("") || "??"; }
+function normPath(s) { return String(s||"").trim().replace(/\\/g,"/").replace(/^\/+/,""); }
+function isSafeImagePath(s) { return /^[a-z0-9/_\-.]+$/.test(normPath(s)) && GALLERY_EXTENSIONS.includes(normPath(s).split(".").pop()?.toLowerCase()); }
+function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function fmtDate(s) { if (!s) return ""; const [y,m,d] = String(s).split("-"); return `${d}/${m}/${y}`; }
+function typeColor(t) { return t==="regional"?"var(--c-amber)":t==="nacional"?"var(--c-red)":"var(--c-green)"; }
+function badgeForType(t) { return t==="regional"?"badge-amber":t==="nacional"?"badge-red":"badge-green"; }
+function saveErrorMsg(err) { const m = String(err?.message||""); if(m.includes("unauthorized")||m.includes("forbidden")||m.includes("401")||m.includes("403")) return "Sessão expirada. Faça login novamente."; return "Não foi possível salvar. Verifique os campos e tente novamente."; }
+function cssescape(s) { return (window.CSS?.escape?.(s)) ?? String(s).replace(/["\\]/g,"\\$&"); }
+function val(sel, fallback="") { const el = document.querySelector(sel); return el ? el.value.trim() : fallback; }
+
+async function apiFetch(url, opts={}) {
+  const res = await fetch(url, { cache:"no-store", ...opts, headers: { Accept:"application/json", ...(opts.headers||{}) } });
+  const data = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(data.error || `http_${res.status}`);
+  return data;
+}
