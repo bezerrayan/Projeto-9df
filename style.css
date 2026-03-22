@@ -1,10 +1,11 @@
 @font-face {
-    font-family: 'New Athletic M54';
-    src: url('./fonts/New%20Athletic%20M54.ttf') format('truetype');
+    font-family: 'Lemon Milk';
+    src: url('./fonte/lemon_milk/LEMONMILK-Regular.otf') format('opentype');
     font-display: swap;
 }
 
 :root {
+    --font-site: 'Lemon Milk', sans-serif;
     --blue-950: #08172d;
     --blue-900: #0a1f3c;
     --blue-800: #0d2d5a;
@@ -49,7 +50,7 @@ html {
 
 body {
     margin: 0;
-    font-family: 'New Athletic M54', sans-serif;
+    font-family: var(--font-site);
     font-size: 15px;
     letter-spacing: 0.012em;
     color: var(--ink);
@@ -118,7 +119,7 @@ textarea {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    font-family: 'New Athletic M54', sans-serif;
+    font-family: var(--font-site);
     font-weight: 700;
     letter-spacing: 0.015em;
 }
@@ -286,7 +287,7 @@ h3,
 h4,
 h5 {
     margin: 0;
-    font-family: 'New Athletic M54', sans-serif;
+    font-family: var(--font-site);
     letter-spacing: -0.018em;
     line-height: 1.08;
     color: var(--blue-900);
@@ -614,6 +615,98 @@ h2 em {
     color: var(--blue-700);
     font-size: 0.88rem;
     font-weight: 700;
+}
+
+.text-link,
+.mini-link-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.text-link {
+    color: var(--blue-600);
+    margin-top: auto;
+}
+
+.mini-link-pill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--blue-050);
+    color: var(--blue-700);
+    font-size: 0.88rem;
+}
+
+.home-overview-grid,
+.home-showcase-grid,
+.home-support-grid {
+    display: grid;
+    gap: 22px;
+}
+
+.home-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+.home-overview-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 100%;
+    padding: 28px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.home-overview-card h3 {
+    font-size: 1.24rem;
+}
+
+.home-overview-card p {
+    margin: 0;
+    color: var(--text);
+}
+
+.home-overview-feature {
+    background:
+        linear-gradient(180deg, rgba(248, 251, 255, 0.98), rgba(237, 245, 255, 0.98));
+}
+
+.home-showcase-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.72fr);
+    align-items: start;
+}
+
+.home-side-stack {
+    display: grid;
+    gap: 18px;
+}
+
+.home-resource-card {
+    gap: 22px;
+}
+
+.home-support-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr);
+    align-items: start;
+}
+
+.home-faq-list {
+    margin: 0;
+    max-width: none;
+}
+
+.home-bento-grid {
+    margin-top: 28px;
+}
+
+.home-support-intro {
+    margin-bottom: 28px;
+    max-width: 56ch;
 }
 
 .branch-strip {
@@ -1652,7 +1745,7 @@ textarea {
 .footer-brand strong {
     display: block;
     color: var(--white);
-    font-family: 'New Athletic M54', sans-serif;
+    font-family: var(--font-site);
     letter-spacing: -0.02em;
 }
 
@@ -1843,6 +1936,19 @@ textarea {
 
 @media (max-width: 1080px) {
 
+    .home-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-overview-feature {
+        grid-column: span 2;
+    }
+
+    .home-showcase-grid,
+    .home-support-grid {
+        grid-template-columns: 1fr;
+    }
+
     .feature-grid,
     .activity-grid,
     .project-grid,
@@ -1906,6 +2012,8 @@ textarea {
     .hero-layout,
     .page-hero-grid,
     .two-col,
+    .home-showcase-grid,
+    .home-support-grid,
     .contact-grid,
     .cta-layout,
     .calendar-layout,
@@ -2006,6 +2114,7 @@ textarea {
 
     .hero-stats,
     .branch-strip,
+    .home-overview-grid,
     .feature-grid,
     .activity-grid,
     .project-grid,
@@ -2022,6 +2131,10 @@ textarea {
     .gallery-item.tall {
         grid-column: auto;
         grid-row: auto;
+    }
+
+    .home-overview-feature {
+        grid-column: auto;
     }
 
     .floating-light,
