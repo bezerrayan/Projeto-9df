@@ -324,6 +324,23 @@
     "documents": [],
     "links": [
       {
+        "id": "lk-registros",
+        "title": "Inscrições e Registros",
+        "desc": "Links oficiais para novos associados e lista de espera do 9º DF.",
+        "icon": "fa-file-signature",
+        "items": [
+          {
+            "label": "Registro de Novo Associado (9º DF)",
+            "href": "https://docs.google.com/forms/d/e/1FAIpQLSfwjRWe1ClI4pH0XxEyHgASlJq1yg4qNkrHLwAxKMnVIn3J8w/viewform"
+          },
+          {
+            "label": "Lista de Espera (9º DF)",
+            "href": "https://docs.google.com/forms/d/e/1FAIpQLSeK86J5w6jfbRy-0lPpzUmoDesiUTA6IDwMYxsroGSy21z_mw/viewform"
+          }
+        ],
+        "href": ""
+      },
+      {
         "id": "lk-df",
         "title": "Escoteiros do DF",
         "desc": "Portal da Região Escoteira do Distrito Federal com notícias, formações e agenda regional.",
@@ -378,20 +395,16 @@
           {
             "label": "Sobre a Loja Escoteira",
             "href": "https://loja.escoteiros.org.br/sobre"
-          },
-          {
-            "label": "Exemplo de Distintivo Oficial",
-            "href": "https://loja.escoteiros.org.br/distintivo"
           }
         ],
         "href": ""
       },
       {
         "id": "lk-hajtica",
-        "title": "L4CKOS",
+        "title": "Site Parceiro - L4CKOS",
         "href": "https://l4ckos.com.br/contato",
-        "desc": "Site parceiro",
-        "icon": "fa-shirt",
+        "desc": "Visite o site do nosso parceiro.",
+        "icon": "fa-external-link-alt",
         "items": []
       }
     ]
