@@ -489,8 +489,10 @@ function setupProjectToggles() {
 }
 
 // ── Site Content Dynamic Fetching ───────────────────────────────
-// Version LOG to confirm update: v1.0.2 - Database Sinc
+// Version LOG to confirm update: v1.0.3 - Sinc Total
 console.log("%c[GEAR 9º DF]%c Script de conteúdo iniciado.", "color:#2563eb;font-weight:bold;", "color:inherit;");
+
+var SITE_CONTENT_CACHE = null;
 
 function fetchSiteContent() {
     console.log("[API] Buscando conteúdo do site...");
