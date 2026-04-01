@@ -47,16 +47,49 @@ async function init() {
     `);
 
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS site_content (
-        id TINYINT PRIMARY KEY,
-        content_json LONGTEXT NOT NULL,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        subject VARCHAR(255),
+        message TEXT NOT NULL,
+        is_read TINYINT(1) NOT NULL DEFAULT 0,
+        date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    const [rows] = await pool.query("SELECT id FROM site_content WHERE id = 1 LIMIT 1");
-    if (!rows.length) {
-      await pool.query("INSERT INTO site_content (id, content_json) VALUES (1, ?)", [JSON.stringify({ pages: {}, adminPanel: {} })]);
+    // --- Automatic Migration (JSON -> MySQL) ---
+    const [adminRows] = await pool.query("SELECT id FROM admins LIMIT 1");
+    if (!adminRows.length && fs.existsSync(ADMINS_PATH)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(ADMINS_PATH, 'utf8'));
+        if (data.admins) {
+          for (const a of data.admins) {
+            await pool.query("INSERT IGNORE INTO admins (email, password_hash, active) VALUES (?, ?, ?)", [a.email, a.passwordHash, a.active ? 1 : 0]);
+          }
+        }
+      } catch (e) {}
+    }
+
+    const [contentRows] = await pool.query("SELECT id FROM site_content WHERE id = 1 LIMIT 1");
+    if (!contentRows.length) {
+      let initialContent = { pages: {}, adminPanel: {} };
+      if (fs.existsSync(CONTENT_PATH)) {
+        try { initialContent = JSON.parse(fs.readFileSync(CONTENT_PATH, 'utf8')); } catch (e) {}
+      }
+      await pool.query("INSERT INTO site_content (id, content_json) VALUES (1, ?)", [JSON.stringify(initialContent)]);
+    }
+
+    const [msgRows] = await pool.query("SELECT id FROM contact_messages LIMIT 1");
+    if (!msgRows.length && fs.existsSync(MESSAGES_PATH)) {
+      try {
+        const data = JSON.parse(fs.readFileSync(MESSAGES_PATH, 'utf8'));
+        if (data.messages) {
+          for (const m of data.messages) {
+            await pool.query("INSERT IGNORE INTO contact_messages (id, name, email, subject, message, is_read, date) VALUES (?, ?, ?, ?, ?, ?, ?)", [m.id, m.name, m.email, m.subject, m.message, m.is_read ? 1 : 0, m.date]);
+          }
+        }
+      } catch (e) {}
     }
   } else {
     // Ensure file structures exist
