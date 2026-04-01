@@ -1,42 +1,5 @@
 {
-  "name": "projeto-9df",
-  "version": "1.0.0",
-  "description": "Site institucional para Grupo Escoteiro com design moderno, responsivo e atraente.",
-  "main": "server.js",
-  "directories": {
-    "doc": "docs"
-  },
-  "scripts": {
-    "dev": "nodemon server.js",
-    "start": "node server.js",
-    "create-admin": "node server.js --create-admin",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bezerrayan/Projeto-9df.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/bezerrayan/Projeto-9df/issues"
-  },
-  "homepage": "https://github.com/bezerrayan/Projeto-9df#readme",
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cloudinary": "^1.41.3",
-    "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
-    "express": "^5.2.1",
-    "express-session": "^1.19.0",
-    "jsonwebtoken": "^9.0.3",
-    "multer": "^2.1.1",
-    "multer-storage-cloudinary": "^4.0.0",
-    "mysql2": "^3.20.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "cors": "^2.8.6"
   }
 }

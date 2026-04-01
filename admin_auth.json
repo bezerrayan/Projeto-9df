@@ -1,0 +1,24 @@
+{
+  "admins": [
+    {
+      "email": "seuemail@exemplo.com",
+      "passwordHash": "$2b$10$veeaTsEinCJPSEl//u6Xe.lJabH6YVgLSamtZJNPcwe0N2VQyoxxq",
+      "active": true
+    },
+    {
+      "email": "yandev@l4ckos.com.br",
+      "passwordHash": "$2b$10$/Z5C2qqmtMEgkufEmSwxs.7NBVH7WtkiO5BMF85b8Qgll0tNyhrBa",
+      "active": true
+    },
+    {
+      "email": "gus.ant.rod.10@gmail.com",
+      "passwordHash": "$2b$10$rG9QvHnApiD0mYcKq36w4ukgJCrWNmDGsqV1xnSrH7K6G3hu4DGAG",
+      "active": true
+    },
+    {
+      "email": "teste@teste.com",
+      "passwordHash": "$2b$10$fA.vnZ1GkKCeecHJuz.zkeMp8UBB0Y2CKKMkJJnYdvpwFeA3A6ytm",
+      "active": true
+    }
+  ]
+}

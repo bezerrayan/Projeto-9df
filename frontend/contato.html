@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato | GEAR 9&ordm; DF</title>
+    <meta name="description"
+        content="Entre em contato com o GEAR 9&ordm; DF para visitas, d&uacute;vidas e orienta&ccedil;&otilde;es sobre participa&ccedil;&atilde;o no grupo.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="images/logo_9df.png" type="image/png">
+</head>
+
+<body>
+    <header class="site-header header-dark">
+        <div class="shell nav-shell">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"><img src="images/logo_9df.png" alt="Logo do GEAR 9&ordm; DF"></span>
+                <span class="brand-text">GEAR <em>9&ordm; DF</em></span>
+            </a>
+            <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="site-nav">
+                <a href="index.html">In&iacute;cio</a>
+                <a href="sobre.html">Sobre</a>
+                <a href="atividades.html">Atividades</a>
+                <a href="galeria.html">Galeria</a>
+                <a href="ramo.html">Ramos</a>
+                <a href="projetos.html">Projetos</a>
+                <a href="calendario.html">Calend&aacute;rio</a>
+                <a href="documentos.html">Documentos</a>
+                <a href="links.html">Links &uacute;teis</a>
+                <a href="contato.html" class="active">Contato</a>
+                <a href="participar.html" class="nav-cta">Participar</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-hero centered page-hero-dark">
+            <div class="shell narrow">
+                <div class="eyebrow">Fale com a gente</div>
+                <h1>Contato e primeira visita</h1>
+                <p>Se voc&ecirc; quer conhecer o grupo, esta p&aacute;gina concentra o essencial para chegar bem
+                    informado.</p>
+            </div>
+        </section>
+
+        <section class="section section-soft">
+            <div class="shell contact-grid">
+                <div>
+                    <h2 class="section-title left small">Informa&ccedil;&otilde;es r&aacute;pidas</h2>
+                    <div class="contact-card-list">
+                        <article class="contact-card">
+                            <span class="info-icon"><i class="fab fa-instagram"></i></span>
+                            <div>
+                                <h3>Canal principal</h3>
+                                <p data-contact-instagram>Acompanhe o grupo pelo Instagram <strong>@gear9df</strong> para novidades e
+                                    orienta&ccedil;&otilde;es iniciais.</p>
+                            </div>
+                        </article>
+                        <article class="contact-card">
+                            <span class="info-icon"><i class="fas fa-clock"></i></span>
+                            <div>
+                                <h3>Atendimento presencial</h3>
+                                <p data-contact-schedule>Atividades regulares aos s&aacute;bados, das 14h30 &agrave;s 18h, na sede do grupo.
+                                </p>
+                            </div>
+                        </article>
+                        <article class="contact-card">
+                            <span class="info-icon"><i class="fas fa-users"></i></span>
+                            <div>
+                                <h3>Primeira visita</h3>
+                                <p>Novos participantes podem conhecer o ambiente em atividade regular e entender como
+                                    funciona cada ramo.</p>
+                            </div>
+                        </article>
+                        <article class="contact-card">
+                            <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+                            <div>
+                                <h3>Localiza&ccedil;&atilde;o</h3>
+                                <p data-contact-address>SHIS QI 3 - s/n, Bras&iacute;lia - DF, 71605-500.</p>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="section-cta-inline">
+                        <a href="https://www.instagram.com/gear9df/" target="_blank" rel="noopener noreferrer"
+                            class="btn btn-primary">Abrir Instagram</a>
+                        <a href="documentos.html" class="btn btn-outline">Ver documentos</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="section-title left small">Prepare sua mensagem</h2>
+                    <form id="contactForm" class="contact-form-panel" novalidate>
+                        <div class="form-field"><label for="name">Nome completo *</label><input id="name" type="text"
+                                placeholder="Seu nome" required></div>
+                        <div class="form-field"><label for="email">E-mail para retorno *</label><input id="email"
+                                type="email" placeholder="seu@email.com" required></div>
+                        <div class="form-field"><label for="subject">Assunto</label><input id="subject" type="text"
+                                placeholder="Primeira visita ou d&uacute;vida sobre participa&ccedil;&atilde;o"></div>
+                        <div class="form-field"><label for="message">Mensagem *</label><textarea id="message" rows="6"
+                                placeholder="Escreva sua mensagem aqui..." required></textarea></div>
+                        <button type="submit" class="btn btn-primary form-submit">Enviar mensagem <i
+                                class="fas fa-paper-plane"></i></button>
+                        <p class="contact-note">Sua mensagem ser&aacute; recebida pela chefia do grupo.
+                            Retornaremos em breve.</p>
+                        <p id="contactFeedback" class="form-feedback" role="status" aria-live="polite"></p>
+                        <div id="contactDraftWrapper" class="contact-draft" hidden>
+                            <label for="contactDraft">Mensagem pronta</label>
+                            <textarea id="contactDraft" rows="8" readonly></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="shell">
+                <div class="map-card" id="contact-map-card">
+                    <iframe id="contact-map-iframe"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1174.457906812632!2d-47.91537940693096!3d-15.860278512150789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a231a2e2e4b73%3A0x5a5d391493d52c5!2sGrupo%20Escoteiro%20do%20Ar%20Salgado%20Filho%20-%209%C2%BA%20DF!5e0!3m2!1spt-BR!2sbr!4v1762867049849!5m2!1spt-BR!2sbr"
+                        allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell footer-grid">
+            <div>
+                <div class="footer-brand"><span class="brand-mark"><img src="images/logo_9df.png"
+                            alt="Logo do GEAR 9&ordm; DF"></span>
+                    <div><strong>GEAR 9&ordm; DF</strong><span>Grupo Escoteiro do Ar Salgado Filho</span></div>
+                </div>
+                <p class="footer-text">Sempre Alerta para Servir. Aventura, lideran&ccedil;a e servi&ccedil;o em cada
+                    jornada.</p>
+                <div class="social-links">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F"
+                        target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i
+                            class="fab fa-facebook"></i></a>
+                    <a href="https://www.instagram.com/gear9df/" target="_blank" rel="noopener noreferrer"
+                        aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/?text=Conhe%C3%A7a%20o%20GEAR%209%C2%BA%20DF%20https%3A%2F%2Fwww.instagram.com%2Fgear9df%2F"
+                        target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i
+                            class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div><h4>Navega&ccedil;&atilde;o</h4><ul class="footer-links"><li><a href="sobre.html">Sobre n&oacute;s</a></li><li><a href="ramo.html">Ramos</a></li><li><a href="projetos.html">Projetos</a></li><li><a href="calendario.html">Calend&aacute;rio</a></li><li><a href="documentos.html">Documentos</a></li><li><a href="links.html">Links &uacute;teis</a></li><li><a href="equipe.html">Equipe</a></li><li><a href="participar.html">Como participar</a></li><li><a href="contato.html">Contato</a></li></ul></div>
+            <div><h4>Onde Estamos</h4><ul class="footer-links footer-info"><li><i class="fas fa-map-marker-alt"></i>SHIS QI 3 - s/n, Bras&iacute;lia - DF</li><li><i class="fas fa-clock"></i>S&aacute;bados: 14h30-18h</li><li><i class="fab fa-instagram"></i>@gear9df</li></ul></div>
+        </div>
+        <div class="shell footer-bottom">&copy; <span class="current-year">2026</span> GEAR 9&ordm; DF - Feito com
+            dedica&ccedil;&atilde;o por <strong>Gustavo</strong> e <strong>Yan</strong>.</div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
+
+
+
+
