@@ -664,38 +664,6 @@ function applyVisibility(state) {
 }
 
 // ── Contact Form Override ─────────────────────────────────────────
-function setupContactForm(state) {
-    var form = document.querySelector('.contact-form');
-    if (!form) return;
-    
-    var btn = form.querySelector('button');
-    if (btn) { btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar mensagem'; }
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var name = form.querySelector('input[type="text"]').value;
-        var email = form.querySelector('input[type="email"]').value;
-        var msg = form.querySelector('textarea').value;
-        var resultDiv = document.getElementById('contact-result');
-
-        var payload = { name: name, email: email, subject: 'Contato pelo site', message: msg };
-        
-        window.apiFetch('/contact', {
-            method: 'POST',
-            body: payload
-        })
-        .then(function() {
-            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-check-circle"></i> Mensagem enviada!</span>'; resultDiv.style.opacity = '1'; }
-            form.reset();
-        })
-        .catch(function() {
-            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--text);"><i class="fas fa-exclamation-circle"></i> Erro ao enviar.</span>'; resultDiv.style.opacity = '1'; }
-        });
-    });
-}
-
-var SITE_CONTENT_CACHE = null;
-
 function getCurrentPageName() {
     var name = window.location.pathname.split('/').pop();
     return name || 'index.html';
@@ -704,60 +672,44 @@ function getCurrentPageName() {
 function buildAdminPath(element, root) {
     var parts = [];
     var current = element;
-
     while (current && current !== root) {
         var tag = current.tagName.toLowerCase();
         var index = 1;
         var sibling = current.previousElementSibling;
-
         while (sibling) {
-            if (sibling.tagName === current.tagName) {
-                index += 1;
-            }
+            if (sibling.tagName === current.tagName) index += 1;
             sibling = sibling.previousElementSibling;
         }
-
         parts.unshift(tag + ':nth-of-type(' + index + ')');
         current = current.parentElement;
     }
-
     return parts.join(' > ');
 }
 
 function getEditableTextNodes(root) {
     return Array.from(root.querySelectorAll('h1, h2, h3, h4, p, .eyebrow, .btn'))
         .filter(function (node) {
-            if (!node.textContent || !node.textContent.trim()) {
-                return false;
-            }
-
-            if (node.closest('.admin-shell')) {
-                return false;
-            }
-
+            if (!node.textContent || !node.textContent.trim()) return false;
+            if (node.closest('.admin-shell')) return false;
             return true;
         })
         .map(function (node, index) {
             return {
                 index: index,
                 key: buildAdminPath(node, root),
-                element: node,
-                label: node.tagName.toLowerCase() + ' - ' + node.textContent.trim().replace(/\s+/g, ' ').slice(0, 60)
+                element: node
             };
         });
 }
 
 function getEditableImages(root) {
     return Array.from(root.querySelectorAll('img'))
-        .filter(function (node) {
-            return !node.closest('.admin-shell');
-        })
+        .filter(function (node) { return !node.closest('.admin-shell'); })
         .map(function (node, index) {
             return {
                 index: index,
                 key: buildAdminPath(node, root),
-                element: node,
-                label: 'Imagem ' + (index + 1) + ' - ' + (node.getAttribute('alt') || node.getAttribute('src') || 'sem descricao')
+                element: node
             };
         });
 }
@@ -768,26 +720,12 @@ function getEditableSections(root) {
             return node.tagName === 'SECTION' && !node.classList.contains('admin-extra-section');
         })
         .map(function (node, index) {
-            var heading = node.querySelector('h1, h2, h3');
             return {
                 index: index,
                 key: buildAdminPath(node, root),
-                element: node,
-                label: heading ? heading.textContent.trim() : 'Secao ' + (index + 1)
+                element: node
             };
         });
-}
-
-function readEditableText(node) {
-    if (node.classList.contains('btn')) {
-        var clone = node.cloneNode(true);
-        clone.querySelectorAll('i').forEach(function (icon) {
-            icon.remove();
-        });
-        return clone.textContent.trim();
-    }
-
-    return node.innerHTML.trim();
 }
 
 function writeEditableText(node, value) {
@@ -800,143 +738,95 @@ function writeEditableText(node, value) {
             node.appendChild(iconClone);
             return;
         }
-
         node.textContent = value;
         return;
     }
-
     node.innerHTML = value;
 }
 
 function renderAdminExtraSections(root, pageState) {
-    Array.from(root.querySelectorAll('.admin-extra-section')).forEach(function (section) {
-        section.remove();
-    });
-
-    pageState.extras.forEach(function (extra) {
+    Array.from(root.querySelectorAll('.admin-extra-section')).forEach(function (s) { s.remove(); });
+    (pageState.extras || []).forEach(function (extra) {
         var section = document.createElement('section');
         section.className = 'section admin-extra-section' + (extra.tone === 'soft' ? ' section-soft' : '') + (extra.tone === 'dark' ? ' cta-band' : '');
-
         if (extra.tone === 'dark') {
-            section.innerHTML =
-                '<div class="shell cta-layout">' +
-                '<div>' +
-                '<div class="eyebrow light">Secao personalizada</div>' +
-                '<h2>' + (extra.title || 'Nova secao') + '</h2>' +
-                '<p>' + (extra.text || '') + '</p>' +
-                '</div>' +
-                '<div class="button-row">' +
-                (extra.buttonLabel && extra.buttonHref ? '<a href="' + extra.buttonHref + '" class="btn btn-light">' + extra.buttonLabel + '</a>' : '') +
-                '</div>' +
-                '</div>';
+            section.innerHTML = '<div class="shell cta-layout"><div><div class="eyebrow light">Seção personalizada</div>' +
+                '<h2>' + esc(extra.title || 'Nova seção') + '</h2><p>' + esc(extra.text || '') + '</p></div>' +
+                '<div class="button-row">' + (extra.buttonLabel && extra.buttonHref ? '<a href="' + esc(extra.buttonHref) + '" class="btn btn-light">' + esc(extra.buttonLabel) + '</a>' : '') + '</div></div>';
         } else {
-            section.innerHTML =
-                '<div class="shell">' +
-                '<div class="split-layout">' +
-                '<div>' +
-                '<div class="eyebrow">Secao personalizada</div>' +
-                '<h2 class="section-title left">' + (extra.title || 'Nova secao') + '</h2>' +
-                '<p class="section-text">' + (extra.text || '') + '</p>' +
-                (extra.buttonLabel && extra.buttonHref ? '<div class="button-row"><a href="' + extra.buttonHref + '" class="btn btn-primary">' + extra.buttonLabel + '</a></div>' : '') +
-                '</div>' +
-                (extra.imageSrc ? '<div class="media-card"><img src="' + extra.imageSrc + '" alt="' + (extra.imageAlt || '') + '" class="cover-image" loading="lazy" decoding="async"></div>' : '') +
-                '</div>' +
-                '</div>';
+            section.innerHTML = '<div class="shell"><div class="split-layout"><div><div class="eyebrow">Seção personalizada</div>' +
+                '<h2 class="section-title left">' + esc(extra.title || 'Nova seção') + '</h2><p class="section-text">' + esc(extra.text || '') + '</p>' +
+                (extra.buttonLabel && extra.buttonHref ? '<div class="button-row"><a href="' + esc(extra.buttonHref) + '" class="btn btn-primary">' + esc(extra.buttonLabel) + '</a></div>' : '') + '</div>' +
+                (extra.imageSrc ? '<div class="media-card"><img src="' + esc(extra.imageSrc) + '" class="cover-image" loading="lazy"></div>' : '') + '</div></div>';
         }
-
         root.appendChild(section);
     });
 }
 
 function ensurePageState(state, pageName) {
-    if (!state.pages) {
-        state.pages = {};
-    }
+    if (!state.pages) state.pages = {};
+    if (!state.pages[pageName]) state.pages[pageName] = { text: {}, images: {}, sections: {}, extras: [] };
+    var p = state.pages[pageName];
+    p.text = p.text || {}; p.images = p.images || {}; p.sections = p.sections || {}; p.extras = p.extras || [];
+    return p;
+}
 
-    if (!state.pages[pageName]) {
-        state.pages[pageName] = {
-            text: {},
-            images: {},
-            sections: {},
-            extras: []
-        };
-    }
+function applyAdminContent(state) {
+    var root = document.querySelector('main');
+    if (!root) return;
+    
+    // Se vier sem estado, tenta usar o cache global
+    if (!state) state = SITE_CONTENT_CACHE;
+    if (!state) return;
 
-    if (!state.pages[pageName].text) {
-        state.pages[pageName].text = {};
-    }
-    if (!state.pages[pageName].images) {
-        state.pages[pageName].images = {};
-    }
-    if (!state.pages[pageName].sections) {
-        state.pages[pageName].sections = {};
-    }
-    if (!Array.isArray(state.pages[pageName].extras)) {
-        state.pages[pageName].extras = [];
-    }
+    var pageName = getCurrentPageName();
+    var pageState = ensurePageState(state, pageName);
 
-    return state.pages[pageName];
+    getEditableTextNodes(root).forEach(function (entry) {
+        if (pageState.text[entry.key]) writeEditableText(entry.element, pageState.text[entry.key]);
+    });
+
+    getEditableImages(root).forEach(function (entry) {
+        var img = pageState.images[entry.key];
+        if (img && img.src) entry.element.setAttribute('src', img.src);
+        if (img && img.alt) entry.element.setAttribute('alt', img.alt);
+    });
+
+    getEditableSections(root).forEach(function (entry) {
+        var s = pageState.sections[entry.key];
+        if (s) entry.element.hidden = !!s.hidden;
+    });
+
+    renderAdminExtraSections(root, pageState);
+}
+
+function setupContactForm(state) {
+    var form = document.querySelector('.contact-form');
+    if (!form) return;
+    var btn = form.querySelector('button');
+    if (btn) { btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar mensagem'; }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var name = form.querySelector('input[type="text"]').value;
+        var email = form.querySelector('input[type="email"]').value;
+        var msg = form.querySelector('textarea').value;
+        var resultDiv = document.getElementById('contact-result');
+
+        var payload = { name: name, email: email, subject: 'Contato pelo site', message: msg };
+        window.apiFetch('/contact', { method: 'POST', body: payload })
+        .then(function() {
+            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-check-circle"></i> Mensagem enviada!</span>'; resultDiv.style.opacity = '1'; }
+            form.reset();
+        })
+        .catch(function() {
+            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--text);"><i class="fas fa-exclamation-circle"></i> Erro ao enviar.</span>'; resultDiv.style.opacity = '1'; }
+        });
+    });
 }
 
 function loadAdminState() {
     return SITE_CONTENT_CACHE || { pages: {} };
-}
-
-function fetchSiteContent() {
-    return fetch('/api/site-content', { credentials: 'same-origin' })
-        .then(function (response) {
-            if (!response.ok) {
-                throw new Error('site-content-unavailable');
-            }
-            return response.json();
-        })
-        .then(function (data) {
-            SITE_CONTENT_CACHE = data;
-            return data;
-        })
-        .catch(function () {
-            SITE_CONTENT_CACHE = { pages: {} };
-            return SITE_CONTENT_CACHE;
-        });
-}
-
-function applyAdminContent() {
-    var root = document.querySelector('main');
-    if (!root) {
-        return;
-    }
-
-    fetchSiteContent().then(function (state) {
-        var pageName = getCurrentPageName();
-        var pageState = ensurePageState(state, pageName);
-
-        getEditableTextNodes(root).forEach(function (entry) {
-            if (Object.prototype.hasOwnProperty.call(pageState.text, entry.key)) {
-                writeEditableText(entry.element, pageState.text[entry.key]);
-            }
-        });
-
-        getEditableImages(root).forEach(function (entry) {
-            var imageOverride = pageState.images[entry.key];
-            if (!imageOverride) {
-                return;
-            }
-
-            if (imageOverride.src) {
-                entry.element.setAttribute('src', imageOverride.src);
-            }
-            if (typeof imageOverride.alt === 'string') {
-                entry.element.setAttribute('alt', imageOverride.alt);
-            }
-        });
-
-        getEditableSections(root).forEach(function (entry) {
-            var sectionOverride = pageState.sections[entry.key];
-            entry.element.hidden = !!(sectionOverride && sectionOverride.hidden);
-        });
-
-        renderAdminExtraSections(root, pageState);
-    });
 }
 
 function setupAdminShortcut() {
