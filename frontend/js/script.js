@@ -489,12 +489,21 @@ function setupProjectToggles() {
 }
 
 // ── Site Content Dynamic Fetching ───────────────────────────────
-var SITE_CONTENT_CACHE = null;
+// Version LOG to confirm update: v1.0.2 - Database Sinc
+console.log("%c[GEAR 9º DF]%c Script de conteúdo iniciado.", "color:#2563eb;font-weight:bold;", "color:inherit;");
 
 function fetchSiteContent() {
+    console.log("[API] Buscando conteúdo do site...");
     return window.apiFetch('/content')
-        .then(function(data) { SITE_CONTENT_CACHE = data; return data; })
-        .catch(function() { return { pages: {}, adminPanel: {} }; });
+        .then(function(data) { 
+            console.log("[API] Conteúdo recebido com sucesso:", data);
+            SITE_CONTENT_CACHE = data; 
+            return data; 
+        })
+        .catch(function(err) { 
+            console.error("[API ERROR] Falha ao carregar conteúdo. Verifique se o CORS_ORIGINS está correto no Railway.", err);
+            return { pages: {}, adminPanel: {} }; 
+        });
 }
 
 function applyDynamicCalendar(state) {
