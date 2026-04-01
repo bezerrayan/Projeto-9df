@@ -3,12 +3,36 @@ document.addEventListener('DOMContentLoaded', function () {
     setupMenu();
     setupHeaderShadow();
     setupYear();
-    setupCalendar();
-    setupGalleryFilter();
-    setupProjectToggles();
-    setupContactForm();
+    setupScrollAnimations();
     setupAdminMode();
+
+    fetchSiteContent().then(function(state) {
+        applyAdminContent(state);
+        applyDynamicCalendar(state);
+        applyDynamicGallery(state);
+        applyDynamicProjects(state);
+        applyDynamicActivities(state);
+        applyDynamicTeam(state);
+        applyDynamicDocuments(state);
+        applyDynamicLinks(state);
+        applyDynamicContact(state);
+        applyVisibility(state);
+        setupGalleryFilter();
+        setupProjectToggles();
+        setupContactForm(state);
+    });
 });
+
+function esc(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 
 function setupMenu() {
     const toggle = document.querySelector('.menu-toggle');
@@ -56,6 +80,39 @@ function setupHeaderShadow() {
 
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+}
+
+function setupScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+
+    // Mark elements for reveal
+    const revealSelectors = [
+        '.section-head', '.section-title', '.section-text', 
+        '.hero-copy h1', '.hero-copy p', '.card', 
+        '.team-card', '.doc-card', '.resource-card', 
+        '.activity-card', '.project-card', '.notice-card',
+        '.floating-card', '.hero-stats div', '.mini-card', '.link-group-card'
+    ];
+
+    document.querySelectorAll(revealSelectors.join(', ')).forEach((el, i) => {
+        if (!el.classList.contains('reveal')) {
+            el.classList.add('reveal', 'reveal-up');
+            // Stagger delay for grid items
+            const parent = el.parentElement;
+            if (parent && (parent.classList.contains('grid') || parent.className.includes('grid'))) {
+                const delay = (i % 3) * 100;
+                if (delay > 0) el.setAttribute('data-delay', delay);
+            }
+        }
+        observer.observe(el);
+    });
 }
 
 function setupYear() {
@@ -431,50 +488,215 @@ function setupProjectToggles() {
     });
 }
 
-function setupContactForm() {
-    const form = document.getElementById('contactForm');
-    if (!form) {
+// ── Site Content Dynamic Fetching ───────────────────────────────
+var SITE_CONTENT_CACHE = null;
+
+function fetchSiteContent() {
+    return fetch('/api/site-content', { credentials: 'same-origin' })
+        .then(function(r) { return r.ok ? r.json() : { pages: {}, adminPanel: {} }; })
+        .then(function(data) { SITE_CONTENT_CACHE = data; return data; })
+        .catch(function() { return { pages: {}, adminPanel: {} }; });
+}
+
+function applyDynamicCalendar(state) {
+    var events = (state.adminPanel && Array.isArray(state.adminPanel.events)) ? state.adminPanel.events : [];
+    if (!events.length) { setupCalendar(); return; } // fallback
+    // We will just invoke setupCalendar but we should realistically merge.
+    // Since setupCalendar is complex, we just prepend admin events to it globally if needed.
+    window.ADMIN_EVENTS = events; 
+    setupCalendar();
+}
+
+function applyDynamicGallery(state) {
+    var container = document.getElementById('gallery-dynamic');
+    if (!container) return;
+    var photos = (state.adminPanel && Array.isArray(state.adminPanel.photos)) ? state.adminPanel.photos : [];
+    if (!photos.length) return;
+    container.innerHTML = photos.map(function(p) {
+        return '<article class="gallery-item" data-category="' + esc(p.category) + '">' +
+            '<img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.title) + '" class="cover-image">' +
+            '<div class="gallery-overlay"><span>' + esc(p.title) + '</span><small>' + esc(p.caption || '') + '</small></div>' +
+        '</article>';
+    }).join("");
+}
+
+function applyDynamicProjects(state) {
+    var container = document.getElementById('projects-dynamic');
+    if (!container) return;
+    var projects = (state.adminPanel && Array.isArray(state.adminPanel.projects)) ? state.adminPanel.projects : [];
+    if (!projects.length) return;
+    container.innerHTML = projects.map(function(p) {
+        return '<article class="project-card">' +
+            '<div class="project-image"><img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.title) + '" class="cover-image"></div>' +
+            '<div class="project-body">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                   '<span class="badge badge-gray">' + esc(p.category) + '</span>' +
+                   '<span class="badge ' + (p.status==='ativo'?'badge-green':'badge-amber') + '">' + esc(p.status) + '</span>' +
+                '</div>' +
+                '<h3>' + esc(p.title) + '</h3>' +
+                '<p>' + esc(p.desc) + '</p>' +
+            '</div></article>';
+    }).join("");
+}
+
+function applyDynamicActivities(state) {
+    var container = document.getElementById('activities-dynamic');
+    if (!container) return;
+    var activities = (state.adminPanel && Array.isArray(state.adminPanel.activities)) ? state.adminPanel.activities : [];
+    if (!activities.length) return;
+    container.innerHTML = activities.map(function(a) {
+        return '<article class="activity-card">' +
+            '<div class="activity-body">' +
+                '<span class="info-icon"><i class="fas fa-star"></i></span>' +
+                '<h3>' + esc(a.title) + '</h3>' +
+                '<p>' + esc(a.desc) + '</p>' +
+                '<div style="margin-top:14px"><span class="badge badge-gray">' + esc(a.category) + '</span></div>' +
+            '</div></article>';
+    }).join("");
+}
+
+function applyDynamicTeam(state) {
+    var container = document.getElementById('team-dynamic');
+    if (!container) return;
+    var members = (state.adminPanel && Array.isArray(state.adminPanel.members)) ? state.adminPanel.members : [];
+    var activeMembers = members.filter(function(m) { return m.status === 'ativo'; });
+    if (!activeMembers.length) return;
+    container.innerHTML = "";
+    activeMembers.sort(function(a, b) {
+        var aDir = a.role.toLowerCase().includes('diretor') ? -1 : 1;
+        var bDir = b.role.toLowerCase().includes('diretor') ? -1 : 1;
+        if (aDir !== bDir) return aDir - bDir;
+        return a.name.localeCompare(b.name);
+    });
+    activeMembers.forEach(function(m) {
+        var card = document.createElement('article');
+        card.className = 'team-card animate-on-scroll';
+        var initials = m.name.trim().split(/\\s+/).slice(0,2).map(function(w){return w[0].toUpperCase()}).join("");
+        card.innerHTML = 
+            '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">' +
+               '<div style="width:48px;height:48px;border-radius:12px;background:var(--blue-100);color:var(--blue-700);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex-shrink:0;">' + initials + '</div>' +
+               '<div style="display:flex;flex-direction:column;gap:4px">' +
+                 '<span class="team-role" style="margin:0;font-size:12px;opacity:0.8">' + esc(m.branch || 'Apoio') + '</span>' +
+                 '<h3 style="margin:0;font-size:1.1rem;line-height:1.2;">' + esc(m.name) + '</h3>' +
+               '</div>' +
+            '</div>' +
+            '<p style="font-size:0.92rem;line-height:1.6;margin-top:0">' + esc(m.role) + (m.since ? ' desde ' + esc(m.since) : '') + '.</p>';
+        container.appendChild(card);
+    });
+}
+
+function applyDynamicDocuments(state) {
+    const container = document.getElementById('docs-dynamic');
+    if (!container) return;
+    const docs = (state.adminPanel && Array.isArray(state.adminPanel.documents)) ? state.adminPanel.documents : [];
+    if (!docs.length) return;
+    
+    container.innerHTML = docs.map(d => `
+        <article class="doc-card">
+            <div class="doc-card-head">
+                <span class="info-icon"><i class="fas ${d.src && d.src.endsWith('.pdf') ? 'fa-file-pdf' : 'fa-file-lines'}"></i></span>
+                <div>
+                    <h3>${esc(d.title)}</h3>
+                    <p>${esc(d.desc || '')}</p>
+                </div>
+            </div>
+            <div class="doc-meta">
+                <span class="badge badge-gray">${esc(d.category || 'Geral')}</span>
+                <div class="doc-actions">
+                    <a href="${esc(d.src)}" target="_blank" class="btn btn-primary btn-small">Visualizar</a>
+                    <a href="${esc(d.src)}" download class="btn btn-outline btn-small">Baixar</a>
+                </div>
+            </div>
+        </article>
+    `).join("");
+    setupScrollAnimations(); // Refresh animations for new elements
+}
+
+function applyDynamicLinks(state) {
+    const container = document.getElementById('links-dynamic');
+    if (!container) return;
+    const links = (state.adminPanel && Array.isArray(state.adminPanel.links)) ? state.adminPanel.links : [];
+
+    if (!links.length) {
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-link"></i><p>Nenhum link útil cadastrado no momento.</p></div>';
         return;
     }
 
-    const feedback = document.getElementById('contactFeedback');
-    const draftWrapper = document.getElementById('contactDraftWrapper');
-    const draftField = document.getElementById('contactDraft');
+    // Change class to support the new grid layout
+    container.className = 'links-grid';
 
-    form.addEventListener('submit', function (event) {
-        event.preventDefault();
+    container.innerHTML = links.map(l => {
+        const items = Array.isArray(l.items) ? l.items : (l.href ? [{ label: 'Acessar Link', href: l.href }] : []);
+        return `
+        <article class="link-group-card reveal reveal-up">
+            <div class="link-group-head">
+                <div class="link-group-icon"><i class="fas ${esc(l.icon || 'fa-link')}"></i></div>
+                <h3>${esc(l.title)}</h3>
+                <p>${esc(l.desc || '')}</p>
+            </div>
+            <div class="link-items">
+                ${items.map(item => `
+                    <a href="${esc(item.href)}" target="_blank" class="link-item">
+                        <span>${esc(item.label)}</span>
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                `).join("")}
+            </div>
+        </article>
+    `;
+    }).join("");
+    setupScrollAnimations();
+}
 
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const subject = document.getElementById('subject').value.trim() || 'Contato pelo site';
-        const message = document.getElementById('message').value.trim();
+function applyDynamicContact(state) {
+    var c = state.adminPanel && state.adminPanel.contact ? state.adminPanel.contact : null;
+    if (!c) return;
+    document.querySelectorAll('[data-contact-email]').forEach(function(el) { el.textContent = c.email; el.href = 'mailto:'+c.email; });
+    document.querySelectorAll('[data-contact-phone]').forEach(function(el) { el.textContent = c.phone; el.href = 'https://wa.me/'+c.phone.replace(/\\D/g,''); });
+    document.querySelectorAll('[data-contact-address]').forEach(function(el) { el.textContent = c.address; });
+    document.querySelectorAll('[data-contact-hours]').forEach(function(el) { el.textContent = c.hours; });
+}
 
-        if (!name || !email || !message) {
-            feedback.textContent = 'Preencha nome, e-mail e mensagem antes de continuar.';
-            return;
-        }
+function applyVisibility(state) {
+    var v = state.adminPanel && state.adminPanel.settings && state.adminPanel.settings.visibility ? state.adminPanel.settings.visibility : {};
+    if (v.gallery === false) { var g = document.getElementById('gallery-dynamic'); if (g) g.closest('section').style.display = 'none'; }
+    if (v.projects === false) { var p = document.getElementById('projects-dynamic'); if (p) p.closest('section').style.display = 'none'; }
+    if (v.contactForm === false) { var c = document.getElementById('contact-form-panel'); if (c) c.style.display = 'none'; }
+}
 
-        const draft =
-            'Nome: ' + name + '\n' +
-            'E-mail para retorno: ' + email + '\n' +
-            'Assunto: ' + subject + '\n\n' +
-            message;
+// ── Contact Form Override ─────────────────────────────────────────
+function setupContactForm(state) {
+    var form = document.querySelector('.contact-form');
+    if (!form) return;
+    
+    var btn = form.querySelector('button');
+    if (btn) { btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar mensagem'; }
 
-        if (draftField && draftWrapper) {
-            draftField.value = draft;
-            draftWrapper.hidden = false;
-        }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var name = form.querySelector('input[type="text"]').value;
+        var email = form.querySelector('input[type="email"]').value;
+        var msg = form.querySelector('textarea').value;
+        var resultDiv = document.getElementById('contact-result');
 
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(draft).then(function () {
-                feedback.textContent = 'Mensagem copiada. Agora você pode encaminhá-la ao grupo pelos canais disponíveis.';
-            }).catch(function () {
-                feedback.textContent = 'Não foi possível copiar automaticamente. Use o campo abaixo para copiar manualmente.';
-            });
-            return;
-        }
-
-        feedback.textContent = 'Use o campo abaixo para copiar sua mensagem manualmente.';
+        var payload = { name: name, email: email, subject: 'Contato pelo site', message: msg };
+        
+        fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function(res) {
+            if (res.ok) {
+                if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-check-circle"></i> Mensagem enviada!</span>'; resultDiv.style.opacity = '1'; }
+                form.reset();
+            } else {
+                if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--text);"><i class="fas fa-exclamation-circle"></i> Erro ao enviar.</span>'; resultDiv.style.opacity = '1'; }
+            }
+        })
+        .catch(function() {
+            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--text);"><i class="fas fa-exclamation-circle"></i> Erro de rede.</span>'; resultDiv.style.opacity = '1'; }
+        });
     });
 }
 

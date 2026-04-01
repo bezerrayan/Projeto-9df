@@ -1,0 +1,10 @@
+async function check() {
+    try {
+        const response = await fetch("http://localhost:5000/api/site-content");
+        const data = await response.json();
+        console.log("Links no DB:", JSON.stringify(data.adminPanel.links, null, 2));
+    } catch (e) {
+        console.error("Erro ao buscar:", e.message);
+    }
+}
+check();

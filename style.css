@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
 @font-face {
     font-family: 'Lemon Milk';
     src: url('./fonte/lemon_milk/LEMONMILK-Regular.otf') format('opentype');
@@ -5,7 +7,8 @@
 }
 
 :root {
-    --font-site: 'Lemon Milk', sans-serif;
+    --font-heading: 'Lemon Milk', sans-serif;
+    --font-body: 'Outfit', sans-serif;
     --blue-950: #08172d;
     --blue-900: #0a1f3c;
     --blue-800: #0d2d5a;
@@ -50,12 +53,12 @@ html {
 
 body {
     margin: 0;
-    font-family: var(--font-site);
-    font-size: 15px;
-    letter-spacing: 0.012em;
+    font-family: var(--font-body);
+    font-size: 16px;
+    letter-spacing: -0.01em;
     color: var(--ink);
     background: var(--white);
-    line-height: 1.72;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
@@ -119,7 +122,7 @@ textarea {
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    font-family: var(--font-site);
+    font-family: var(--font-heading);
     font-weight: 700;
     letter-spacing: 0.015em;
 }
@@ -287,8 +290,8 @@ h3,
 h4,
 h5 {
     margin: 0;
-    font-family: var(--font-site);
-    letter-spacing: -0.018em;
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
     line-height: 1.08;
     color: var(--blue-900);
     text-wrap: balance;
@@ -738,17 +741,95 @@ h2 em {
     color: var(--blue-500);
 }
 
-.mini-card small {
-    display: block;
-    color: var(--blue-400);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
-
 .mini-card strong {
     font-size: 1rem;
+}
+
+/* ── Links Agrupados (Sublinks) ────────────────────────────── */
+.links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.link-group-card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform var(--transition), box-shadow var(--transition);
+    text-align: left;
+}
+
+.link-group-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.link-group-head {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.link-group-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--blue-050);
+    color: var(--blue-500);
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    font-size: 1.2rem;
+}
+
+.link-group-head h3 {
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    color: var(--blue-900);
+    letter-spacing: 0.02em;
+}
+
+.link-group-head p {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text);
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.link-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.link-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--blue-050);
+    color: var(--blue-900);
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: background var(--transition), color var(--transition);
+}
+
+.link-item:hover {
+    background: var(--blue-100);
+    color: var(--blue-700);
+}
+
+.link-item i {
+    font-size: 0.9rem;
+    opacity: 0.6;
 }
 
 .bento-grid {
@@ -2184,3 +2265,41 @@ textarea {
         flex-direction: column;
     }
 }
+
+/* Animations */
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+.animate-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.animate-delay-1 { transition-delay: 100ms; }
+.animate-delay-2 { transition-delay: 200ms; }
+.animate-delay-3 { transition-delay: 300ms; }
+.animate-delay-4 { transition-delay: 400ms; }
+/* ── Reveal Animations ────────────────────────────────────────── */
+.reveal {
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.2, 0.6, 0.4, 1);
+    pointer-events: none;
+}
+
+.reveal-up {
+    transform: translateY(30px);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+[data-delay="100"] { transition-delay: 100ms; }
+[data-delay="200"] { transition-delay: 200ms; }
+[data-delay="300"] { transition-delay: 300ms; }
+[data-delay="400"] { transition-delay: 400ms; }
+[data-delay="500"] { transition-delay: 500ms; }

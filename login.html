@@ -258,15 +258,16 @@
                         body: JSON.stringify({ email: email, password: password })
                     });
 
-                    if (response.status === 401) {
-                        feedback.textContent = 'E-mail ou senha inválidos.';
+                    var data = await response.json();
+
+                    if (!response.ok) {
+                        feedback.textContent = data.error === 'invalid_credentials' ? 'E-mail ou senha inválidos.' : 'Erro ao conectar ao servidor.';
                         return;
                     }
 
-                    if (!response.ok) {
-                        feedback.textContent = 'O backend do painel não está disponível aqui. Use o servidor local para acessar o admin.';
-                        return;
-                    }
+                    // Store JWT for future requests
+                    localStorage.setItem('gear9df_token', data.token);
+                    localStorage.setItem('gear9df_user', data.email);
 
                     window.location.href = '/admin?page=' + encodeURIComponent(nextPage);
                 } catch (error) {

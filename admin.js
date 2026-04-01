@@ -7,7 +7,10 @@ const NAV = [
   { section: "Principal",  id: "ramos",         icon: "fa-layer-group",     label: "Ramos" },
   { section: "Principal",  id: "atividades",    icon: "fa-star",            label: "Atividades" },
   { section: "Principal",  id: "membros",       icon: "fa-users",           label: "Membros" },
+  { section: "Principal",  id: "documentos",    icon: "fa-file-pdf",        label: "Documentos" },
   { section: "Páginas",    id: "paginas",       icon: "fa-pen-ruler",       label: "Conteúdo do site" },
+  { section: "Páginas",    id: "links",         icon: "fa-link",            label: "Links Úteis" },
+  { section: "Sistema",    id: "mensagens",     icon: "fa-inbox",           label: "Mensagens" },
   { section: "Sistema",    id: "contato",       icon: "fa-envelope",        label: "Contato" },
   { section: "Sistema",    id: "config",        icon: "fa-sliders",         label: "Configurações" },
 ];
@@ -49,10 +52,12 @@ const SCHEMA_CACHE = {};
 document.addEventListener("DOMContentLoaded", boot);
 
 async function boot() {
+  const token = localStorage.getItem("gear9df_token");
+  if (!token) { location.href = "/login"; return; }
+
   try {
     const session = await apiFetch("/api/auth/session");
-    if (!session.authenticated) { location.href = "/login"; return; }
-    setUserInfo(session.email || "Admin");
+    setUserInfo(session.email || localStorage.getItem("gear9df_user") || "Admin");
     document.getElementById("logout-btn").addEventListener("click", doLogout);
     document.getElementById("save-btn").addEventListener("click", () => doSave());
     document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave(); } });
@@ -75,25 +80,30 @@ function setUserInfo(email) {
 // ── Sidebar ───────────────────────────────────────────────────────
 function buildSidebar() {
   const nav = document.getElementById("sidebar-nav");
+  if (!nav) return;
   const sections = {};
   NAV.forEach(item => {
     sections[item.section] = sections[item.section] || [];
     sections[item.section].push(item);
   });
-  nav.innerHTML = Object.entries(sections).map(([sec, items]) =>
-    `<div class="sb-section">
-      <div class="sb-section-label">${esc(sec)}</div>
-      <div class="sb-section-row">
-        ${items.map(item =>
-          `<div class="sb-item${item.id === PAGE ? " active" : ""}" data-page="${item.id}">
-            <i class="fas ${item.icon}"></i><span>${esc(item.label)}</span>
-          </div>`
-        ).join("")}
+  
+  nav.innerHTML = Object.entries(sections).map(([sec, items]) => `
+    <div class="sb-section-label">${esc(sec)}</div>
+    ${items.map(item => `
+      <div class="sb-item${item.id === PAGE ? " active" : ""}" data-page="${item.id}">
+        <i class="fas ${item.icon}"></i>
+        <span>${esc(item.label)}</span>
       </div>
-    </div>`
-  ).join("");
+    `).join("")}
+  `).join("");
+
   nav.querySelectorAll(".sb-item").forEach(el =>
-    el.addEventListener("click", () => { captureCurrent(); PAGE = el.dataset.page; buildSidebar(); navigate(PAGE); })
+    el.addEventListener("click", () => {
+      captureCurrent();
+      PAGE = el.dataset.page;
+      buildSidebar();
+      navigate(PAGE);
+    })
   );
 }
 
@@ -106,7 +116,10 @@ const PAGE_TITLES = {
   ramos: ["Ramos", "Apresentação das seções por faixa etária"],
   atividades: ["Atividades", "Vivências em destaque no site"],
   membros: ["Membros", "Cadastro interno da equipe"],
+  documentos: ["Documentos", "Upload de PDFs, regimentos e matrizes"],
   paginas: ["Conteúdo do site", "Edite textos e imagens por página"],
+  links: ["Links Úteis", "Adicione atalhos para sistemas regionais ou lojinha"],
+  mensagens: ["Mensagens", "Mensagens recebidas pelo formulário de contato"],
   contato: ["Contato", "Canais e informações de primeira visita"],
   config: ["Configurações", "Identidade e visibilidade do site"],
 };
@@ -131,7 +144,10 @@ function renderPage(page) {
   if (page === "ramos")      return tplRamos();
   if (page === "atividades") return tplAtividades();
   if (page === "membros")    return tplMembros();
+  if (page === "documentos") return tplDocumentos();
   if (page === "paginas")    return tplPaginas();
+  if (page === "links")      return tplLinks();
+  if (page === "mensagens")  return tplMensagens();
   if (page === "contato")    return tplContato();
   if (page === "config")     return tplConfig();
   return "";
@@ -147,43 +163,37 @@ function tplDashboard() {
   const projAbertos = p.projects.filter(pr => pr.status !== "concluido").length;
 
   return `
-  <div class="hero-banner">
-    <h2>Painel central do GEAR 9º DF</h2>
-    <p>Gerencie o site, a agenda e as rotinas do grupo em um único fluxo. Use as frentes de trabalho acima para alternar entre conteúdo, calendário, mídia e configurações.</p>
-    <div class="hero-actions">
-      <button class="btn btn-primary btn-sm" data-nav="paginas"><i class="fas fa-pen-ruler"></i> Editar site</button>
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" data-nav="calendario"><i class="fas fa-calendar-check"></i> Agenda</button>
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" data-nav="config"><i class="fas fa-sliders"></i> Configurações</button>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><strong>${ativos}</strong><span>Membros ativos</span></div>
-      <div class="hero-stat"><strong>${eventos}</strong><span>Eventos em ${MONTHS_SHORT[CAL_MONTH]}/${String(CAL_YEAR).slice(-2)}</span></div>
-      <div class="hero-stat"><strong>${projAbertos}</strong><span>Projetos em andamento</span></div>
+  <div class="hero-banner" style="background: linear-gradient(135deg, var(--c-sidebar) 0%, #1e293b 100%); padding: 40px; border-radius: var(--r-lg); margin-bottom: 32px; box-shadow: var(--sh-md);">
+    <h2 style="font-size: 2rem; margin-bottom: 16px;">Bem-vindo ao Painel do 9º DF</h2>
+    <p style="font-size: 1.1rem; opacity: 0.9; max-width: 800px;">Gerencie todo o conteúdo do site e as rotinas do grupo em um ambiente centralizado e intuitivo.</p>
+    <div class="hero-actions" style="margin-top: 24px;">
+      <button class="btn btn-primary" data-nav="paginas"><i class="fas fa-edit"></i> Editar Site</button>
+      <button class="btn btn-ghost" data-nav="calendario" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff;"><i class="fas fa-calendar-alt"></i> Ver Agenda</button>
     </div>
   </div>
 
-  <div class="grid-3">
-    ${statTile("Membros ativos", ativos, "cadastro atual", "fa-users", "blue")}
-    ${statTile("Fotos na galeria", p.photos.length, "visíveis no site", "fa-images", "green")}
-    ${statTile("Projetos ativos", p.projects.filter(pr => pr.status === "ativo").length, "em andamento", "fa-hands-helping", "amber")}
+  <div class="grid-3" style="margin-bottom: 32px;">
+    ${statTile("Membros Ativos", ativos, "atualmente no grupo", "fa-users", "blue")}
+    ${statTile("Eventos no Mês", eventos, `${MONTHS[CAL_MONTH]} de ${CAL_YEAR}`, "fa-calendar-check", "green")}
+    ${statTile("Projetos em Curso", projAbertos, "em andamento", "fa-tasks", "amber")}
   </div>
 
   <div class="grid-2">
-    <div class="card">
-      <div class="card-head">
+    <div class="card" style="padding: 24px;">
+      <div class="card-head" style="margin-bottom: 20px;">
         <div>
-          <div class="card-title">Próximos eventos</div>
-          <div class="card-desc">Os mais próximos primeiro.</div>
+          <div class="card-title" style="font-size: 1.2rem;">Próximos Eventos</div>
+          <div class="card-desc" style="font-size: 0.9rem;">Agenda imediata do grupo</div>
         </div>
-        <button class="btn btn-ghost btn-sm" data-nav="calendario"><i class="fas fa-arrow-right"></i></button>
+        <button class="btn btn-ghost btn-xs" data-nav="calendario"><i class="fas fa-arrow-right"></i></button>
       </div>
       ${dashboardEvents()}
     </div>
-    <div class="card">
-      <div class="card-head">
+    <div class="card" style="padding: 24px;">
+      <div class="card-head" style="margin-bottom: 20px;">
         <div>
-          <div class="card-title">Distribuição por ramo</div>
-          <div class="card-desc">Membros cadastrados no painel.</div>
+          <div class="card-title" style="font-size: 1.2rem;">Efetivo por Ramo</div>
+          <div class="card-desc" style="font-size: 0.9rem;">Distribuição de membros</div>
         </div>
       </div>
       ${dashboardBranches()}
@@ -411,8 +421,8 @@ function renderGallery() {
       const p = STATE.adminPanel.photos.find(x => x.id === btn.dataset.editPhoto);
       if (!p) return;
       const area = document.getElementById("photo-edit-area");
-      area.innerHTML = `<div class="card" style="margin-top:0">
-        <div class="card-title" style="margin-bottom:12px">Editando: ${esc(p.title)}</div>
+      area.innerHTML = `<div class="card" style="margin-top:0; border: 2px solid var(--c-blue); box-shadow: var(--sh-md);">
+        <div class="card-title" style="margin-bottom:12px; font-weight: 700;">Editando Imagem</div>
         <div class="form-row">
           <div class="fg"><label>Título</label><input id="pe-title" value="${esc(p.title)}"></div>
           <div class="fg"><label>Categoria</label><select id="pe-cat">
@@ -421,9 +431,9 @@ function renderGallery() {
         </div>
         <div class="fg"><label>Caminho da imagem</label><input id="pe-src" value="${esc(p.src)}"></div>
         <div class="fg"><label>Legenda</label><input id="pe-caption" value="${esc(p.caption)}"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-          <button class="btn btn-sm" id="pe-cancel">Cancelar</button>
-          <button class="btn btn-sm btn-primary" id="pe-save">Salvar</button>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+          <button class="btn btn-sm btn-ghost" id="pe-cancel">Cancelar</button>
+          <button class="btn btn-sm btn-primary" id="pe-save">Salvar Alterações</button>
         </div>
       </div>`;
       document.getElementById("pe-cancel").addEventListener("click", () => area.innerHTML = "");
@@ -627,20 +637,19 @@ function renderMembros() {
             { label: m.branch, cls: "badge-gray" },
             { label: m.status, cls: m.status === "ativo" ? "badge-green" : m.status === "pendente" ? "badge-amber" : "badge-red" },
           ],
-          desc: "",
           avatar: { bg, fg, initials: initials(m.name) },
           fields: `
             <div class="form-row">
-              <div class="fg"><label>Nome</label><input data-mb-name="${m.id}" value="${esc(m.name)}"></div>
-              <div class="fg"><label>Ramo</label><select data-mb-branch="${m.id}">
+              <div class="fg"><label>Nome</label><input data-mb-nome="${m.id}" value="${esc(m.name)}"></div>
+              <div class="fg"><label>Ramo</label><select data-mb-ramo="${m.id}">
                 ${["Filhotes","Lobinhos","Escoteiros","Seniores","Pioneiros"].map(b => `<option${m.branch===b?" selected":""}>${b}</option>`).join("")}
               </select></div>
             </div>
             <div class="form-row">
-              <div class="fg"><label>Função</label><select data-mb-role="${m.id}">
+              <div class="fg"><label>Função</label><select data-mb-func="${m.id}">
                 ${["Jovem","Monitor","Chefe"].map(r => `<option${m.role===r?" selected":""}>${r}</option>`).join("")}
               </select></div>
-              <div class="fg"><label>Ingresso</label><input type="number" data-mb-since="${m.id}" value="${esc(m.since)}"></div>
+              <div class="fg"><label>Ingresso</label><input type="number" data-mb-ano="${m.id}" value="${esc(m.since)}"></div>
             </div>
             <div class="fg"><label>Status</label><select data-mb-status="${m.id}">
               ${["ativo","pendente","inativo"].map(s => `<option value="${s}"${m.status===s?" selected":""}>${cap(s)}</option>`).join("")}
@@ -649,13 +658,7 @@ function renderMembros() {
       }).join("")
     : `<div class="empty-state"><i class="fas fa-users"></i><p>${search || branch ? "Nenhum resultado." : "Nenhum membro cadastrado."}</p></div>`;
   bindItemCards("member", id => {
-    const m = STATE.adminPanel.members.find(x => x.id === id);
-    if (!m) return;
-    m.name   = val(`[data-mb-name="${id}"]`, m.name);
-    m.branch = val(`[data-mb-branch="${id}"]`, m.branch);
-    m.role   = val(`[data-mb-role="${id}"]`, m.role);
-    m.since  = val(`[data-mb-since="${id}"]`, m.since);
-    m.status = val(`[data-mb-status="${id}"]`, m.status);
+    captureCurrent();
     renderMembros(); toast("Membro atualizado."); markDirty();
   }, id => {
     STATE.adminPanel.members = STATE.adminPanel.members.filter(m => m.id !== id);
@@ -1111,6 +1114,46 @@ function bindPage(page) {
     });
   }
   if (page === "paginas") initPaginasEditor();
+  if (page === "mensagens") initMensagens();
+  if (page === "documentos") {
+    renderDocumentos();
+    document.getElementById("add-doc-btn")?.addEventListener("click", async () => {
+      const title = document.getElementById("doc-title")?.value.trim();
+      if (!title) { toast("Preencha o título."); return; }
+      const fileInput = document.getElementById("doc-file");
+      const manualSrc = normPath(document.getElementById("doc-manual")?.value || "");
+      let src = manualSrc;
+      if (fileInput?.files?.length) {
+        try {
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+          const data = await apiFetch("/api/admin/upload-doc", { method: "POST", body: formData });
+          src = data.path;
+        } catch { toast("Falha no upload do arquivo."); return; }
+      }
+      if (!src) { toast("Selecione um arquivo ou caminho manual."); return; }
+      STATE.adminPanel.documents.push({
+        id: uid("doc"), title,
+        desc: document.getElementById("doc-desc")?.value.trim() || "",
+        category: document.getElementById("doc-cat")?.value || "Geral", src
+      });
+      closeModal("modal-document"); renderDocumentos(); toast("Documento adicionado."); markDirty();
+    });
+  }
+  if (page === "links") {
+    renderLinks();
+    document.getElementById("add-link-btn")?.addEventListener("click", () => {
+      const title = document.getElementById("lk-title")?.value.trim();
+      const href = document.getElementById("lk-href")?.value.trim();
+      if (!title || !href) { toast("Preencha título e link."); return; }
+      STATE.adminPanel.links.push({
+        id: uid("lk"), title, href,
+        desc: document.getElementById("lk-desc")?.value.trim() || "",
+        icon: document.getElementById("lk-icon")?.value.trim() || "fa-link"
+      });
+      closeModal("modal-link"); renderLinks(); toast("Link adicionado."); markDirty();
+    });
+  }
 }
 
 // ── bindGlobal ────────────────────────────────────────────────────
@@ -1131,10 +1174,93 @@ function bindGlobal() {
 
 // ── Capture current page state ────────────────────────────────────
 function captureCurrent() {
-  if (PAGE === "ramos")   captureBranch();
-  if (PAGE === "paginas") capturePaginasContent();
-  if (PAGE === "contato") captureContato();
-  if (PAGE === "config")  captureConfig();
+  if (PAGE === "ramos")      captureBranch();
+  if (PAGE === "paginas")    capturePaginasContent();
+  if (PAGE === "contato")    captureContato();
+  if (PAGE === "config")     captureConfig();
+  if (PAGE === "calendario") captureEvents();
+  if (PAGE === "galeria")    capturePhotos();
+  if (PAGE === "projetos")   captureProjects();
+  if (PAGE === "atividades") captureActivities();
+  if (PAGE === "membros")    captureMembros();
+  if (PAGE === "documentos") captureDocuments();
+  if (PAGE === "links")      captureLinks();
+}
+
+function captureEvents() {
+  STATE.adminPanel.events.forEach(e => {
+    e.title = val(`[data-ev-title="${e.id}"]`, e.title);
+    e.date = val(`[data-ev-date="${e.id}"]`, e.date);
+    e.type = val(`[data-ev-type="${e.id}"]`, e.type);
+    e.description = val(`[data-ev-desc="${e.id}"]`, e.description);
+  });
+}
+
+function capturePhotos() {
+  STATE.adminPanel.photos.forEach(p => {
+    p.title = val(`[data-ph-title="${p.id}"]`, p.title);
+    p.category = val(`[data-ph-cat="${p.id}"]`, p.category);
+    p.src = normPath(val(`[data-ph-src="${p.id}"]`, p.src));
+    p.caption = val(`[data-ph-caption="${p.id}"]`, p.caption);
+    // Note: Galeria uses specific edit form ID for some logic, 
+    // but captureCurrent uses these data attributes.
+  });
+}
+
+function captureProjects() {
+  STATE.adminPanel.projects.forEach(p => {
+    p.title = val(`[data-proj-title="${p.id}"]`, p.title);
+    p.icon = val(`[data-proj-icon="${p.id}"]`, p.icon);
+    p.status = val(`[data-proj-status="${p.id}"]`, p.status);
+    p.progress = Number(val(`[data-proj-progress="${p.id}"]`, p.progress));
+    p.meta = val(`[data-proj-meta="${p.id}"]`, p.meta);
+    p.description = val(`[data-proj-desc="${p.id}"]`, p.description);
+  });
+}
+
+function captureActivities() {
+  STATE.adminPanel.activities.forEach(a => {
+    a.icon = val(`[data-ativ-icon="${a.id}"]`, a.icon);
+    a.title = val(`[data-ativ-title="${a.id}"]`, a.title);
+    a.description = val(`[data-ativ-desc="${a.id}"]`, a.description);
+  });
+}
+
+function captureMembros() {
+  STATE.adminPanel.members.forEach(m => {
+    m.name = val(`[data-mb-nome="${m.id}"]`, m.name);
+    m.branch = val(`[data-mb-ramo="${m.id}"]`, m.branch);
+    m.role = val(`[data-mb-func="${m.id}"]`, m.role);
+    m.since = val(`[data-mb-ano="${m.id}"]`, m.since);
+    m.status = val(`[data-mb-status="${m.id}"]`, m.status);
+  });
+}
+
+function captureDocuments() {
+  STATE.adminPanel.documents.forEach(d => {
+    d.title = val(`[data-doc-title="${d.id}"]`, d.title);
+    d.category = val(`[data-doc-cat="${d.id}"]`, d.category);
+    d.src = normPath(val(`[data-doc-src="${d.id}"]`, d.src));
+    d.desc = val(`[data-doc-desc="${d.id}"]`, d.desc);
+  });
+}
+
+function captureLinks() {
+  STATE.adminPanel.links.forEach(l => {
+    l.title = val(`[data-lk-title="${l.id}"]`, l.title);
+    l.icon = val(`[data-lk-icon="${l.id}"]`, l.icon);
+    l.href = val(`[data-lk-href="${l.id}"]`, l.href);
+    l.desc = val(`[data-lk-desc="${l.id}"]`, l.desc);
+    
+    // Capture sub-items
+    const subItems = [];
+    document.querySelectorAll(`[data-lk-sub-row="${l.id}"]`).forEach(row => {
+      const label = row.querySelector("[data-lk-sub-label]").value.trim();
+      const href = row.querySelector("[data-lk-sub-href]").value.trim();
+      if (label || href) subItems.push({ label, href });
+    });
+    l.items = subItems;
+  });
 }
 
 function captureBranch() {
@@ -1181,13 +1307,11 @@ async function doSave() {
   SAVING = true;
   setStatus("saving");
   try {
-    const res = await fetch("/api/admin/content", {
+    await apiFetch("/api/admin/content", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(STATE),
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "save_failed");
     DIRTY = false;
     setStatus("ready");
     toast("Alterações salvas com sucesso.");
@@ -1200,7 +1324,8 @@ async function doSave() {
 }
 
 async function doLogout() {
-  await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+  localStorage.removeItem("gear9df_token");
+  localStorage.removeItem("gear9df_user");
   location.href = "/login";
 }
 
@@ -1242,34 +1367,38 @@ function closeModal(id) {
 }
 
 // ── Item card component ───────────────────────────────────────────
-function itemCard({ id, type, title, sub, badges, desc, fields, avatar, icon }) {
+function itemCard({ id, type, title, sub, badges, desc, fields, avatar, icon, children }) {
   const badgeHtml = (badges || []).filter(Boolean).map(b => `<span class="badge ${b.cls || "badge-gray"}">${esc(typeof b === "string" ? b : b.label)}</span>`).join("");
   const leftMedia = avatar
-    ? `<div style="width:36px;height:36px;border-radius:var(--r-sm);background:${avatar.bg};color:${avatar.fg};display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0">${esc(avatar.initials)}</div>`
+    ? `<div class="sb-avatar" style="background:${avatar.bg};color:${avatar.fg};width:40px;height:40px;font-size:14px;">${esc(avatar.initials)}</div>`
     : icon
-    ? `<div style="font-size:18px;flex-shrink:0">${esc(icon)}</div>`
+    ? `<div style="font-size:24px;color:var(--c-blue);"><i class="fas ${icon}"></i></div>`
     : "";
-  return `<div class="item-card" data-card="${type}:${id}">
-    <div class="item-card-view" data-view>
-      <div style="display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0">
-        ${leftMedia}
-        <div style="flex:1;min-width:0">
-          <div class="item-title">${esc(title)}</div>
-          <div class="item-sub">${esc(sub || "")}</div>
-          <div class="item-meta">${badgeHtml}</div>
-          ${desc ? `<div class="item-desc">${esc(desc)}</div>` : ""}
+
+  return `
+  <div class="item-card" data-card="${type}:${id}" style="margin-bottom: 16px;">
+    <div class="item-card-view" data-view style="padding: 20px; display: flex; align-items: start; gap: 20px;">
+      ${leftMedia ? `<div class="item-media">${leftMedia}</div>` : ""}
+      <div style="flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div class="item-title" style="font-size: 1.1rem; color: var(--c-ink);">${esc(title)}</div>
+          <div class="item-actions">
+            <button class="btn btn-xs btn-ghost" data-edit-card="${type}:${id}"><i class="fas fa-pen"></i> Editar</button>
+            <button class="btn btn-xs btn-danger" data-del-card="${type}:${id}"><i class="fas fa-trash"></i></button>
+          </div>
         </div>
-      </div>
-      <div class="item-actions">
-        <button class="btn btn-xs" data-edit-card="${type}:${id}"><i class="fas fa-pen"></i></button>
-        <button class="btn btn-xs btn-danger" data-del-card="${type}:${id}"><i class="fas fa-trash"></i></button>
+        ${sub ? `<div class="item-sub" style="color: var(--c-ink-3); font-size: 0.9rem; margin-top: 4px;">${esc(sub)}</div>` : ""}
+        <div class="item-meta" style="margin-top: 8px;">${badgeHtml}</div>
+        ${desc ? `<div class="item-desc" style="margin-top: 12px; font-size: 0.95rem; line-height: 1.6;">${esc(desc)}</div>` : ""}
+        ${children ? `<div class="item-children" style="margin-top: 16px; border-top: 1px solid var(--c-border); padding-top: 16px;">${children}</div>` : ""}
       </div>
     </div>
-    <div class="item-edit-form" data-edit style="display:none">
+    <div class="item-edit-form" data-edit style="display:none; padding: 24px; background: #f8fafc; border-top: 1px solid var(--c-border);">
+      <div style="font-weight: 700; margin-bottom: 20px; color: var(--c-ink);">Editando item</div>
       ${fields}
-      <div class="item-edit-footer">
-        <button class="btn btn-xs" data-cancel-card="${type}:${id}">Cancelar</button>
-        <button class="btn btn-xs btn-primary" data-save-card="${type}:${id}"><i class="fas fa-floppy-disk"></i> Salvar</button>
+      <div class="item-edit-footer" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--c-border);">
+        <button class="btn btn-sm btn-ghost" data-cancel-card="${type}:${id}">Cancelar</button>
+        <button class="btn btn-sm btn-primary" data-save-card="${type}:${id}"><i class="fas fa-check"></i> Salvar Alterações</button>
       </div>
     </div>
   </div>`;
@@ -1315,6 +1444,8 @@ function ensureState() {
   p.projects = Array.isArray(p.projects) ? p.projects : [];
   p.activities = Array.isArray(p.activities) ? p.activities : [];
   p.members = Array.isArray(p.members) ? p.members : [];
+  p.documents = Array.isArray(p.documents) ? p.documents : [];
+  p.links = Array.isArray(p.links) ? p.links : [];
   p.branches = p.branches || {
     filhotes: { name: "Filhotes", age: "5 a 7 anos", short: "Primeiros passos no escotismo.", long: "", bullets: [] },
     lobinhos: { name: "Lobinhos", age: "7 a 10 anos", short: "Alcateia com amizade e responsabilidade.", long: "", bullets: [] },
@@ -1358,7 +1489,7 @@ function cap(s) { return String(s||"").charAt(0).toUpperCase() + String(s||"").s
 function hashStr(s) { return String(s||"").split("").reduce((a,c) => (((a<<5)-a)+c.charCodeAt(0))|0,0)>>>0; }
 function initials(name) { return String(name||"").trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||"").join("") || "??"; }
 function normPath(s) { return String(s||"").trim().replace(/\\/g,"/").replace(/^\/+/,""); }
-function isSafeImagePath(s) { return /^[a-z0-9/_\-.]+$/.test(normPath(s)) && GALLERY_EXTENSIONS.includes(normPath(s).split(".").pop()?.toLowerCase()); }
+function isSafeImagePath(s) { return /^[a-z0-9/._-]+$/.test(normPath(s)) && GALLERY_EXTENSIONS.includes(normPath(s).split(".").pop()?.toLowerCase()); }
 function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function fmtDate(s) { if (!s) return ""; const [y,m,d] = String(s).split("-"); return `${d}/${m}/${y}`; }
 function typeColor(t) { return t==="regional"?"var(--c-amber)":t==="nacional"?"var(--c-red)":"var(--c-green)"; }
@@ -1368,8 +1499,242 @@ function cssescape(s) { return (window.CSS?.escape?.(s)) ?? String(s).replace(/[
 function val(sel, fallback="") { const el = document.querySelector(sel); return el ? el.value.trim() : fallback; }
 
 async function apiFetch(url, opts={}) {
-  const res = await fetch(url, { cache:"no-store", ...opts, headers: { Accept:"application/json", ...(opts.headers||{}) } });
-  const data = await res.json().catch(()=>({}));
+  const token = localStorage.getItem("gear9df_token");
+  const headers = {
+    "Accept": "application/json",
+    ...(opts.headers || {})
+  };
+
+  // Skip Content-Type if body is FormData
+  if (opts.body instanceof FormData) {
+    delete headers["Content-Type"];
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    cache: "no-store",
+    ...opts,
+    headers: headers
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem("gear9df_token");
+    location.href = "/login";
+    throw new Error("unauthorized");
+  }
+
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `http_${res.status}`);
   return data;
+}
+
+// ── Modals Append ─────────────────────────────────────────────────
+const originalRenderModals = renderModals;
+renderModals = function() {
+  originalRenderModals();
+  const root = document.getElementById("modal-root");
+  root.innerHTML += modal(
+    "modal-document", "Novo Documento",
+    `<div class="form-row">
+      <div class="fg"><label>Título</label><input id="doc-title"></div>
+      <div class="fg"><label>Categoria</label><select id="doc-cat"><option>Regimento</option><option>Estatuto</option><option>Geral</option><option>Modelo</option></select></div>
+    </div>
+    <div class="fg"><label>Arquivo do documento</label><input type="file" id="doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx"></div>
+    <div class="fg"><label>Caminho manual (se preferir)</label><input id="doc-manual" placeholder="docs/arquivo.pdf"></div>
+    <div class="fg"><label>Descrição (opcional)</label><textarea id="doc-desc" rows="2"></textarea></div>`,
+    "add-doc-btn", "Adicionar"
+  ) + modal(
+    "modal-link", "Novo Link",
+    `<div class="form-row">
+      <div class="fg"><label>Título</label><input id="lk-title"></div>
+      <div class="fg"><label>Ícone FA (ex: fa-sitemap)</label><input id="lk-icon" value="fa-link"></div>
+    </div>
+    <div class="fg"><label>URL (destino)</label><input id="lk-href" placeholder="https://..."></div>
+    <div class="fg"><label>Descrição (opcional)</label><input id="lk-desc"></div>`,
+    "add-link-btn", "Criar"
+  );
+};
+
+// ── Template: Mensagens ───────────────────────────────────────────
+function tplMensagens() {
+  return `
+  <div class="hero-banner">
+    <h2>Mensagens de Contato</h2>
+    <p>Visualize as mensagens recebidas pelo site.</p>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <div id="mensagens-list" class="items-list">
+      <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Carregando mensagens...</p></div>
+    </div>
+  </div>`;
+}
+
+async function initMensagens() {
+  const list = document.getElementById("mensagens-list");
+  if (!list) return;
+  try {
+    const res = await apiFetch("/api/admin/messages");
+    if (!res.messages || !res.messages.length) {
+      list.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Nenhuma mensagem recebida ainda.</p></div>`;
+      return;
+    }
+    list.innerHTML = res.messages.map(m => `
+      <div style="padding:16px;border-bottom:1px solid var(--c-border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong style="color:var(--c-ink);font-size:15px;">${esc(m.subject || "Sem assunto")}</strong>
+          <span style="font-size:12px;color:var(--c-ink-3);">${new Date(m.date).toLocaleString()}</span>
+        </div>
+        <div style="margin-bottom:8px;font-size:13px;color:var(--c-ink-2);">
+          De: <strong>${esc(m.name)}</strong> (${esc(m.email)})
+        </div>
+        <div style="font-size:14px;color:var(--c-ink);white-space:pre-wrap;background:var(--c-surface);padding:12px;border-radius:var(--r-md);">${esc(m.message)}</div>
+      </div>
+    `).join("");
+  } catch (err) {
+    list.innerHTML = `<div class="notice notice-warn">Falha ao carregar as mensagens.</div>`;
+  }
+}
+
+// ── Template: Documentos ──────────────────────────────────────────
+function tplDocumentos() {
+  return `
+  <div class="hero-banner">
+    <h2>Documentos</h2>
+    <p>Upload de PDFs, regimentos internos, matrizes de atividades e cronogramas.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-document"><i class="fas fa-file-pdf"></i> Novo documento</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Arquivos disponíveis</div></div>
+    <div id="docs-list" class="items-list"></div>
+  </div>`;
+}
+
+function renderDocumentos() {
+  const list = document.getElementById("docs-list");
+  if (!list) return;
+  list.innerHTML = STATE.adminPanel.documents.length
+    ? STATE.adminPanel.documents.map(d => itemCard({
+        id: d.id, type: "document",
+        title: d.title, sub: d.category,
+        badges: [{ label: d.category, cls: "badge-blue" }],
+        desc: d.desc,
+        icon: "fa-file-lines",
+        fields: `
+          <div class="form-row">
+            <div class="fg"><label>Título</label><input data-doc-title="${d.id}" value="${esc(d.title)}"></div>
+            <div class="fg"><label>Categoria</label><input data-doc-cat="${d.id}" value="${esc(d.category)}"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>Caminho/URL do arquivo</label><input data-doc-src="${d.id}" value="${esc(d.src)}"></div>
+          </div>
+          <div class="fg"><label>Descrição</label><textarea rows="2" data-doc-desc="${d.id}">${esc(d.desc)}</textarea></div>`
+      })).join("")
+    : `<div class="empty-state"><i class="fas fa-file-pdf"></i><p>Nenhum documento cadastrado.</p></div>`;
+  bindItemCards("document", id => {
+    const d = STATE.adminPanel.documents.find(x => x.id === id);
+    if (!d) return;
+    d.title = val(`[data-doc-title="${id}"]`, d.title);
+    d.category = val(`[data-doc-cat="${id}"]`, d.category);
+    d.src = normPath(val(`[data-doc-src="${id}"]`, d.src));
+    d.desc = val(`[data-doc-desc="${id}"]`, d.desc);
+    renderDocumentos(); toast("Documento atualizado."); markDirty();
+  }, id => {
+    STATE.adminPanel.documents = STATE.adminPanel.documents.filter(d => d.id !== id);
+    renderDocumentos(); toast("Documento removido."); markDirty();
+  });
+}
+
+// ── Template: Links ───────────────────────────────────────────────
+function tplLinks() {
+  return `
+  <div class="hero-banner">
+    <h2>Links Úteis</h2>
+    <p>Atalhos rápidos para sistemas do escotismo (Paxtu, mAPPa) ou outros sites relacionados.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-link"><i class="fas fa-link"></i> Novo link</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Atalhos configurados</div></div>
+    <div id="links-list" class="items-list"></div>
+  </div>`;
+}
+
+function renderLinks() {
+  const list = document.getElementById("links-list");
+  if (!list) return;
+  list.innerHTML = STATE.adminPanel.links.length
+    ? STATE.adminPanel.links.map(l => {
+        const subItemsHtml = (l.items || []).map(item => `
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--c-ink-2); margin-top: 4px;">
+            <i class="fas fa-caret-right" style="color: var(--c-blue); opacity: 0.5;"></i>
+            <strong>${esc(item.label)}:</strong>
+            <span style="text-decoration: underline; opacity: 0.8;">${esc(item.href)}</span>
+          </div>
+        `).join("");
+
+        const subItemsFields = (l.items || []).map((item, idx) => `
+          <div style="display: flex; gap: 10px; margin-bottom: 8px;" data-lk-sub-row="${l.id}">
+            <input placeholder="Rótulo (ex: Instagram)" data-lk-sub-label value="${esc(item.label)}" style="flex: 1;">
+            <input placeholder="URL" data-lk-sub-href value="${esc(item.href)}" style="flex: 2;">
+            <button class="btn btn-xs btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+          </div>
+        `).join("");
+
+        return itemCard({
+          id: l.id, type: "link",
+          title: l.title, sub: l.href || (l.items && l.items.length ? `${l.items.length} sub-links` : "Sem destino"),
+          badges: [], desc: l.desc, icon: l.icon || "fa-link",
+          children: subItemsHtml ? `<div style="margin-top: 10px;">${subItemsHtml}</div>` : "",
+          fields: `
+            <div class="form-row">
+              <div class="fg"><label>Título do Grupo</label><input data-lk-title="${l.id}" value="${esc(l.title)}"></div>
+              <div class="fg"><label>Ícone FA</label><input data-lk-icon="${l.id}" value="${esc(l.icon)}"></div>
+            </div>
+            <div class="fg"><label>Destino Principal (opcional se houver sub-links)</label><input data-lk-href="${l.id}" value="${esc(l.href)}"></div>
+            <div class="fg"><label>Descrição</label><input data-lk-desc="${l.id}" value="${esc(l.desc)}"></div>
+            
+            <div style="margin-top: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--c-ink-3);">Sub-links de atalho</label>
+                <button class="btn btn-xs btn-ghost" onclick="addLinkSubItem('${l.id}')"><i class="fas fa-plus"></i> Novo sub-link</button>
+              </div>
+              <div id="lk-subs-${l.id}">${subItemsFields}</div>
+            </div>`
+        });
+      }).join("")
+    : `<div class="empty-state"><i class="fas fa-link"></i><p>Nenhum link adicionado.</p></div>`;
+
+  bindItemCards("link", id => {
+    captureCurrent(); // Ensure we capture the latest sub-items
+    renderLinks(); 
+    toast("Link atualizado."); 
+    markDirty();
+  }, id => {
+    STATE.adminPanel.links = STATE.adminPanel.links.filter(l => l.id !== id);
+    renderLinks(); 
+    toast("Link removido."); 
+    markDirty();
+  });
+}
+
+function addLinkSubItem(linkId) {
+  const container = document.getElementById(`lk-subs-${linkId}`);
+  if (!container) return;
+  const div = document.createElement("div");
+  div.style.display = "flex";
+  div.style.gap = "10px";
+  div.style.marginBottom = "8px";
+  div.setAttribute("data-lk-sub-row", linkId);
+  div.innerHTML = `
+    <input placeholder="Rótulo" data-lk-sub-label style="flex: 1;">
+    <input placeholder="URL" data-lk-sub-href style="flex: 2;">
+    <button class="btn btn-xs btn-danger btn-icon" onclick="this.parentElement.remove()"><i class="fas fa-trash"></i></button>
+  `;
+  container.appendChild(div);
 }

@@ -2,9 +2,13 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const express = require("express");
-const session = require("express-session");
+const jwt = require("jsonwebtoken");
+const cors = require("cors");
 const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const BASE_DIR = __dirname;
 const LOCAL_ENV_PATH = path.join(BASE_DIR, ".env.local");
@@ -18,14 +22,28 @@ if (fs.existsSync(LOCAL_ENV_PATH)) {
 const app = express();
 const CONTENT_PATH = path.join(BASE_DIR, "site_content.json");
 const ADMINS_PATH = path.join(BASE_DIR, "admin_auth.json");
+const MESSAGES_PATH = path.join(BASE_DIR, "contact_messages.json");
 const PORT = Number(process.env.PORT || 5000);
 const HOST = process.env.HOST || "0.0.0.0";
 const DB_MODE = (process.env.DB_MODE || "file").toLowerCase();
-const SESSION_SECRET = process.env.SESSION_SECRET || "gear9df-dev-secret-change-me";
+const JWT_SECRET = process.env.JWT_SECRET || "gear9df-dev-secret-change-me";
+
+// ── Cloudinary Config ─────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const UPLOAD_DIR = path.join(BASE_DIR, "images", "galeria");
+const UPLOAD_DOCS_DIR = path.join(BASE_DIR, "docs");
 
 const ALLOWED_IMAGE_EXTENSIONS = new Set([".webp", ".jpg", ".jpeg", ".png", ".svg"]);
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const LINUX_SAFE_IMAGE_RE = /^images\/[a-z0-9/_-]+\.(webp|jpg|jpeg|png|svg)$/;
+
+const ALLOWED_DOC_EXTENSIONS = new Set([".pdf", ".doc", ".docx", ".xls", ".xlsx"]);
+const MAX_DOC_BYTES = 15 * 1024 * 1024;
 
 const PUBLIC_PAGES = new Set([
   "index.html",
@@ -57,19 +75,37 @@ const ADMIN_PAGES = {
 
 let pool = null;
 
-app.use(express.json({ limit: "2mb" }));
-app.use(
-  session({
-    secret: SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-    },
-  })
-);
+app.use(cors());
+app.use(express.json({ limit: "4mb" }));
+
+// ── Multer upload config ──────────────────────────────────────────
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+if (!fs.existsSync(UPLOAD_DOCS_DIR)) {
+  fs.mkdirSync(UPLOAD_DOCS_DIR, { recursive: true });
+}
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "gear9df/galeria",
+    allowed_formats: ["jpg", "png", "webp", "svg"],
+  },
+});
+
+const upload = multer({ storage: storage });
+
+const docStorage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "gear9df/documentos",
+    allowed_formats: ["pdf", "doc", "docx", "xls", "xlsx"],
+    resource_type: "raw", // Needed for non-image files
+  },
+});
+
+const uploadDoc = multer({ storage: docStorage });
 
 function parseArgs(argv) {
   const args = argv.slice(2);
@@ -286,12 +322,14 @@ function validateGalleryPhoto(photo) {
     throw new Error("invalid_gallery_photo:caminho fora da pasta images");
   }
 
-  if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
-    throw new Error("invalid_gallery_photo:arquivo nao encontrado");
-  }
-
-  if (fs.statSync(fullPath).size > MAX_IMAGE_BYTES) {
-    throw new Error("invalid_gallery_photo:arquivo acima de 2 MB");
+  const fileExists = fs.existsSync(fullPath) && fs.statSync(fullPath).isFile();
+  if (!fileExists) {
+    console.warn(`[Gallery] Arquivo não encontrado fisicamente (ignorado no salvamento): ${src}`);
+  } else {
+    // Only check size if file actually exists
+    if (fs.statSync(fullPath).size > MAX_IMAGE_BYTES) {
+      throw new Error("invalid_gallery_photo:arquivo acima de 2 MB");
+    }
   }
 
   return {
@@ -303,26 +341,27 @@ function validateGalleryPhoto(photo) {
   };
 }
 
-function isAuthenticated(req) {
-  return Boolean(req.session && req.session.adminEmail);
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) return res.status(401).json({ ok: false, error: "unauthorized" });
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ ok: false, error: "forbidden" });
+    req.adminEmail = decoded.email;
+    next();
+  });
 }
 
-function loginRequired(req, res, next) {
-  if (!isAuthenticated(req)) {
-    return res.status(401).json({ ok: false, error: "unauthorized" });
-  }
-  next();
-}
+const loginRequired = authenticateToken;
 
 app.get("/login", (_req, res) => {
   res.sendFile(path.join(BASE_DIR, "login.html"));
 });
 
 app.get("/admin", (req, res) => {
-  if (!isAuthenticated(req)) {
-    const nextPage = req.query.page || "index.html";
-    return res.redirect(`/login?next=${encodeURIComponent(nextPage)}`);
-  }
+  // We keep this simple since frontend handles token
   return res.sendFile(path.join(BASE_DIR, "admin.html"));
 });
 
@@ -345,23 +384,17 @@ app.post("/api/auth/login", async (req, res, next) => {
       return res.status(401).json({ ok: false, error: "invalid_credentials" });
     }
 
-    req.session.adminEmail = admin.email;
-    return res.json({ ok: true, email: admin.email });
+    const token = jwt.sign({ email: admin.email }, JWT_SECRET, { expiresIn: "7d" });
+    return res.json({ ok: true, email: admin.email, token });
   } catch (error) {
     return next(error);
   }
 });
 
-app.post("/api/auth/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.json({ ok: true });
-  });
-});
-
-app.get("/api/auth/session", (req, res) => {
+app.get("/api/auth/session", authenticateToken, (req, res) => {
   res.json({
-    authenticated: isAuthenticated(req),
-    email: req.session?.adminEmail || null,
+    authenticated: true,
+    email: req.adminEmail,
   });
 });
 
@@ -396,6 +429,129 @@ app.post("/api/admin/content", loginRequired, async (req, res, next) => {
 
 app.get("/api/admin/pages", loginRequired, (_req, res) => {
   res.json({ pages: ADMIN_PAGES });
+});
+
+// ── Image upload ──────────────────────────────────────────────────
+app.post("/api/admin/upload", loginRequired, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, error: "Nenhum arquivo enviado." });
+  }
+  res.json({ ok: true, path: req.file.path, filename: req.file.filename });
+});
+
+app.post("/api/admin/upload-doc", loginRequired, uploadDoc.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, error: "Nenhum arquivo enviado." });
+  }
+  res.json({ ok: true, path: req.file.path, filename: req.file.filename });
+});
+
+// ── Contact messages (public) ─────────────────────────────────────
+app.post("/api/contact", async (req, res, next) => {
+  try {
+    const { name, email, subject, message } = req.body || {};
+    if (!name || !email || !message) {
+      return res.status(400).json({ ok: false, error: "missing_fields" });
+    }
+
+    const msg = {
+      id: "msg-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: String(name).trim().slice(0, 200),
+      email: String(email).trim().slice(0, 200),
+      subject: String(subject || "Contato pelo site").trim().slice(0, 200),
+      message: String(message).trim().slice(0, 5000),
+      date: new Date().toISOString(),
+      read: false,
+    };
+
+    if (DB_MODE === "mysql") {
+      await pool.query(
+        `CREATE TABLE IF NOT EXISTS contact_messages (
+          id VARCHAR(30) PRIMARY KEY,
+          name VARCHAR(200) NOT NULL,
+          email VARCHAR(200) NOT NULL,
+          subject VARCHAR(200),
+          message TEXT NOT NULL,
+          date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          is_read TINYINT(1) NOT NULL DEFAULT 0
+        )`
+      );
+      await pool.query(
+        "INSERT INTO contact_messages (id, name, email, subject, message, is_read) VALUES (?, ?, ?, ?, ?, 0)",
+        [msg.id, msg.name, msg.email, msg.subject, msg.message]
+      );
+    } else {
+      const messages = readJsonFile(MESSAGES_PATH, { messages: [] });
+      if (!Array.isArray(messages.messages)) messages.messages = [];
+      messages.messages.push(msg);
+      writeJsonFile(MESSAGES_PATH, messages);
+    }
+
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ── Admin messages ────────────────────────────────────────────────
+app.get("/api/admin/messages", loginRequired, async (_req, res, next) => {
+  try {
+    if (DB_MODE === "mysql") {
+      const [rows] = await pool.query("SELECT * FROM contact_messages ORDER BY date DESC");
+      return res.json({ messages: rows });
+    }
+    const data = readJsonFile(MESSAGES_PATH, { messages: [] });
+    const msgs = Array.isArray(data.messages) ? data.messages : [];
+    msgs.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    res.json({ messages: msgs });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/admin/messages/:id/read", loginRequired, async (req, res, next) => {
+  try {
+    const msgId = req.params.id;
+    if (DB_MODE === "mysql") {
+      await pool.query("UPDATE contact_messages SET is_read = 1 WHERE id = ?", [msgId]);
+      return res.json({ ok: true });
+    }
+    const data = readJsonFile(MESSAGES_PATH, { messages: [] });
+    const msg = (data.messages || []).find((m) => m.id === msgId);
+    if (msg) msg.read = true;
+    writeJsonFile(MESSAGES_PATH, data);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/admin/messages/:id", loginRequired, async (req, res, next) => {
+  try {
+    const msgId = req.params.id;
+    if (DB_MODE === "mysql") {
+      await pool.query("DELETE FROM contact_messages WHERE id = ?", [msgId]);
+      return res.json({ ok: true });
+    }
+    const data = readJsonFile(MESSAGES_PATH, { messages: [] });
+    data.messages = (data.messages || []).filter((m) => m.id !== msgId);
+    writeJsonFile(MESSAGES_PATH, data);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ── Export data ───────────────────────────────────────────────────
+app.get("/api/admin/export", loginRequired, async (_req, res, next) => {
+  try {
+    const content = await loadContent();
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="backup_9df_${new Date().toISOString().slice(0, 10)}.json"`);
+    res.json(content);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/", (_req, res) => {

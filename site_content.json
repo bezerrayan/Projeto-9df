@@ -19,9 +19,7 @@
       "extras": []
     },
     "index.html": {
-      "text": {
-        "section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > h1:nth-of-type(1)": "Aprender  Fazendo \nCrescer \nVivendo"
-      },
+      "text": {},
       "images": {},
       "sections": {},
       "extras": []
@@ -100,6 +98,13 @@
         "title": "Atividade das seções",
         "type": "grupo",
         "description": ""
+      },
+      {
+        "id": "ev-24mp78f",
+        "date": "2026-04-04",
+        "title": "Atividade de Seções",
+        "type": "grupo",
+        "description": "Clã de Pioneiros vai participar de uma atividade externa"
       }
     ],
     "photos": [
@@ -315,6 +320,80 @@
         "contactForm": true
       }
     },
-    "iaHistory": []
+    "iaHistory": [],
+    "documents": [],
+    "links": [
+      {
+        "id": "lk-df",
+        "title": "Escoteiros do DF",
+        "desc": "Portal da Região Escoteira do Distrito Federal com notícias, formações e agenda regional.",
+        "icon": "fa-map-marked-alt",
+        "items": [
+          {
+            "label": "Portal Oficial da Regional",
+            "href": "https://escoteirosdf.org.br/"
+          },
+          {
+            "label": "Contato e Canais Oficiais",
+            "href": "https://escoteirosdf.org.br/contato"
+          },
+          {
+            "label": "Atualização do P.O.R.",
+            "href": "https://escoteirosdf.org.br/por"
+          }
+        ],
+        "href": ""
+      },
+      {
+        "id": "lk-br",
+        "title": "Escoteiros do Brasil",
+        "desc": "Referências nacionais, documentos oficiais e conteúdos institucionais do movimento escoteiro.",
+        "icon": "fa-compass",
+        "items": [
+          {
+            "label": "Portal Nacional",
+            "href": "https://www.escoteiros.org.br/"
+          },
+          {
+            "label": "P.O.R. 2025",
+            "href": "https://www.escoteiros.org.br/por"
+          },
+          {
+            "label": "Sobre o Escotismo",
+            "href": "https://www.escoteiros.org.br/sobre"
+          }
+        ],
+        "href": ""
+      },
+      {
+        "id": "lk-loja",
+        "title": "Loja Escoteira",
+        "desc": "Loja oficial para uniformes, distintivos e materiais úteis para o dia a dia do grupo.",
+        "icon": "fa-store",
+        "items": [
+          {
+            "label": "Loja Oficial",
+            "href": "https://loja.escoteiros.org.br/"
+          },
+          {
+            "label": "Sobre a Loja Escoteira",
+            "href": "https://loja.escoteiros.org.br/sobre"
+          },
+          {
+            "label": "Exemplo de Distintivo Oficial",
+            "href": "https://loja.escoteiros.org.br/distintivo"
+          }
+        ],
+        "href": ""
+      },
+      {
+        "id": "lk-hajtica",
+        "title": "L4CKOS",
+        "href": "https://l4ckos.com.br/contato",
+        "desc": "Site parceiro",
+        "icon": "fa-shirt",
+        "items": []
+      }
+    ]
   }
 }
