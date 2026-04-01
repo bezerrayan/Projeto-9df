@@ -71,13 +71,27 @@ async function init() {
       } catch (e) {}
     }
 
-    const [contentRows] = await pool.query("SELECT id FROM site_content WHERE id = 1 LIMIT 1");
-    if (!contentRows.length) {
+    const [contentRows] = await pool.query("SELECT content_json FROM site_content WHERE id = 1 LIMIT 1");
+    let needsContentUpdate = !contentRows.length;
+    
+    // Se a tabela já existir mas estiver com o conteúdo padrão "vazio", vamos forçar a migração do JSON
+    if (contentRows.length) {
+      const currentContent = JSON.parse(contentRows[0].content_json);
+      if (!currentContent.adminPanel || (!currentContent.adminPanel.links || currentContent.adminPanel.links.length === 0)) {
+        needsContentUpdate = true;
+        console.log("[DB] Banco detectado como vazio de links. Forçando atualização do JSON...");
+      }
+    }
+
+    if (needsContentUpdate) {
       let initialContent = { pages: {}, adminPanel: {} };
       if (fs.existsSync(CONTENT_PATH)) {
-        try { initialContent = JSON.parse(fs.readFileSync(CONTENT_PATH, 'utf8')); } catch (e) {}
+        try { 
+          initialContent = JSON.parse(fs.readFileSync(CONTENT_PATH, 'utf8')); 
+          await pool.query("INSERT INTO site_content (id, content_json) VALUES (1, ?) ON DUPLICATE KEY UPDATE content_json = ?", [JSON.stringify(initialContent), JSON.stringify(initialContent)]);
+          console.log("[DB] Conteúdo do site sincronizado com sucesso do JSON.");
+        } catch (e) { console.error("[DB] Falha ao sincronizar JSON:", e.message); }
       }
-      await pool.query("INSERT INTO site_content (id, content_json) VALUES (1, ?)", [JSON.stringify(initialContent)]);
     }
 
     const [msgRows] = await pool.query("SELECT id FROM contact_messages LIMIT 1");
