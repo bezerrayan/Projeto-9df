@@ -70,10 +70,11 @@ async function boot() {
       if (!fileInput || !fileInput.files?.length) return;
       const targetId  = fileInput.dataset.targetId;
       const targetSel = fileInput.dataset.targetSel;
+      const previewId = fileInput.dataset.previewId;
       const target = targetId
         ? document.getElementById(targetId)
         : (targetSel ? document.querySelector(targetSel) : null);
-      if (!target) { toast("Campo de destino não encontrado."); return; }
+      
       try {
         const formData = new FormData();
         formData.append("image", fileInput.files[0]);
@@ -1146,7 +1147,12 @@ function bindPage(page) {
           const data = await window.apiFetch("/admin/upload/image", { method: "POST", body: formData });
           src = data.path;
           if (statusEl) statusEl.textContent = "✓ Enviada";
-        } catch { toast("Falha no upload da imagem."); return; }
+        } catch {
+          const statusEl = document.getElementById("ph-upload-status");
+          if (statusEl) statusEl.textContent = "⚠️ Upload falhou";
+          if (!src) { toast("Upload falhou e nenhuma URL manual foi informada."); return; }
+          toast("Upload falhou — usando URL manual como fallback.");
+        }
       }
       if (!src) { toast("Selecione uma imagem ou informe o caminho."); return; }
       STATE.adminPanel.photos.push({ id: uid("ph"), title, category: document.getElementById("ph-cat")?.value || "atividade", src, caption: document.getElementById("ph-caption")?.value.trim() || title });
@@ -1230,9 +1236,13 @@ function bindPage(page) {
           formData.append("file", fileInput.files[0]);
           const data = await window.apiFetch("/admin/upload/document", { method: "POST", body: formData });
           src = data.path;
-        } catch { toast("Falha no upload do arquivo."); return; }
+        } catch {
+          if (!manualSrc) { toast("Upload falhou. Configure o Cloudinary ou insira um caminho manual."); return; }
+          toast("Upload falhou — usando caminho manual como fallback.");
+          src = manualSrc;
+        }
       }
-      if (!src) { toast("Selecione um arquivo ou caminho manual."); return; }
+      if (!src) { toast("Selecione um arquivo ou preencha o caminho manual."); return; }
       STATE.adminPanel.documents.push({
         id: uid("doc"), title,
         desc: document.getElementById("doc-desc")?.value.trim() || "",
