@@ -42,13 +42,15 @@ async function sendContactMessage(req, res, next) {
             fs.writeFileSync(db.paths.messages, JSON.stringify(data, null, 2));
         }
 
-        try {
-            await contactMailService.sendContactNotification(msg);
-        } catch (mailError) {
-            console.error('[CONTACT EMAIL ERROR]', mailError.message);
-        }
-
         res.json({ ok: true });
+
+        setImmediate(async () => {
+            try {
+                await contactMailService.sendContactNotification(msg);
+            } catch (mailError) {
+                console.error('[CONTACT EMAIL ERROR]', mailError.message);
+            }
+        });
     } catch (error) {
         next(error);
     }
