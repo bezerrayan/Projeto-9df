@@ -1934,15 +1934,82 @@ async function initMensagens() {
     list.innerHTML = res.messages.map(m => `
       <div style="padding:16px;border-bottom:1px solid var(--c-border);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong style="color:var(--c-ink);font-size:15px;">${esc(m.subject || "Sem assunto")}</strong>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <strong style="color:var(--c-ink);font-size:15px;">${esc(m.subject || "Sem assunto")}</strong>
+            <span class="badge ${m.is_read ? "badge-green" : "badge-amber"}">${m.is_read ? "Lida" : "Nova"}</span>
+          </div>
           <span style="font-size:12px;color:var(--c-ink-3);">${new Date(m.date).toLocaleString()}</span>
         </div>
         <div style="margin-bottom:8px;font-size:13px;color:var(--c-ink-2);">
           De: <strong>${esc(m.name)}</strong> (${esc(m.email)})
         </div>
         <div style="font-size:14px;color:var(--c-ink);white-space:pre-wrap;background:var(--c-surface);padding:12px;border-radius:var(--r-md);">${esc(m.message)}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <button class="btn btn-xs btn-ghost" data-msg-reply-toggle="${esc(m.id)}"><i class="fas fa-reply"></i> Responder</button>
+          ${m.is_read ? "" : `<button class="btn btn-xs btn-ghost" data-msg-read="${esc(m.id)}"><i class="fas fa-envelope-open"></i> Marcar como lida</button>`}
+          <a class="btn btn-xs btn-ghost" href="mailto:${esc(m.email)}?subject=${encodeURIComponent(`Re: ${m.subject || "Contato pelo site"}`)}"><i class="fas fa-paper-plane"></i> Abrir no e-mail</a>
+        </div>
+        <div id="reply-box-${esc(m.id)}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--c-border);border-radius:var(--r-md);background:#f8fbff;">
+          <div class="fg"><label>Assunto da resposta</label><input id="reply-subject-${esc(m.id)}" value="${esc(`Re: ${m.subject || "Contato pelo site"}`)}"></div>
+          <div class="fg"><label>Mensagem</label><textarea id="reply-body-${esc(m.id)}" rows="5" placeholder="Escreva a resposta para ${esc(m.name)}..."></textarea></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
+            <button class="btn btn-xs btn-ghost" data-msg-reply-cancel="${esc(m.id)}">Cancelar</button>
+            <button class="btn btn-xs btn-primary" data-msg-reply-send="${esc(m.id)}"><i class="fas fa-paper-plane"></i> Enviar resposta</button>
+          </div>
+        </div>
       </div>
     `).join("");
+
+    list.querySelectorAll("[data-msg-reply-toggle]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const box = document.getElementById(`reply-box-${btn.dataset.msgReplyToggle}`);
+        if (box) box.style.display = box.style.display === "none" ? "block" : "none";
+      })
+    );
+
+    list.querySelectorAll("[data-msg-reply-cancel]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        const box = document.getElementById(`reply-box-${btn.dataset.msgReplyCancel}`);
+        if (box) box.style.display = "none";
+      })
+    );
+
+    list.querySelectorAll("[data-msg-read]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        try {
+          await window.apiFetch(`/contact/${btn.dataset.msgRead}/read`, { method: "POST" });
+          toast("Mensagem marcada como lida.");
+          initMensagens();
+        } catch {
+          toast("Não foi possível marcar a mensagem como lida.", "error");
+        }
+      })
+    );
+
+    list.querySelectorAll("[data-msg-reply-send]").forEach(btn =>
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.msgReplySend;
+        const subject = document.getElementById(`reply-subject-${id}`)?.value.trim() || "";
+        const body = document.getElementById(`reply-body-${id}`)?.value.trim() || "";
+        if (!body) {
+          toast("Escreva a mensagem da resposta.", "warn");
+          return;
+        }
+        try {
+          btn.disabled = true;
+          await window.apiFetch(`/contact/${id}/reply`, {
+            method: "POST",
+            body: { subject, body }
+          });
+          toast("Resposta enviada com sucesso!");
+          initMensagens();
+        } catch (err) {
+          toast(`Falha ao enviar resposta: ${err.message || "erro desconhecido"}`, "error");
+        } finally {
+          btn.disabled = false;
+        }
+      })
+    );
   } catch (err) {
     list.innerHTML = `<div class="notice notice-warn">Falha ao carregar as mensagens.</div>`;
   }

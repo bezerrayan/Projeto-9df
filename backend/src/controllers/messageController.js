@@ -1,6 +1,17 @@
 const fs = require('fs');
 const db = require('../config/database');
 const config = require('../config/env');
+const contactMailService = require('../services/contactMailService');
+
+async function findMessageById(id) {
+    if (config.DB_MODE === "mysql") {
+        const [rows] = await db.getPool().query("SELECT * FROM contact_messages WHERE id = ? LIMIT 1", [id]);
+        return rows[0] || null;
+    }
+
+    const data = fs.existsSync(db.paths.messages) ? JSON.parse(fs.readFileSync(db.paths.messages, 'utf8')) : { messages: [] };
+    return (data.messages || []).find(m => m.id === id) || null;
+}
 
 async function sendContactMessage(req, res, next) {
     try {
@@ -29,6 +40,12 @@ async function sendContactMessage(req, res, next) {
             if (!Array.isArray(data.messages)) data.messages = [];
             data.messages.push(msg);
             fs.writeFileSync(db.paths.messages, JSON.stringify(data, null, 2));
+        }
+
+        try {
+            await contactMailService.sendContactNotification(msg);
+        } catch (mailError) {
+            console.error('[CONTACT EMAIL ERROR]', mailError.message);
         }
 
         res.json({ ok: true });
@@ -85,9 +102,44 @@ async function deleteMessage(req, res, next) {
     }
 }
 
+async function replyToMessage(req, res, next) {
+    try {
+        const { id } = req.params;
+        const { subject, body } = req.body || {};
+        if (!body || !String(body).trim()) {
+            return res.status(400).json({ ok: false, error: 'missing_reply_body' });
+        }
+
+        const message = await findMessageById(id);
+        if (!message) {
+            return res.status(404).json({ ok: false, error: 'message_not_found' });
+        }
+
+        await contactMailService.sendAdminReply(message, {
+            subject: String(subject || '').trim(),
+            body: String(body).trim(),
+            adminEmail: req.adminEmail || '',
+        });
+
+        if (config.DB_MODE === "mysql") {
+            await db.getPool().query("UPDATE contact_messages SET is_read = 1 WHERE id = ?", [id]);
+        } else {
+            const data = fs.existsSync(db.paths.messages) ? JSON.parse(fs.readFileSync(db.paths.messages, 'utf8')) : { messages: [] };
+            const msg = (data.messages || []).find(m => m.id === id);
+            if (msg) msg.is_read = true;
+            fs.writeFileSync(db.paths.messages, JSON.stringify(data, null, 2));
+        }
+
+        res.json({ ok: true });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
   sendContactMessage,
   getMessages,
   markAsRead,
-  deleteMessage
+  deleteMessage,
+  replyToMessage
 };
