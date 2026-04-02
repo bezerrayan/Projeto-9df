@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         applyDynamicDocuments(state);
         applyDynamicLinks(state);
         applyDynamicContact(state);
+        applyDynamicRamos(state);
         applyVisibility(state);
         setupGalleryFilter();
         setupProjectToggles();
@@ -536,15 +537,18 @@ function applyDynamicProjects(state) {
     var projects = (state.adminPanel && Array.isArray(state.adminPanel.projects)) ? state.adminPanel.projects : [];
     if (!projects.length) return;
     container.innerHTML = projects.map(function(p) {
+        var imgHtml = p.src
+            ? '<div class="project-image"><img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.title) + '" class="cover-image"></div>'
+            : '';
         return '<article class="project-card">' +
-            '<div class="project-image"><img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.title) + '" class="cover-image"></div>' +
+            imgHtml +
             '<div class="project-body">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                   '<span class="badge badge-gray">' + esc(p.category) + '</span>' +
+                   '<span class="badge badge-gray">' + esc(p.category || p.meta || '') + '</span>' +
                    '<span class="badge ' + (p.status==='ativo'?'badge-green':'badge-amber') + '">' + esc(p.status) + '</span>' +
                 '</div>' +
-                '<h3>' + esc(p.title) + '</h3>' +
-                '<p>' + esc(p.desc) + '</p>' +
+                '<h3>' + (p.icon ? p.icon + ' ' : '') + esc(p.title) + '</h3>' +
+                '<p>' + esc(p.description || '') + '</p>' +
             '</div></article>';
     }).join("");
 }
@@ -558,9 +562,10 @@ function applyDynamicActivities(state) {
         return '<article class="activity-card">' +
             '<div class="activity-body">' +
                 '<span class="info-icon"><i class="fas fa-star"></i></span>' +
+                (a.icon ? '<span style="font-size:2rem;margin-bottom:8px;display:block">' + esc(a.icon) + '</span>' : '') +
                 '<h3>' + esc(a.title) + '</h3>' +
-                '<p>' + esc(a.desc) + '</p>' +
-                '<div style="margin-top:14px"><span class="badge badge-gray">' + esc(a.category) + '</span></div>' +
+                '<p>' + esc(a.description || '') + '</p>' +
+                (a.category ? '<div style="margin-top:14px"><span class="badge badge-gray">' + esc(a.category) + '</span></div>' : '') +
             '</div></article>';
     }).join("");
 }
@@ -661,10 +666,81 @@ function applyDynamicLinks(state) {
 function applyDynamicContact(state) {
     var c = state.adminPanel && state.adminPanel.contact ? state.adminPanel.contact : null;
     if (!c) return;
-    document.querySelectorAll('[data-contact-email]').forEach(function(el) { el.textContent = c.email; el.href = 'mailto:'+c.email; });
-    document.querySelectorAll('[data-contact-phone]').forEach(function(el) { el.textContent = c.phone; el.href = 'https://wa.me/'+c.phone.replace(/\\D/g,''); });
-    document.querySelectorAll('[data-contact-address]').forEach(function(el) { el.textContent = c.address; });
-    document.querySelectorAll('[data-contact-hours]').forEach(function(el) { el.textContent = c.hours; });
+    // Email
+    document.querySelectorAll('[data-contact-email]').forEach(function(el) {
+        if (c.email) { el.textContent = c.email; el.href = 'mailto:' + c.email; }
+    });
+    // Telefone principal (suporta phonePrimary ou phone)
+    var phone = c.phonePrimary || c.phone || '';
+    document.querySelectorAll('[data-contact-phone]').forEach(function(el) {
+        if (phone) { el.textContent = phone; el.href = 'https://wa.me/' + phone.replace(/\D/g, ''); }
+    });
+    // Endereço
+    document.querySelectorAll('[data-contact-address]').forEach(function(el) {
+        if (c.address) el.textContent = c.address;
+    });
+    // Horário (suporta schedule ou hours)
+    var schedule = c.schedule || c.hours || '';
+    document.querySelectorAll('[data-contact-hours]').forEach(function(el) {
+        if (schedule) el.textContent = schedule;
+    });
+    // Instagram
+    document.querySelectorAll('[data-contact-instagram]').forEach(function(el) {
+        if (c.instagram) { el.textContent = c.instagram; if (el.tagName === 'A') el.href = 'https://instagram.com/' + c.instagram.replace('@',''); }
+    });
+}
+
+function applyDynamicRamos(state) {
+    var branches = state.adminPanel && state.adminPanel.branches ? state.adminPanel.branches : null;
+    if (!branches) return;
+
+    // Mapa: chave do branch => seletor do article na página ramo.html
+    var branchOrder = ['filhotes', 'lobinhos', 'escoteiros', 'seniores', 'pioneiros'];
+    var articles = Array.from(document.querySelectorAll('[data-branch]'));
+
+    branchOrder.forEach(function(key) {
+        var b = branches[key];
+        if (!b) return;
+
+        // Encontrar o article correspondente
+        var el = document.querySelector('[data-branch="' + key + '"]');
+        if (!el) return;
+
+        // Textos
+        var nameEl = el.querySelector('[data-branch-name]');
+        if (nameEl && b.name) nameEl.textContent = b.name;
+
+        var ageEl = el.querySelector('[data-branch-age]');
+        if (ageEl && b.age) ageEl.textContent = b.age;
+
+        var descEl = el.querySelector('[data-branch-desc]');
+        if (descEl && (b.short || b.long)) descEl.textContent = b.long || b.short;
+
+        // Bullets / lista de pontos
+        if (b.bullets && b.bullets.length) {
+            var ul = el.querySelector('[data-branch-bullets]');
+            if (ul) {
+                ul.innerHTML = b.bullets.map(function(pt) {
+                    return '<li><i class="fas fa-check-circle"></i>' + esc(pt) + '</li>';
+                }).join('');
+            }
+        }
+
+        // Imagens
+        if (b.images) {
+            var mainImg = el.querySelector('[data-branch-img="main"]');
+            if (mainImg && b.images.main) mainImg.src = b.images.main;
+
+            var badgeImg = el.querySelector('[data-branch-img="badge"]');
+            if (badgeImg && b.images.badge) badgeImg.src = b.images.badge;
+
+            var thumb1Img = el.querySelector('[data-branch-img="thumb1"]');
+            if (thumb1Img && b.images.thumb1) thumb1Img.src = b.images.thumb1;
+
+            var thumb2Img = el.querySelector('[data-branch-img="thumb2"]');
+            if (thumb2Img && b.images.thumb2) thumb2Img.src = b.images.thumb2;
+        }
+    });
 }
 
 function applyVisibility(state) {

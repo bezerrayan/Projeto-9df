@@ -63,6 +63,29 @@ async function boot() {
     document.getElementById("save-btn").addEventListener("click", () => doSave());
     document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave(); } });
     document.getElementById("content-area").addEventListener("input", markDirty);
+
+    // Event delegation global para upload de imagens (.img-upload-trigger)
+    document.addEventListener("change", async (e) => {
+      const fileInput = e.target.closest(".img-upload-trigger");
+      if (!fileInput || !fileInput.files?.length) return;
+      const targetId  = fileInput.dataset.targetId;
+      const targetSel = fileInput.dataset.targetSel;
+      const target = targetId
+        ? document.getElementById(targetId)
+        : (targetSel ? document.querySelector(targetSel) : null);
+      if (!target) { toast("Campo de destino não encontrado."); return; }
+      try {
+        const formData = new FormData();
+        formData.append("image", fileInput.files[0]);
+        toast("Enviando imagem…");
+        const data = await window.apiFetch("/admin/upload/image", { method: "POST", body: formData });
+        target.value = data.path;
+        const previewId = fileInput.dataset.previewId;
+        if (previewId) { const img = document.getElementById(previewId); if (img) img.src = data.path; }
+        toast("Imagem enviada com sucesso!");
+        markDirty();
+      } catch { toast("Falha no upload da imagem."); }
+    });
     
     // Rota corrigida no novo backend
     STATE = normalizeContent(await window.apiFetch("/content/admin"));
@@ -484,7 +507,7 @@ function renderProjetos() {
   list.innerHTML = STATE.adminPanel.projects.length
     ? STATE.adminPanel.projects.map(p => itemCard({
         id: p.id, type: "project",
-        title: `${p.icon || "🌟"} ${p.title}`, sub: p.meta,
+        title: `${p.icon || "🌟"} ${p.title}`, sub: p.category || p.meta || "",
         badges: [
           { label: p.status, cls: p.status === "ativo" ? "badge-green" : p.status === "concluido" ? "badge-blue" : "badge-amber" },
           { label: `${p.progress}%`, cls: "badge-gray" },
@@ -497,11 +520,23 @@ function renderProjetos() {
           </div>
           <div class="form-row">
             <div class="fg"><label>Status</label><select data-proj-status="${p.id}">
-              ${["planejado","ativo","concluido"].map(s => `<option value="${s}"${p.status===s?" selected":""}>${cap(s)}</option>`).join("")}
+              ${["planejado","ativo","concluido"].map(s => `<option value="${s}"${p.status===s?" selected":""}>` + cap(s) + `</option>`).join("")}
             </select></div>
             <div class="fg"><label>Progresso (%)</label><input type="number" min="0" max="100" data-proj-progress="${p.id}" value="${esc(String(p.progress||0))}"></div>
           </div>
-          <div class="fg"><label>Tags / meta</label><input data-proj-meta="${p.id}" value="${esc(p.meta||"")}"></div>
+          <div class="form-row">
+            <div class="fg"><label>Categoria</label><input data-proj-cat="${p.id}" value="${esc(p.category||p.meta||"")}"></div>
+            <div class="fg"><label>Tags / meta</label><input data-proj-meta="${p.id}" value="${esc(p.meta||"")}"></div>
+          </div>
+          <div class="fg"><label>Imagem do projeto</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input data-proj-src="${p.id}" value="${esc(p.src||"")}" style="flex:1" placeholder="URL da imagem">
+              <label class="btn btn-sm btn-ghost" style="cursor:pointer;white-space:nowrap;flex-shrink:0">
+                <i class="fas fa-upload"></i> Upload
+                <input type="file" accept="image/*" class="img-upload-trigger" data-target-sel="[data-proj-src='${p.id}']" style="display:none">
+              </label>
+            </div>
+          </div>
           <div class="fg"><label>Descrição</label><textarea rows="3" data-proj-desc="${p.id}">${esc(p.description||"")}</textarea></div>
           <div class="prog-bar" style="margin-bottom:4px"><div class="prog-fill" id="prog-preview-${p.id}" style="width:${p.progress||0}%"></div></div>`,
       })).join("")
@@ -513,7 +548,9 @@ function renderProjetos() {
     p.icon     = val(`[data-proj-icon="${id}"]`, p.icon) || "🌟";
     p.status   = val(`[data-proj-status="${id}"]`, p.status);
     p.progress = Math.min(100, Math.max(0, Number(val(`[data-proj-progress="${id}"]`, String(p.progress))) || 0));
+    p.category = val(`[data-proj-cat="${id}"]`, p.category);
     p.meta     = val(`[data-proj-meta="${id}"]`, p.meta);
+    p.src      = val(`[data-proj-src="${id}"]`, p.src);
     p.description = val(`[data-proj-desc="${id}"]`, p.description);
     renderProjetos(); toast("Projeto atualizado."); markDirty();
   }, id => {
@@ -525,6 +562,18 @@ function renderProjetos() {
 // ── Template: Ramos ───────────────────────────────────────────────
 function tplRamos() {
   const branch = STATE.adminPanel.branches[BRANCH];
+  const imgs = branch.images || {};
+  function imgField(label, id, key) {
+    return `<div class="fg"><label>${label}</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="${id}" value="${esc(imgs[key]||'')}" style="flex:1">
+        <label class="btn btn-sm btn-ghost" style="cursor:pointer;white-space:nowrap;flex-shrink:0">
+          <i class="fas fa-upload"></i> Upload
+          <input type="file" accept="image/*" class="img-upload-trigger" data-target-id="${id}" style="display:none">
+        </label>
+        ${imgs[key] ? `<img src="${esc(imgs[key])}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--c-border);flex-shrink:0">` : ''}
+      </div></div>`;
+  }
   return `
   <div class="card">
     <div class="card-head">
@@ -543,7 +592,18 @@ function tplRamos() {
     <div class="fg"><label>Descrição curta</label><textarea id="ramo-desc1" rows="2">${esc(branch.short)}</textarea></div>
     <div class="fg"><label>Descrição longa</label><textarea id="ramo-desc2" rows="3">${esc(branch.long)}</textarea></div>
     <div class="fg"><label>Pontos principais (um por linha)</label><textarea id="ramo-bullets" rows="4">${esc(branch.bullets.join("\n"))}</textarea></div>
-    <div style="display:flex;justify-content:flex-end;margin-top:6px">
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--c-border)">
+      <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--c-ink-3);margin-bottom:12px">Imagens do ramo</div>
+      <div class="form-row">
+        ${imgField('Foto principal', 'ramo-img-main', 'main')}
+        ${imgField('Logo / Badge', 'ramo-img-badge', 'badge')}
+      </div>
+      <div class="form-row">
+        ${imgField('Miniatura 1', 'ramo-img-thumb1', 'thumb1')}
+        ${imgField('Miniatura 2', 'ramo-img-thumb2', 'thumb2')}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px">
       <button class="btn btn-primary btn-sm" id="ramo-save"><i class="fas fa-floppy-disk"></i> Salvar ramo</button>
     </div>
   </div>`;
@@ -571,14 +631,15 @@ function renderAtividades() {
   list.innerHTML = STATE.adminPanel.activities.length
     ? STATE.adminPanel.activities.map(a => itemCard({
         id: a.id, type: "activity",
-        title: `${a.icon || "⭐"} ${a.title}`, sub: "Destaque no site",
-        badges: [],
+        title: `${a.icon || "⭐"} ${a.title}`, sub: a.category || "Destaque no site",
+        badges: a.category ? [{ label: a.category, cls: "badge-gray" }] : [],
         desc: a.description,
         fields: `
           <div class="form-row">
             <div class="fg"><label>Emoji</label><input data-ativ-icon="${a.id}" value="${esc(a.icon||"⭐")}" style="max-width:80px"></div>
             <div class="fg"><label>Título</label><input data-ativ-title="${a.id}" value="${esc(a.title)}"></div>
           </div>
+          <div class="fg"><label>Categoria</label><input data-ativ-cat="${a.id}" value="${esc(a.category||"")}"></div>
           <div class="fg"><label>Descrição</label><textarea rows="3" data-ativ-desc="${a.id}">${esc(a.description||"")}</textarea></div>`,
       })).join("")
     : `<div class="empty-state"><i class="fas fa-star"></i><p>Nenhuma atividade cadastrada.</p></div>`;
@@ -587,6 +648,7 @@ function renderAtividades() {
     if (!a) return;
     a.icon = val(`[data-ativ-icon="${id}"]`, a.icon) || "⭐";
     a.title = val(`[data-ativ-title="${id}"]`, a.title);
+    a.category = val(`[data-ativ-cat="${id}"]`, a.category);
     a.description = val(`[data-ativ-desc="${id}"]`, a.description);
     renderAtividades(); toast("Atividade atualizada."); markDirty();
   }, id => {
@@ -961,14 +1023,19 @@ function renderModals() {
       "add-event-btn", "Adicionar"),
 
     modal("modal-photo", "Adicionar foto", `
-      <div class="notice" style="margin-bottom:14px"><i class="fas fa-circle-info"></i> O arquivo deve existir em <strong>images/</strong>. Exemplo: <code>images/galeria/foto.webp</code>.</div>
       <div class="form-row">
         <div class="fg"><label>Título</label><input id="ph-title"></div>
         <div class="fg"><label>Categoria</label><select id="ph-cat">
           ${["acampamento","atividade","evento","comunidade"].map(c => `<option value="${c}">${cap(c)}</option>`).join("")}
         </select></div>
       </div>
-      <div class="fg"><label>Caminho (a partir de images/)</label><input id="ph-src" placeholder="images/galeria/foto.webp"></div>
+      <div class="fg"><label>Fazer upload de imagem</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="file" id="ph-file" accept="image/*" style="flex:1">
+          <span id="ph-upload-status" style="font-size:12px;color:var(--c-green)"></span>
+        </div>
+      </div>
+      <div class="fg"><label>Ou URL / caminho manual</label><input id="ph-src" placeholder="images/galeria/foto.webp"></div>
       <div class="fg"><label>Legenda</label><input id="ph-caption"></div>`,
       "add-photo-btn", "Adicionar"),
 
@@ -983,7 +1050,17 @@ function renderModals() {
         </select></div>
         <div class="fg"><label>Progresso (%)</label><input type="number" id="pr-prog" min="0" max="100" value="0"></div>
       </div>
+      <div class="fg"><label>Categoria</label><input id="pr-cat" placeholder="ex: Ação Social, Ambiental…"></div>
       <div class="fg"><label>Tags / meta</label><input id="pr-meta"></div>
+      <div class="fg"><label>Imagem do projeto</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="pr-src" placeholder="URL da imagem" style="flex:1">
+          <label class="btn btn-sm btn-ghost" style="cursor:pointer;white-space:nowrap;flex-shrink:0">
+            <i class="fas fa-upload"></i> Upload
+            <input type="file" accept="image/*" class="img-upload-trigger" data-target-id="pr-src" style="display:none">
+          </label>
+        </div>
+      </div>
       <div class="fg"><label>Descrição</label><textarea id="pr-desc" rows="3"></textarea></div>`,
       "add-project-btn", "Criar"),
 
@@ -992,6 +1069,7 @@ function renderModals() {
         <div class="fg"><label>Emoji</label><input id="at-icon" value="⭐" style="max-width:80px"></div>
         <div class="fg"><label>Título</label><input id="at-title"></div>
       </div>
+      <div class="fg"><label>Categoria</label><input id="at-cat" placeholder="ex: Acampamento, Serviço…"></div>
       <div class="fg"><label>Descrição</label><textarea id="at-desc" rows="3"></textarea></div>`,
       "add-activity-btn", "Adicionar"),
 
@@ -1054,12 +1132,23 @@ function bindPage(page) {
       })
     );
     renderGallery();
-    document.getElementById("add-photo-btn")?.addEventListener("click", () => {
+    document.getElementById("add-photo-btn")?.addEventListener("click", async () => {
       const title = document.getElementById("ph-title")?.value.trim();
-      const src   = normPath(document.getElementById("ph-src")?.value || "");
       if (!title) { toast("Preencha o título da foto."); return; }
-      if (!src)   { toast("Informe o caminho da imagem."); return; }
-      if (!isSafeImagePath(src)) { toast("Caminho inválido — use letras minúsculas, números, traço e barra."); return; }
+      let src = normPath(document.getElementById("ph-src")?.value || "");
+      const fileInput = document.getElementById("ph-file");
+      if (fileInput?.files?.length) {
+        try {
+          const formData = new FormData();
+          formData.append("image", fileInput.files[0]);
+          const statusEl = document.getElementById("ph-upload-status");
+          if (statusEl) statusEl.textContent = "Enviando…";
+          const data = await window.apiFetch("/admin/upload/image", { method: "POST", body: formData });
+          src = data.path;
+          if (statusEl) statusEl.textContent = "✓ Enviada";
+        } catch { toast("Falha no upload da imagem."); return; }
+      }
+      if (!src) { toast("Selecione uma imagem ou informe o caminho."); return; }
       STATE.adminPanel.photos.push({ id: uid("ph"), title, category: document.getElementById("ph-cat")?.value || "atividade", src, caption: document.getElementById("ph-caption")?.value.trim() || title });
       closeModal("modal-photo"); renderGallery(); toast("Foto adicionada."); markDirty();
     });
@@ -1075,7 +1164,9 @@ function bindPage(page) {
         icon: document.getElementById("pr-icon")?.value || "🌟",
         status: document.getElementById("pr-status")?.value || "ativo",
         progress: Number(document.getElementById("pr-prog")?.value || 0),
+        category: document.getElementById("pr-cat")?.value.trim() || "",
         meta: document.getElementById("pr-meta")?.value.trim() || "",
+        src: document.getElementById("pr-src")?.value.trim() || "",
         description: document.getElementById("pr-desc")?.value.trim() || "",
       });
       closeModal("modal-project"); renderProjetos(); toast("Projeto criado."); markDirty();
@@ -1096,7 +1187,13 @@ function bindPage(page) {
     document.getElementById("add-activity-btn")?.addEventListener("click", () => {
       const title = document.getElementById("at-title")?.value.trim();
       if (!title) { toast("Preencha o título da atividade."); return; }
-      STATE.adminPanel.activities.push({ id: uid("at"), icon: document.getElementById("at-icon")?.value || "⭐", title, description: document.getElementById("at-desc")?.value.trim() || "" });
+      STATE.adminPanel.activities.push({
+        id: uid("at"),
+        icon: document.getElementById("at-icon")?.value || "⭐",
+        title,
+        category: document.getElementById("at-cat")?.value.trim() || "",
+        description: document.getElementById("at-desc")?.value.trim() || "",
+      });
       closeModal("modal-activity"); renderAtividades(); toast("Atividade adicionada."); markDirty();
     });
   }
@@ -1213,19 +1310,22 @@ function capturePhotos() {
 
 function captureProjects() {
   STATE.adminPanel.projects.forEach(p => {
-    p.title = val(`[data-proj-title="${p.id}"]`, p.title);
-    p.icon = val(`[data-proj-icon="${p.id}"]`, p.icon);
-    p.status = val(`[data-proj-status="${p.id}"]`, p.status);
+    p.title    = val(`[data-proj-title="${p.id}"]`, p.title);
+    p.icon     = val(`[data-proj-icon="${p.id}"]`, p.icon);
+    p.status   = val(`[data-proj-status="${p.id}"]`, p.status);
     p.progress = Number(val(`[data-proj-progress="${p.id}"]`, p.progress));
-    p.meta = val(`[data-proj-meta="${p.id}"]`, p.meta);
+    p.category = val(`[data-proj-cat="${p.id}"]`, p.category);
+    p.meta     = val(`[data-proj-meta="${p.id}"]`, p.meta);
+    p.src      = val(`[data-proj-src="${p.id}"]`, p.src);
     p.description = val(`[data-proj-desc="${p.id}"]`, p.description);
   });
 }
 
 function captureActivities() {
   STATE.adminPanel.activities.forEach(a => {
-    a.icon = val(`[data-ativ-icon="${a.id}"]`, a.icon);
-    a.title = val(`[data-ativ-title="${a.id}"]`, a.title);
+    a.icon        = val(`[data-ativ-icon="${a.id}"]`, a.icon);
+    a.title       = val(`[data-ativ-title="${a.id}"]`, a.title);
+    a.category    = val(`[data-ativ-cat="${a.id}"]`, a.category);
     a.description = val(`[data-ativ-desc="${a.id}"]`, a.description);
   });
 }
@@ -1275,6 +1375,12 @@ function captureBranch() {
   const d1 = document.getElementById("ramo-desc1"); if (d1) b.short = d1.value.trim();
   const d2 = document.getElementById("ramo-desc2"); if (d2) b.long  = d2.value.trim();
   const bl = document.getElementById("ramo-bullets"); if (bl) b.bullets = bl.value.split("\n").map(s => s.trim()).filter(Boolean);
+  // Imagens
+  if (!b.images) b.images = { main: "", badge: "", thumb1: "", thumb2: "" };
+  const im = document.getElementById("ramo-img-main");   if (im)  b.images.main   = im.value.trim();
+  const ib = document.getElementById("ramo-img-badge");  if (ib)  b.images.badge  = ib.value.trim();
+  const it1= document.getElementById("ramo-img-thumb1"); if (it1) b.images.thumb1 = it1.value.trim();
+  const it2= document.getElementById("ramo-img-thumb2"); if (it2) b.images.thumb2 = it2.value.trim();
 }
 
 function captureContato() {
@@ -1443,20 +1549,34 @@ function normalizeContent(c) {
 
 function ensureState() {
   const p = STATE.adminPanel;
-  p.events = Array.isArray(p.events) ? p.events : [];
-  p.photos = Array.isArray(p.photos) ? p.photos.map(normalizePhoto) : [];
-  p.projects = Array.isArray(p.projects) ? p.projects : [];
-  p.activities = Array.isArray(p.activities) ? p.activities : [];
-  p.members = Array.isArray(p.members) ? p.members : [];
-  p.documents = Array.isArray(p.documents) ? p.documents : [];
-  p.links = Array.isArray(p.links) ? p.links : [];
-  p.branches = p.branches || {
-    filhotes: { name: "Filhotes", age: "5 a 7 anos", short: "Primeiros passos no escotismo.", long: "", bullets: [] },
-    lobinhos: { name: "Lobinhos", age: "7 a 10 anos", short: "Alcateia com amizade e responsabilidade.", long: "", bullets: [] },
-    escoteiros: { name: "Escoteiros", age: "10 a 15 anos", short: "Sistema de patrulhas e autonomia crescente.", long: "", bullets: [] },
-    seniores: { name: "Seniores", age: "15 a 18 anos", short: "Desafios intensos e protagonismo juvenil.", long: "", bullets: [] },
-    pioneiros: { name: "Pioneiros", age: "18 a 22 anos", short: "Serviço ao próximo e projeto de vida.", long: "", bullets: [] },
+  p.events     = Array.isArray(p.events)     ? p.events     : [];
+  p.photos     = Array.isArray(p.photos)     ? p.photos.map(normalizePhoto) : [];
+  p.projects   = Array.isArray(p.projects)   ? p.projects.map(normalizeProject)  : [];
+  p.activities = Array.isArray(p.activities) ? p.activities.map(normalizeActivity) : [];
+  p.members    = Array.isArray(p.members)    ? p.members    : [];
+  p.documents  = Array.isArray(p.documents)  ? p.documents  : [];
+  p.links      = Array.isArray(p.links)      ? p.links      : [];
+  const emptyImages = () => ({ main: "", badge: "", thumb1: "", thumb2: "" });
+  p.branches = p.branches || {};
+  const defaultBranches = {
+    filhotes:   { name: "Filhotes",   age: "5 a 7 anos",   short: "Primeiros passos no escotismo.",            long: "", bullets: [] },
+    lobinhos:   { name: "Lobinhos",   age: "7 a 10 anos",  short: "Alcateia com amizade e responsabilidade.",  long: "", bullets: [] },
+    escoteiros: { name: "Escoteiros", age: "10 a 15 anos", short: "Sistema de patrulhas e autonomia crescente.",long: "", bullets: [] },
+    seniores:   { name: "Seniores",   age: "15 a 18 anos", short: "Desafios intensos e protagonismo juvenil.",  long: "", bullets: [] },
+    pioneiros:  { name: "Pioneiros",  age: "18 a 22 anos", short: "Serviço ao próximo e projeto de vida.",      long: "", bullets: [] },
   };
+  Object.entries(defaultBranches).forEach(([k, def]) => {
+    if (!p.branches[k]) p.branches[k] = def;
+    if (!p.branches[k].images) p.branches[k].images = emptyImages();
+    else {
+      p.branches[k].images = {
+        main:   p.branches[k].images.main   || "",
+        badge:  p.branches[k].images.badge  || "",
+        thumb1: p.branches[k].images.thumb1 || "",
+        thumb2: p.branches[k].images.thumb2 || "",
+      };
+    }
+  });
   p.contact = p.contact || { email: "", phonePrimary: "", phoneSecondary: "", instagram: "", schedule: "", address: "", cep: "", cityState: "", mapsSrc: "" };
   p.settings = p.settings || {
     shortName: "GEAR 9º DF",
@@ -1481,7 +1601,31 @@ function ensurePageState(page) {
 }
 
 function normalizePhoto(p) {
-  return { id: p.id || uid("ph"), title: String(p.title || "").trim(), category: String(p.category || "atividade").toLowerCase(), caption: String(p.caption || p.title || "").trim(), src: normPath(p.src || "") };
+  return { id: p.id || uid("ph"), title: String(p.title || "").trim(), category: String(p.category || "atividade").toLowerCase(), caption: String(p.caption || p.title || "").trim(), src: p.src || "" };
+}
+
+function normalizeProject(p) {
+  return {
+    id:          p.id          || uid("pr"),
+    title:       String(p.title       || "").trim(),
+    icon:        String(p.icon        || "🌟"),
+    status:      String(p.status      || "planejado"),
+    progress:    Number(p.progress    || 0),
+    category:    String(p.category    || p.meta || "").trim(),
+    meta:        String(p.meta        || "").trim(),
+    src:         String(p.src         || "").trim(),
+    description: String(p.description || "").trim(),
+  };
+}
+
+function normalizeActivity(a) {
+  return {
+    id:          a.id          || uid("at"),
+    icon:        String(a.icon        || "⭐"),
+    title:       String(a.title       || "").trim(),
+    category:    String(a.category    || "").trim(),
+    description: String(a.description || "").trim(),
+  };
 }
 
 // ── Utility ───────────────────────────────────────────────────────
