@@ -63,6 +63,10 @@ async function boot() {
     document.getElementById("save-btn").addEventListener("click", () => doSave());
     document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave(); } });
     document.getElementById("content-area").addEventListener("input", markDirty);
+    document.addEventListener("input", (e) => {
+      const input = e.target.closest("[data-media-kind]");
+      if (input) syncMediaPreview(input);
+    });
 
     // Event delegation global para upload de imagens/docs (.img-upload-trigger)
     document.addEventListener("change", async (e) => {
@@ -85,11 +89,18 @@ async function boot() {
         if (statusEl) { statusEl.textContent = "⏳ Enviando…"; statusEl.style.color = "var(--c-ink-2)"; }
         toast("Enviando arquivo…");
         const data = await window.apiFetch(endpoint, { method: "POST", body: formData });
-        if (target) target.value = data.path;
-        if (previewId) { const img = document.getElementById(previewId); if (img) img.src = data.path; }
+        if (target) {
+          target.value = data.path;
+          syncMediaPreview(target);
+        }
+        if (previewId) {
+          const img = document.getElementById(previewId);
+          if (img) img.src = data.path;
+        }
         if (statusEl) { statusEl.textContent = "✓ Upload concluído"; statusEl.style.color = "var(--c-green)"; }
         toast("Arquivo enviado com sucesso!");
         markDirty();
+        fileInput.value = "";
       } catch (err) {
         console.error('[FRONTEND UPLOAD ERROR]', err);
         const errorMsg = err.message || "Erro desconhecido";
@@ -413,7 +424,7 @@ function tplGaleria() {
   return `
   <div class="hero-banner">
     <h2>Galeria de fotos</h2>
-    <p>Gerencie as imagens que aparecem no site. Os arquivos devem existir em <strong>images/</strong>.</p>
+    <p>Gerencie as imagens do site com upload direto ou colando uma URL, sempre com pré-visualização antes de salvar.</p>
     <div class="hero-actions">
       <button class="btn btn-primary btn-sm" data-open-modal="modal-photo"><i class="fas fa-plus"></i> Adicionar foto</button>
     </div>
@@ -462,6 +473,8 @@ function renderGallery() {
       const p = STATE.adminPanel.photos.find(x => x.id === btn.dataset.editPhoto);
       if (!p) return;
       const area = document.getElementById("photo-edit-area");
+      const previewId = `pe-preview-${p.id}`;
+      const statusId = `pe-status-${p.id}`;
       area.innerHTML = `<div class="card" style="margin-top:0; border: 2px solid var(--c-blue); box-shadow: var(--sh-md);">
         <div class="card-title" style="margin-bottom:12px; font-weight: 700;">Editando Imagem</div>
         <div class="form-row">
@@ -470,7 +483,14 @@ function renderGallery() {
             ${["acampamento","atividade","evento","comunidade"].map(c => `<option value="${c}"${p.category===c?" selected":""}>${cap(c)}</option>`).join("")}
           </select></div>
         </div>
-        <div class="fg"><label>Caminho da imagem</label><input id="pe-src" value="${esc(p.src)}"></div>
+        ${renderImagePicker({
+          label: "Imagem da galeria",
+          value: p.src,
+          previewId,
+          statusId,
+          uploadAttrs: `data-target-id="pe-src"`,
+          inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="pe-src" data-media-kind="image" data-preview-id="${previewId}" value="${esc(p.src)}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+        })}
         <div class="fg"><label>Legenda</label><input id="pe-caption" value="${esc(p.caption)}"></div>
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
           <button class="btn btn-sm btn-ghost" id="pe-cancel">Cancelar</button>
@@ -542,15 +562,14 @@ function renderProjetos() {
             <div class="fg"><label>Categoria</label><input data-proj-cat="${p.id}" value="${esc(p.category||p.meta||"")}"></div>
             <div class="fg"><label>Tags / meta</label><input data-proj-meta="${p.id}" value="${esc(p.meta||"")}"></div>
           </div>
-          <div class="fg"><label>Imagem do projeto</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input data-proj-src="${p.id}" value="${esc(p.src||"")}" style="flex:1" placeholder="URL da imagem">
-              <label class="btn btn-sm btn-ghost" style="cursor:pointer;white-space:nowrap;flex-shrink:0">
-                <i class="fas fa-upload"></i> Upload
-                <input type="file" accept="image/*" class="img-upload-trigger" data-target-sel="[data-proj-src='${p.id}']" style="display:none">
-              </label>
-            </div>
-          </div>
+          ${renderImagePicker({
+            label: "Imagem do projeto",
+            value: p.src || "",
+            previewId: `proj-preview-${p.id}`,
+            statusId: `proj-status-${p.id}`,
+            uploadAttrs: `data-target-id="proj-src-${p.id}"`,
+            inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="proj-src-${p.id}" data-proj-src="${p.id}" data-media-kind="image" data-preview-id="proj-preview-${p.id}" value="${esc(p.src||"")}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+          })}
           <div class="fg"><label>Descrição</label><textarea rows="3" data-proj-desc="${p.id}">${esc(p.description||"")}</textarea></div>
           <div class="prog-bar" style="margin-bottom:4px"><div class="prog-fill" id="prog-preview-${p.id}" style="width:${p.progress||0}%"></div></div>`,
       })).join("")
@@ -578,15 +597,14 @@ function tplRamos() {
   const branch = STATE.adminPanel.branches[BRANCH];
   const imgs = branch.images || {};
   function imgField(label, id, key) {
-    return `<div class="fg"><label>${label}</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="${id}" value="${esc(imgs[key]||'')}" style="flex:1">
-        <label class="btn btn-sm btn-ghost" style="cursor:pointer;white-space:nowrap;flex-shrink:0">
-          <i class="fas fa-upload"></i> Upload
-          <input type="file" accept="image/*" class="img-upload-trigger" data-target-id="${id}" style="display:none">
-        </label>
-        ${imgs[key] ? `<img src="${esc(imgs[key])}" style="width:40px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--c-border);flex-shrink:0">` : ''}
-      </div></div>`;
+    return renderImagePicker({
+      label,
+      value: imgs[key] || "",
+      previewId: `${id}-preview`,
+      statusId: `${id}-status`,
+      uploadAttrs: `data-target-id="${id}"`,
+      inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="${id}" data-media-kind="image" data-preview-id="${id}-preview" value="${esc(imgs[key]||"")}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+    });
   }
   return `
   <div class="card">
@@ -823,9 +841,20 @@ async function renderPaginasEditor() {
           ${images.length
             ? images.map(f => {
                 const ov = pState.images[f.key] || {};
-                return `<div style="margin-bottom:14px">
-                  <div class="fg"><label>${esc(f.title)}</label><input data-site-img-src="${esc(f.key)}" value="${esc(ov.src ?? f.src)}"></div>
-                  <div class="fg"><label>Texto alternativo</label><input data-site-img-alt="${esc(f.key)}" value="${esc(ov.alt ?? f.alt)}"></div>
+                const inputId = `page-input-${hashStr(`${CONTENT_PAGE}-${f.key}`)}`;
+                const previewId = `page-preview-${hashStr(`${CONTENT_PAGE}-${f.key}`)}`;
+                const statusId = `page-status-${hashStr(`${CONTENT_PAGE}-${f.key}`)}`;
+                return `<div style="margin-bottom:18px">
+                  ${renderImagePicker({
+                    label: f.title,
+                    value: ov.src ?? f.src,
+                    previewId,
+                    statusId,
+                    uploadAttrs: `data-target-id="${inputId}"`,
+                    inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="${inputId}" data-site-img-src="${esc(f.key)}" data-media-kind="image" data-preview-id="${esc(previewId)}" value="${esc(ov.src ?? f.src)}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+                    altHtml: `<div class="fg"><label>Texto alternativo</label><input data-site-img-alt="${esc(f.key)}" value="${esc(ov.alt ?? f.alt)}" placeholder="Descreva a imagem para acessibilidade"></div>`,
+                    helper: esc(f.hint),
+                  })}
                 </div>`;
               }).join("")
             : `<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem identificada.</p></div>`}
@@ -862,10 +891,15 @@ function renderExtras(extras) {
         <div class="fg"><label>Botão</label><input data-extra-btn-label value="${esc(ex.buttonLabel)}"></div>
         <div class="fg"><label>Link do botão</label><input data-extra-btn-href value="${esc(ex.buttonHref)}"></div>
       </div>
-      <div class="form-row">
-        <div class="fg"><label>Imagem</label><input data-extra-img-src value="${esc(ex.imageSrc)}"></div>
-        <div class="fg"><label>Alt da imagem</label><input data-extra-img-alt value="${esc(ex.imageAlt)}"></div>
-      </div>
+      ${renderImagePicker({
+        label: "Imagem do bloco",
+        value: ex.imageSrc,
+        previewId: `extra-preview-${esc(ex.id)}`,
+        statusId: `extra-status-${esc(ex.id)}`,
+        uploadAttrs: `data-target-id="extra-input-${esc(ex.id)}"`,
+        inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="extra-input-${esc(ex.id)}" data-extra-img-src data-media-kind="image" data-preview-id="extra-preview-${esc(ex.id)}" value="${esc(ex.imageSrc)}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+        altHtml: `<div class="fg"><label>Alt da imagem</label><input data-extra-img-alt value="${esc(ex.imageAlt)}" placeholder="Descreva a imagem"></div>`,
+      })}
     </div>`).join("");
 }
 
@@ -1056,12 +1090,14 @@ function renderModals() {
           ${["acampamento","atividade","evento","comunidade"].map(c => `<option value="${c}">${cap(c)}</option>`).join("")}
         </select></div>
       </div>
-      <div class="fg"><label>Imagem</label>
-        <input type="file" id="ph-file" accept="image/*" class="img-upload-trigger"
-          data-target-id="ph-src" data-status-id="ph-upload-status">
-        <div id="ph-upload-status" style="font-size:11px;min-height:16px"></div>
-      </div>
-      <input type="hidden" id="ph-src">
+      ${renderImagePicker({
+        label: "Imagem",
+        value: "",
+        previewId: "ph-preview",
+        statusId: "ph-upload-status",
+        uploadAttrs: `id="ph-file" data-target-id="ph-src"`,
+        inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="ph-src" data-media-kind="image" data-preview-id="ph-preview" placeholder="Envie uma imagem ou cole a URL"></div>`,
+      })}
       <div class="fg"><label>Legenda</label><input id="ph-caption"></div>`,
       "add-photo-btn", "Adicionar"),
 
@@ -1078,15 +1114,14 @@ function renderModals() {
       </div>
       <div class="fg"><label>Categoria</label><input id="pr-cat" placeholder="ex: Ação Social, Ambiental…"></div>
       <div class="fg"><label>Tags / meta</label><input id="pr-meta"></div>
-      <div class="fg"><label>Imagem do projeto</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="pr-src" placeholder="URL da imagem" style="flex:1">
-          <label class="btn btn-sm btn-ghost" style="cursor:pointer;white-space:nowrap;flex-shrink:0">
-            <i class="fas fa-upload"></i> Upload
-            <input type="file" accept="image/*" class="img-upload-trigger" data-target-id="pr-src" style="display:none">
-          </label>
-        </div>
-      </div>
+      ${renderImagePicker({
+        label: "Imagem do projeto",
+        value: "",
+        previewId: "pr-preview",
+        statusId: "pr-upload-status",
+        uploadAttrs: `data-target-id="pr-src"`,
+        inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="pr-src" data-media-kind="image" data-preview-id="pr-preview" placeholder="Envie uma imagem ou cole a URL"></div>`,
+      })}
       <div class="fg"><label>Descrição</label><textarea id="pr-desc" rows="3"></textarea></div>`,
       "add-project-btn", "Criar"),
 
@@ -1483,6 +1518,8 @@ function openModal(id) {
   if (!m) return;
   m.querySelectorAll("input,textarea").forEach(el => { el.value = el.defaultValue; });
   m.querySelectorAll("select").forEach(el => { el.selectedIndex = 0; });
+  m.querySelectorAll("[data-media-kind]").forEach(syncMediaPreview);
+  m.querySelectorAll(".media-status").forEach(el => { el.textContent = ""; el.removeAttribute("style"); });
   m.classList.add("open");
 }
 function closeModal(id) {
@@ -1642,6 +1679,78 @@ function normalizeActivity(a) {
   };
 }
 
+function renderImagePicker({
+  label,
+  inputHtml,
+  value = "",
+  previewId,
+  statusId,
+  uploadAttrs = "",
+  altHtml = "",
+  helper = "",
+}) {
+  const hasImage = !!value && isImageLike(value);
+  return `
+    <div class="media-field">
+      <div class="media-field-head">
+        <label>${esc(label)}</label>
+        <label class="btn btn-sm btn-ghost media-upload-btn">
+          <i class="fas fa-upload"></i> Enviar imagem
+          <input type="file" accept="image/*" class="img-upload-trigger" data-status-id="${esc(statusId)}" ${uploadAttrs}>
+        </label>
+      </div>
+      <div class="media-field-body">
+        <div class="media-preview-card${hasImage ? " has-image" : ""}" data-preview-card="${esc(previewId)}">
+          <img id="${esc(previewId)}" src="${esc(value)}" alt="${esc(label)}" style="display:${hasImage ? "block" : "none"}">
+          <div class="media-preview-empty">
+            <i class="fas fa-image"></i>
+            <span>Nenhuma imagem selecionada</span>
+          </div>
+        </div>
+        <div class="media-field-inputs">
+          ${inputHtml}
+          <div class="media-status" id="${esc(statusId)}"></div>
+          ${helper ? `<div class="media-helper">${helper}</div>` : ""}
+          ${altHtml}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderFilePicker({
+  label,
+  inputHtml,
+  value = "",
+  previewId,
+  statusId,
+  uploadAttrs = "",
+  helper = "",
+}) {
+  const name = fileNameFromPath(value);
+  return `
+    <div class="media-field">
+      <div class="media-field-head">
+        <label>${esc(label)}</label>
+        <label class="btn btn-sm btn-ghost media-upload-btn">
+          <i class="fas fa-upload"></i> Enviar arquivo
+          <input type="file" class="img-upload-trigger" data-status-id="${esc(statusId)}" ${uploadAttrs}>
+        </label>
+      </div>
+      <div class="media-field-body media-field-body-file">
+        <div class="file-preview-card${value ? " has-file" : ""}" id="${esc(previewId)}">
+          ${value
+            ? `<div class="file-preview-icon"><i class="fas fa-file-lines"></i></div><div><strong>${esc(name || "Arquivo enviado")}</strong><span>${esc(value)}</span></div>`
+            : `<div class="file-preview-empty"><i class="fas fa-file-arrow-up"></i><span>Nenhum arquivo selecionado</span></div>`}
+        </div>
+        <div class="media-field-inputs">
+          ${inputHtml}
+          <div class="media-status" id="${esc(statusId)}"></div>
+          ${helper ? `<div class="media-helper">${helper}</div>` : ""}
+        </div>
+      </div>
+    </div>`;
+}
+
 // ── Utility ───────────────────────────────────────────────────────
 function esc(s) {
   return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
@@ -1659,6 +1768,44 @@ function badgeForType(t) { return t==="regional"?"badge-amber":t==="nacional"?"b
 function saveErrorMsg(err) { const m = String(err?.message||""); if(m.includes("unauthorized")||m.includes("forbidden")||m.includes("401")||m.includes("403")) return "Sessão expirada. Faça login novamente."; return "Não foi possível salvar. Verifique os campos e tente novamente."; }
 function cssescape(s) { return (window.CSS?.escape?.(s)) ?? String(s).replace(/["\\]/g,"\\$&"); }
 function val(sel, fallback="") { const el = document.querySelector(sel); return el ? el.value.trim() : fallback; }
+function fileNameFromPath(s) {
+  const clean = String(s || "").trim().split(/[?#]/)[0];
+  return clean ? clean.split("/").pop() || clean : "";
+}
+function isImageLike(s) {
+  return /(^https?:\/\/|^\/|^images\/|^\.\/|^\.{2}\/|^data:image\/).+\.(webp|jpg|jpeg|png|svg)(?:[?#].*)?$/i.test(String(s || "").trim())
+    || /^data:image\//i.test(String(s || "").trim());
+}
+function syncImagePreview(input) {
+  if (!input) return;
+  const previewId = input.dataset.previewId;
+  if (!previewId) return;
+  const card = document.querySelector(`[data-preview-card="${cssescape(previewId)}"]`);
+  const img = document.getElementById(previewId);
+  if (!card || !img) return;
+  const src = input.value.trim();
+  const hasImage = !!src && isImageLike(src);
+  img.src = src || "";
+  img.style.display = hasImage ? "block" : "none";
+  card.classList.toggle("has-image", hasImage);
+}
+function syncFilePreview(input) {
+  if (!input) return;
+  const previewId = input.dataset.previewId;
+  const box = previewId ? document.getElementById(previewId) : null;
+  if (!box) return;
+  const src = input.value.trim();
+  const name = fileNameFromPath(src);
+  box.innerHTML = src
+    ? `<div class="file-preview-icon"><i class="fas fa-file-lines"></i></div><div><strong>${esc(name || "Arquivo enviado")}</strong><span>${esc(src)}</span></div>`
+    : `<div class="file-preview-empty"><i class="fas fa-file-arrow-up"></i><span>Nenhum arquivo selecionado</span></div>`;
+  box.classList.toggle("has-file", !!src);
+}
+function syncMediaPreview(input) {
+  if (!input) return;
+  if (input.dataset.mediaKind === "file") syncFilePreview(input);
+  else syncImagePreview(input);
+}
 
 // A função apiFetch local foi removida pois agora utilizamos o window.apiFetch global do arquivo api.js
 
@@ -1673,13 +1820,15 @@ renderModals = function() {
       <div class="fg"><label>Título</label><input id="doc-title"></div>
       <div class="fg"><label>Categoria</label><select id="doc-cat"><option>Regimento</option><option>Estatuto</option><option>Geral</option><option>Modelo</option></select></div>
     </div>
-    <div class="fg"><label>Arquivo (PDF, Word, Excel)</label>
-      <input type="file" id="doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx"
-        class="img-upload-trigger" data-target-id="doc-src" data-status-id="doc-upload-status"
-        data-upload-endpoint="/admin/upload/document" data-field-name="file">
-      <div id="doc-upload-status" style="font-size:11px;min-height:16px"></div>
-    </div>
-    <input type="hidden" id="doc-src">
+    ${renderFilePicker({
+      label: "Arquivo (PDF, Word, Excel)",
+      value: "",
+      previewId: "doc-file-preview",
+      statusId: "doc-upload-status",
+      uploadAttrs: `id="doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx" data-target-id="doc-src" data-upload-endpoint="/admin/upload/document" data-field-name="file"`,
+      inputHtml: `<div class="fg"><label>Caminho/URL do arquivo</label><input id="doc-src" data-media-kind="file" data-preview-id="doc-file-preview" placeholder="Envie um arquivo ou cole a URL"></div>`,
+      helper: "Aceita PDF, Word e Excel.",
+    })}
     <div class="fg"><label>Descrição (opcional)</label><textarea id="doc-desc" rows="2"></textarea></div>`,
     "add-doc-btn", "Adicionar"
   ) + modal(
@@ -1765,9 +1914,14 @@ function renderDocumentos() {
             <div class="fg"><label>Título</label><input data-doc-title="${d.id}" value="${esc(d.title)}"></div>
             <div class="fg"><label>Categoria</label><input data-doc-cat="${d.id}" value="${esc(d.category)}"></div>
           </div>
-          <div class="form-row">
-            <div class="fg"><label>Caminho/URL do arquivo</label><input data-doc-src="${d.id}" value="${esc(d.src)}"></div>
-          </div>
+          ${renderFilePicker({
+            label: "Arquivo do documento",
+            value: d.src,
+            previewId: `doc-preview-${d.id}`,
+            statusId: `doc-status-${d.id}`,
+            uploadAttrs: `accept=".pdf,.doc,.docx,.xls,.xlsx" data-target-id="doc-src-${d.id}" data-upload-endpoint="/admin/upload/document" data-field-name="file"`,
+            inputHtml: `<div class="fg"><label>Caminho/URL do arquivo</label><input id="doc-src-${d.id}" data-doc-src="${d.id}" data-media-kind="file" data-preview-id="doc-preview-${d.id}" value="${esc(d.src)}" placeholder="Envie um arquivo ou cole a URL"></div>`,
+          })}
           <div class="fg"><label>Descrição</label><textarea rows="2" data-doc-desc="${d.id}">${esc(d.desc)}</textarea></div>`
       })).join("")
     : `<div class="empty-state"><i class="fas fa-file-pdf"></i><p>Nenhum documento cadastrado.</p></div>`;
