@@ -90,9 +90,14 @@ async function boot() {
         if (statusEl) { statusEl.textContent = "✓ Upload concluído"; statusEl.style.color = "var(--c-green)"; }
         toast("Arquivo enviado com sucesso!");
         markDirty();
-      } catch {
-        if (statusEl) { statusEl.textContent = "✗ Falha no upload — tente novamente"; statusEl.style.color = "#ef4444"; }
-        toast("Falha no upload. Verifique sua conexão.", "error");
+      } catch (err) {
+        console.error('[FRONTEND UPLOAD ERROR]', err);
+        const errorMsg = err.message || "Erro desconhecido";
+        if (statusEl) { 
+          statusEl.textContent = `✗ Falha: ${errorMsg}`; 
+          statusEl.style.color = "#ef4444"; 
+        }
+        toast(`Falha no upload: ${errorMsg}`, "error");
       }
     });
     
@@ -748,6 +753,7 @@ function tplPaginas() {
   <div class="hero-banner">
     <h2>Conteúdo do site</h2>
     <p>Edite textos e imagens por página sem precisar mexer no código-fonte.</p>
+    <p style="opacity:.8; margin-top: 8px;">Passos rápidos: selecione a página, altere qualquer campo e clique em "Salvar" no topo. Use o botão "Ver página" para conferir o resultado em nova aba.</p>
     <div class="hero-actions">
       <a class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Ver página</a>
     </div>
@@ -793,6 +799,12 @@ async function renderPaginasEditor() {
     const texts = getFeaturedEntries(CONTENT_PAGE, schema.texts, false);
     const images = getFeaturedEntries(CONTENT_PAGE, schema.images, true);
     wrap.innerHTML = `
+      <div style="margin-bottom:15px;">
+        <div class="notice notice-info">
+          <i class="fas fa-info-circle"></i>
+          <strong>DICA de edição:</strong> os campos de textos e imagens são aplicados diretamente à página. Se desejar zerar um texto ou imagem, deixe o campo em branco. Ao final, clique em "Salvar" no painel para publicar.
+        </div>
+      </div>
       <div class="grid-2">
         <div class="card">
           <div class="card-head"><div class="card-title">Textos principais</div><span class="badge badge-blue">${texts.length}</span></div>
@@ -883,7 +895,8 @@ function capturePaginasContent() {
     const el = document.querySelector(`[data-site-text="${cssescape(f.key)}"]`);
     if (!el) return;
     const v = el.value.trim();
-    if (v && v !== f.value) nextText[f.key] = v;
+    // salva sempre, até vazio, para permitir limpar conteúdo
+    nextText[f.key] = v;
   });
   ps.text = nextText;
   const nextImages = {};
@@ -892,8 +905,13 @@ function capturePaginasContent() {
     const alt = document.querySelector(`[data-site-img-alt="${cssescape(f.key)}"]`);
     if (!src) return;
     const obj = {};
-    if (src.value.trim() && src.value.trim() !== f.src) obj.src = src.value.trim();
-    if (alt && alt.value.trim() !== f.alt) obj.alt = alt.value.trim();
+    const srcVal = src.value.trim();
+    const altVal = alt ? alt.value.trim() : "";
+    if (srcVal !== f.src) obj.src = srcVal;
+    if (alt && altVal !== f.alt) obj.alt = altVal;
+    // permite limpar a imagem
+    if (srcVal === "" && f.src) obj.src = "";
+    if (alt && altVal === "" && f.alt) obj.alt = "";
     if (Object.keys(obj).length) nextImages[f.key] = obj;
   });
   ps.images = nextImages;
@@ -936,7 +954,7 @@ function buildKey(el, root) {
     parts.unshift(`${tag}:nth-of-type(${idx})`);
     cur = cur.parentElement;
   }
-  return parts.join(">");
+  return parts.join('>'); // mantém o mesmo padrão de buildAdminPath do script.js
 }
 
 const FEATURED_TEXTS = {

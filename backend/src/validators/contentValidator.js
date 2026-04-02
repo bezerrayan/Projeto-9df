@@ -63,18 +63,26 @@ function validateGalleryPhoto(photo) {
 
     // We only validate the pattern if it's a local path. 
     // Cloudinary URLs (starting with http) bypass the LINUX_SAFE check.
-    if (!src.startsWith('http') && !LINUX_SAFE_IMAGE_RE.test(src)) {
+    const isExternal = src.toLowerCase().startsWith('http');
+    
+    if (!isExternal && !LINUX_SAFE_IMAGE_RE.test(src)) {
+        console.warn(`[VALIDATOR] Imagem descartada por segurança (path inválido): ${src}`);
         return null; 
     }
 
+    if (isExternal) {
+      console.log(`[VALIDATOR] Link externo aceito: ${src}`);
+    }
+
     return {
-      id: String(photo.id || "").trim(),
+      id: String(photo.id || "ph-" + Math.random().toString(36).substr(2, 9)).trim(),
       title,
       category: String(photo.category || "atividade").trim(),
       caption: String(photo.caption || title).trim(),
       src,
     };
   } catch (e) {
+    console.error('[VALIDATOR ERROR] Falha ao processar foto:', e);
     return null;
   }
 }

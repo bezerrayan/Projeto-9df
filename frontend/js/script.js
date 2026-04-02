@@ -770,7 +770,7 @@ function buildAdminPath(element, root) {
         parts.unshift(tag + ':nth-of-type(' + index + ')');
         current = current.parentElement;
     }
-    return parts.join(' > ');
+    return parts.join('>'); // format igual ao admin.js para garantir match de chaves
 }
 
 function getEditableTextNodes(root) {
@@ -870,13 +870,15 @@ function applyAdminContent(state) {
     var pageState = ensurePageState(state, pageName);
 
     getEditableTextNodes(root).forEach(function (entry) {
-        if (pageState.text[entry.key]) writeEditableText(entry.element, pageState.text[entry.key]);
+        if (pageState.text && Object.prototype.hasOwnProperty.call(pageState.text, entry.key)) {
+            writeEditableText(entry.element, pageState.text[entry.key]);
+        }
     });
 
     getEditableImages(root).forEach(function (entry) {
-        var img = pageState.images[entry.key];
-        if (img && img.src) entry.element.setAttribute('src', img.src);
-        if (img && img.alt) entry.element.setAttribute('alt', img.alt);
+        var img = pageState.images ? pageState.images[entry.key] : undefined;
+        if (img && Object.prototype.hasOwnProperty.call(img, 'src')) entry.element.setAttribute('src', img.src || '');
+        if (img && Object.prototype.hasOwnProperty.call(img, 'alt')) entry.element.setAttribute('alt', img.alt || '');
     });
 
     getEditableSections(root).forEach(function (entry) {

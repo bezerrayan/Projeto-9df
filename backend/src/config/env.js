@@ -3,8 +3,13 @@ const dotenv = require('dotenv');
 
 // Load .env and .env.local
 const BASE_DIR = path.join(__dirname, '../../');
-dotenv.config({ path: path.join(BASE_DIR, '.env') });
-dotenv.config({ path: path.join(BASE_DIR, '.env.local'), override: true });
+const ROOT_DIR = path.join(BASE_DIR, '../');
+
+// Load .env and .env.local from both backend and root (for flexibility)
+[ROOT_DIR, BASE_DIR].forEach(dir => {
+  dotenv.config({ path: path.join(dir, '.env') });
+  dotenv.config({ path: path.join(dir, '.env.local'), override: true });
+});
 
 module.exports = {
   PORT: Number(process.env.PORT || 5000),
