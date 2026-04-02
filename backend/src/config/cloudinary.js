@@ -8,6 +8,10 @@ cloudinary.config({
   api_secret: config.CLOUDINARY.API_SECRET,
 });
 
+if (!config.CLOUDINARY || !config.CLOUDINARY.API_KEY) {
+  console.error('[CLOUDINARY] ⚠️ Erro: CLOUDINARY_API_KEY não foi encontrada no ambiente!');
+}
+
 // Usa memoryStorage — mais compatível com multer v2
 const upload = multer({
   storage: multer.memoryStorage(),

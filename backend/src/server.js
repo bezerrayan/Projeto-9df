@@ -14,6 +14,9 @@ const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 
+// Necessário para o express-rate-limit funcionar corretamente no Railway (proxy)
+app.set('trust proxy', 1);
+
 // --- Segurança Básica ---
 app.use(helmet()); 
 app.use(cookieParser());

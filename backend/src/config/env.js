@@ -14,7 +14,7 @@ module.exports = {
   CORS_ORIGINS: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['http://localhost:3000', 'http://127.0.0.1:3000'],
   
   DATABASE: {
-    URL: process.env.DATABASE_URL, // Railway provides this
+    URL: process.env.DATABASE_URL,
     HOST: process.env.MYSQL_HOST || 'localhost',
     PORT: Number(process.env.MYSQL_PORT || 3306),
     USER: process.env.MYSQL_USER,
@@ -24,9 +24,9 @@ module.exports = {
   },
 
   CLOUDINARY: {
-    CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
-    API_KEY: process.env.CLOUDINARY_API_KEY,
-    API_SECRET: process.env.CLOUDINARY_API_SECRET,
+    CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+    API_KEY: process.env.CLOUDINARY_API_KEY || '',
+    API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
   },
 
   PATHS: {
