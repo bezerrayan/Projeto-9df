@@ -767,27 +767,73 @@ function renderMembros() {
 // ── Template: Páginas do site ─────────────────────────────────────
 function tplPaginas() {
   const meta = PAGE_META[CONTENT_PAGE] || { label: "Página", icon: "fa-file", desc: "" };
+  const pageIndex = PUBLIC_PAGES.indexOf(CONTENT_PAGE) + 1;
   return `
   <div class="hero-banner">
     <h2>Conteúdo do site</h2>
     <p>Edite textos e imagens por página sem precisar mexer no código-fonte.</p>
-    <p style="opacity:.8; margin-top: 8px;">Passos rápidos: selecione a página, altere qualquer campo e clique em "Salvar" no topo. Use o botão "Ver página" para conferir o resultado em nova aba.</p>
+    <p style="opacity:.8; margin-top: 8px;">Escolha a página, envie imagens com pré-visualização e salve tudo no topo quando terminar.</p>
     <div class="hero-actions">
       <a class="btn btn-sm" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff" href="/${CONTENT_PAGE}" target="_blank" rel="noreferrer"><i class="fas fa-arrow-up-right-from-square"></i> Ver página</a>
     </div>
   </div>
-  <div class="card">
-    <div class="card-head">
-      <div>
-        <div class="card-title"><i class="fas ${meta.icon}" style="color:var(--c-blue);margin-right:6px"></i>${esc(meta.label)}</div>
-        <div class="card-desc">${esc(meta.desc)}</div>
+  <div class="content-workspace">
+    <div class="content-guide">
+      <div class="guide-card">
+        <div class="guide-step">1</div>
+        <div><strong>Escolha a página</strong><span>Use os cartões abaixo para alternar entre Home, Sobre, Contato e outras áreas do site.</span></div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-step">2</div>
+        <div><strong>Edite com segurança</strong><span>Textos podem ser alterados livremente e imagens agora aceitam upload com pré-visualização.</span></div>
+      </div>
+      <div class="guide-card">
+        <div class="guide-step">3</div>
+        <div><strong>Confira e publique</strong><span>Abra a página em nova aba para revisar o resultado antes de salvar e publicar.</span></div>
       </div>
     </div>
-    <div class="tab-strip" id="page-tabs">
-      ${PUBLIC_PAGES.map(p => {
-        const m = PAGE_META[p];
-        return `<button class="tab-btn${p === CONTENT_PAGE ? " active" : ""}" data-page-tab="${p}"><i class="fas ${m.icon}"></i> ${esc(m.label)}</button>`;
-      }).join("")}
+    <div class="page-overview">
+      <div class="card page-summary">
+        <div class="page-summary-top">
+          <div class="page-summary-title">
+            <div class="page-summary-icon"><i class="fas ${meta.icon}"></i></div>
+            <div>
+              <strong>${esc(meta.label)}</strong>
+              <span>${esc(meta.desc)}</span>
+            </div>
+          </div>
+          <span class="badge badge-blue">Página ${pageIndex} de ${PUBLIC_PAGES.length}</span>
+        </div>
+        <div class="page-meta-pills">
+          <span class="meta-pill"><i class="fas fa-font"></i> Textos guiados</span>
+          <span class="meta-pill"><i class="fas fa-image"></i> Upload com preview</span>
+          <span class="meta-pill"><i class="fas fa-floppy-disk"></i> Salvar no topo</span>
+        </div>
+      </div>
+      <div class="content-actions">
+        <div class="content-tip-card">
+          <strong>Dica rápida</strong>
+          <p>Se uma imagem não estiver boa, clique em "Enviar imagem", aguarde o status ficar verde e então use "Ver página" para conferir.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Páginas disponíveis</div>
+          <div class="card-desc">Clique em qualquer cartão para editar aquela página.</div>
+        </div>
+      </div>
+      <div class="page-tabs-grid" id="page-tabs">
+        ${PUBLIC_PAGES.map(p => {
+          const m = PAGE_META[p];
+          return `<button class="page-tab-card${p === CONTENT_PAGE ? " active" : ""}" data-page-tab="${p}">
+            <div class="page-tab-icon"><i class="fas ${m.icon}"></i></div>
+            <strong>${esc(m.label)}</strong>
+            <span>${esc(m.desc)}</span>
+          </button>`;
+        }).join("")}
+      </div>
     </div>
   </div>
   <div id="content-editor-wrap">
@@ -820,31 +866,48 @@ async function renderPaginasEditor() {
       <div style="margin-bottom:15px;">
         <div class="notice notice-info">
           <i class="fas fa-info-circle"></i>
-          <strong>DICA de edição:</strong> os campos de textos e imagens são aplicados diretamente à página. Se desejar zerar um texto ou imagem, deixe o campo em branco. Ao final, clique em "Salvar" no painel para publicar.
+          <strong>DICA de edição:</strong> os campos abaixo são ligados diretamente ao site. Para trocar uma imagem, use o botão de upload; para limpar um conteúdo, deixe o campo vazio e salve.
         </div>
       </div>
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-head"><div class="card-title">Textos principais</div><span class="badge badge-blue">${texts.length}</span></div>
+      <div class="editor-grid">
+        <div class="editor-column">
+          <div class="card">
+            <div class="section-title-wrap">
+              <div>
+                <div class="card-title">Textos principais</div>
+                <p class="section-caption">Frases e descrições que aparecem com maior destaque nessa página.</p>
+              </div>
+              <span class="badge badge-blue">${texts.length}</span>
+            </div>
           ${texts.length
-            ? texts.map(f => `<div style="margin-bottom:14px">
-                <div class="fg">
+            ? texts.map((f, idx) => `<div class="text-field-card" style="margin-bottom:14px">
+                <div class="field-kicker">Campo ${idx + 1}</div>
+                <div class="fg" style="margin-top:12px">
                   <label>${esc(f.title)}</label>
                   <textarea data-site-text="${esc(f.key)}" rows="${Math.max(2, Math.min(6, (f.value || "").split("\n").length + 1))}">${esc(pState.text[f.key] ?? f.value)}</textarea>
                 </div>
-                <div style="font-size:11px;color:var(--c-ink-3);margin-top:-8px">${esc(f.hint)}</div>
+                <div class="field-hint">${esc(f.hint)}</div>
               </div>`).join("")
             : `<div class="empty-state"><i class="fas fa-font"></i><p>Nenhum campo identificado.</p></div>`}
+          </div>
         </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Imagens</div><span class="badge badge-blue">${images.length}</span></div>
+        <div class="editor-column">
+          <div class="card">
+            <div class="section-title-wrap">
+              <div>
+                <div class="card-title">Imagens</div>
+                <p class="section-caption">Envie uma imagem e confira o preview antes de salvar.</p>
+              </div>
+              <span class="badge badge-blue">${images.length}</span>
+            </div>
+            <div class="image-stack">
           ${images.length
-            ? images.map(f => {
+            ? images.map((f, idx) => {
                 const ov = pState.images[f.key] || {};
                 const inputId = `page-input-${hashStr(`${CONTENT_PAGE}-${f.key}`)}`;
                 const previewId = `page-preview-${hashStr(`${CONTENT_PAGE}-${f.key}`)}`;
                 const statusId = `page-status-${hashStr(`${CONTENT_PAGE}-${f.key}`)}`;
-                return `<div style="margin-bottom:18px">
+                return `<div class="image-field-card${idx === 0 ? " primary" : ""}">
                   ${renderImagePicker({
                     label: f.title,
                     value: ov.src ?? f.src,
@@ -858,6 +921,8 @@ async function renderPaginasEditor() {
                 </div>`;
               }).join("")
             : `<div class="empty-state"><i class="fas fa-image"></i><p>Nenhuma imagem identificada.</p></div>`}
+            </div>
+          </div>
         </div>
       </div>
       <div class="card">
