@@ -890,26 +890,61 @@ function applyAdminContent(state) {
 }
 
 function setupContactForm(state) {
-    var form = document.querySelector('.contact-form');
+    var form = document.getElementById('contactForm') || document.querySelector('.contact-form-panel');
     if (!form) return;
-    var btn = form.querySelector('button');
-    if (btn) { btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar mensagem'; }
+    var btn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+    var feedback = document.getElementById('contactFeedback');
+    var draftWrapper = document.getElementById('contactDraftWrapper');
+    var draftField = document.getElementById('contactDraft');
+    if (btn) { btn.innerHTML = 'Enviar mensagem <i class="fas fa-paper-plane"></i>'; }
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
-        var name = form.querySelector('input[type="text"]').value;
-        var email = form.querySelector('input[type="email"]').value;
-        var msg = form.querySelector('textarea').value;
-        var resultDiv = document.getElementById('contact-result');
+        var nameInput = document.getElementById('name');
+        var emailInput = document.getElementById('email');
+        var subjectInput = document.getElementById('subject');
+        var messageInput = document.getElementById('message');
+        var name = nameInput ? nameInput.value.trim() : '';
+        var email = emailInput ? emailInput.value.trim() : '';
+        var subject = subjectInput ? subjectInput.value.trim() : '';
+        var msg = messageInput ? messageInput.value.trim() : '';
 
-        var payload = { name: name, email: email, subject: 'Contato pelo site', message: msg };
+        if (!name || !email || !msg) {
+            if (feedback) {
+                feedback.innerHTML = '<span style="color:#b91c1c;font-weight:600;"><i class="fas fa-circle-exclamation"></i> Preencha nome, e-mail e mensagem.</span>';
+            }
+            return;
+        }
+
+        if (feedback) {
+            feedback.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-spinner fa-spin"></i> Enviando mensagem...</span>';
+        }
+        if (draftWrapper) draftWrapper.hidden = true;
+        if (btn) btn.disabled = true;
+
+        var payload = { name: name, email: email, subject: subject || 'Contato pelo site', message: msg };
         window.apiFetch('/contact', { method: 'POST', body: payload })
         .then(function() {
-            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-check-circle"></i> Mensagem enviada!</span>'; resultDiv.style.opacity = '1'; }
+            if (feedback) {
+                feedback.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-check-circle"></i> Mensagem enviada com sucesso!</span>';
+            }
+            if (draftField) {
+                draftField.value =
+                    'Nome: ' + name + '\n' +
+                    'E-mail: ' + email + '\n' +
+                    'Assunto: ' + (subject || 'Contato pelo site') + '\n\n' +
+                    msg;
+            }
+            if (draftWrapper) draftWrapper.hidden = false;
             form.reset();
         })
-        .catch(function() {
-            if (resultDiv) { resultDiv.innerHTML = '<span style="color:var(--text);"><i class="fas fa-exclamation-circle"></i> Erro ao enviar.</span>'; resultDiv.style.opacity = '1'; }
+        .catch(function(error) {
+            if (feedback) {
+                feedback.innerHTML = '<span style="color:#b91c1c;font-weight:600;"><i class="fas fa-exclamation-circle"></i> Erro ao enviar: ' + esc(error && error.message ? error.message : 'tente novamente.') + '</span>';
+            }
+        })
+        .finally(function() {
+            if (btn) btn.disabled = false;
         });
     });
 }
