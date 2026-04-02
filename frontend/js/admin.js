@@ -64,28 +64,36 @@ async function boot() {
     document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); doSave(); } });
     document.getElementById("content-area").addEventListener("input", markDirty);
 
-    // Event delegation global para upload de imagens (.img-upload-trigger)
+    // Event delegation global para upload de imagens/docs (.img-upload-trigger)
     document.addEventListener("change", async (e) => {
       const fileInput = e.target.closest(".img-upload-trigger");
       if (!fileInput || !fileInput.files?.length) return;
+
       const targetId  = fileInput.dataset.targetId;
       const targetSel = fileInput.dataset.targetSel;
+      const statusId  = fileInput.dataset.statusId;
+      const endpoint  = fileInput.dataset.uploadEndpoint || "/admin/upload/image";
+      const fieldName = fileInput.dataset.fieldName || "image";
       const previewId = fileInput.dataset.previewId;
-      const target = targetId
-        ? document.getElementById(targetId)
-        : (targetSel ? document.querySelector(targetSel) : null);
-      
+
+      const target   = targetId  ? document.getElementById(targetId)  : (targetSel ? document.querySelector(targetSel) : null);
+      const statusEl = statusId  ? document.getElementById(statusId)  : null;
+
       try {
         const formData = new FormData();
-        formData.append("image", fileInput.files[0]);
-        toast("Enviando imagem…");
-        const data = await window.apiFetch("/admin/upload/image", { method: "POST", body: formData });
-        target.value = data.path;
-        const previewId = fileInput.dataset.previewId;
+        formData.append(fieldName, fileInput.files[0]);
+        if (statusEl) { statusEl.textContent = "⏳ Enviando…"; statusEl.style.color = "var(--c-ink-2)"; }
+        toast("Enviando arquivo…");
+        const data = await window.apiFetch(endpoint, { method: "POST", body: formData });
+        if (target) target.value = data.path;
         if (previewId) { const img = document.getElementById(previewId); if (img) img.src = data.path; }
-        toast("Imagem enviada com sucesso!");
+        if (statusEl) { statusEl.textContent = "✓ Upload concluído"; statusEl.style.color = "var(--c-green)"; }
+        toast("Arquivo enviado com sucesso!");
         markDirty();
-      } catch { toast("Falha no upload da imagem."); }
+      } catch {
+        if (statusEl) { statusEl.textContent = "✗ Falha no upload — tente novamente"; statusEl.style.color = "#ef4444"; }
+        toast("Falha no upload. Verifique sua conexão.", "error");
+      }
     });
     
     // Rota corrigida no novo backend
@@ -1030,13 +1038,12 @@ function renderModals() {
           ${["acampamento","atividade","evento","comunidade"].map(c => `<option value="${c}">${cap(c)}</option>`).join("")}
         </select></div>
       </div>
-      <div class="fg"><label>Fazer upload de imagem</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="file" id="ph-file" accept="image/*" style="flex:1">
-          <span id="ph-upload-status" style="font-size:12px;color:var(--c-green)"></span>
-        </div>
+      <div class="fg"><label>Imagem</label>
+        <input type="file" id="ph-file" accept="image/*" class="img-upload-trigger"
+          data-target-id="ph-src" data-status-id="ph-upload-status">
+        <div id="ph-upload-status" style="font-size:11px;min-height:16px"></div>
       </div>
-      <div class="fg"><label>Ou URL / caminho manual</label><input id="ph-src" placeholder="images/galeria/foto.webp"></div>
+      <input type="hidden" id="ph-src">
       <div class="fg"><label>Legenda</label><input id="ph-caption"></div>`,
       "add-photo-btn", "Adicionar"),
 
@@ -1133,28 +1140,11 @@ function bindPage(page) {
       })
     );
     renderGallery();
-    document.getElementById("add-photo-btn")?.addEventListener("click", async () => {
+    document.getElementById("add-photo-btn")?.addEventListener("click", () => {
       const title = document.getElementById("ph-title")?.value.trim();
       if (!title) { toast("Preencha o título da foto."); return; }
-      let src = normPath(document.getElementById("ph-src")?.value || "");
-      const fileInput = document.getElementById("ph-file");
-      if (fileInput?.files?.length) {
-        try {
-          const formData = new FormData();
-          formData.append("image", fileInput.files[0]);
-          const statusEl = document.getElementById("ph-upload-status");
-          if (statusEl) statusEl.textContent = "Enviando…";
-          const data = await window.apiFetch("/admin/upload/image", { method: "POST", body: formData });
-          src = data.path;
-          if (statusEl) statusEl.textContent = "✓ Enviada";
-        } catch {
-          const statusEl = document.getElementById("ph-upload-status");
-          if (statusEl) statusEl.textContent = "⚠️ Upload falhou";
-          if (!src) { toast("Upload falhou e nenhuma URL manual foi informada."); return; }
-          toast("Upload falhou — usando URL manual como fallback.");
-        }
-      }
-      if (!src) { toast("Selecione uma imagem ou informe o caminho."); return; }
+      const src = normPath(document.getElementById("ph-src")?.value || "");
+      if (!src) { toast("Selecione uma imagem e aguarde o upload concluir.", "warn"); return; }
       STATE.adminPanel.photos.push({ id: uid("ph"), title, category: document.getElementById("ph-cat")?.value || "atividade", src, caption: document.getElementById("ph-caption")?.value.trim() || title });
       closeModal("modal-photo"); renderGallery(); toast("Foto adicionada."); markDirty();
     });
@@ -1224,25 +1214,11 @@ function bindPage(page) {
   if (page === "mensagens") initMensagens();
   if (page === "documentos") {
     renderDocumentos();
-    document.getElementById("add-doc-btn")?.addEventListener("click", async () => {
+    document.getElementById("add-doc-btn")?.addEventListener("click", () => {
       const title = document.getElementById("doc-title")?.value.trim();
       if (!title) { toast("Preencha o título."); return; }
-      const fileInput = document.getElementById("doc-file");
-      const manualSrc = normPath(document.getElementById("doc-manual")?.value || "");
-      let src = manualSrc;
-      if (fileInput?.files?.length) {
-        try {
-          const formData = new FormData();
-          formData.append("file", fileInput.files[0]);
-          const data = await window.apiFetch("/admin/upload/document", { method: "POST", body: formData });
-          src = data.path;
-        } catch {
-          if (!manualSrc) { toast("Upload falhou. Configure o Cloudinary ou insira um caminho manual."); return; }
-          toast("Upload falhou — usando caminho manual como fallback.");
-          src = manualSrc;
-        }
-      }
-      if (!src) { toast("Selecione um arquivo ou preencha o caminho manual."); return; }
+      const src = normPath(document.getElementById("doc-src")?.value || "");
+      if (!src) { toast("Selecione um arquivo e aguarde o upload concluir.", "warn"); return; }
       STATE.adminPanel.documents.push({
         id: uid("doc"), title,
         desc: document.getElementById("doc-desc")?.value.trim() || "",
@@ -1465,12 +1441,22 @@ function markDirty() {
   if (!DIRTY) { DIRTY = true; setStatus("dirty"); }
 }
 
-function toast(msg) {
-  document.getElementById("toast-msg").textContent = msg;
+function toast(msg, type = "success") {
   const t = document.getElementById("toast");
+  const icon = document.getElementById("toast-icon");
+  document.getElementById("toast-msg").textContent = msg;
+  
+  if (icon) {
+    icon.className = type === "warn" || type === "error" ? "fas fa-circle-exclamation" : "fas fa-circle-check";
+    icon.style.color = type === "warn" ? "#f59e0b" : type === "error" ? "#ef4444" : "#7dd3fc";
+  }
+  
   t.classList.add("show");
   clearTimeout(TOAST_TIMER);
-  TOAST_TIMER = setTimeout(() => t.classList.remove("show"), 2800);
+  TOAST_TIMER = setTimeout(() => {
+    t.classList.remove("show");
+    if (icon) icon.removeAttribute("style");
+  }, 2800);
 }
 
 // ── Modals open/close ─────────────────────────────────────────────
@@ -1669,8 +1655,13 @@ renderModals = function() {
       <div class="fg"><label>Título</label><input id="doc-title"></div>
       <div class="fg"><label>Categoria</label><select id="doc-cat"><option>Regimento</option><option>Estatuto</option><option>Geral</option><option>Modelo</option></select></div>
     </div>
-    <div class="fg"><label>Arquivo do documento</label><input type="file" id="doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx"></div>
-    <div class="fg"><label>Caminho manual (se preferir)</label><input id="doc-manual" placeholder="docs/arquivo.pdf"></div>
+    <div class="fg"><label>Arquivo (PDF, Word, Excel)</label>
+      <input type="file" id="doc-file" accept=".pdf,.doc,.docx,.xls,.xlsx"
+        class="img-upload-trigger" data-target-id="doc-src" data-status-id="doc-upload-status"
+        data-upload-endpoint="/admin/upload/document" data-field-name="file">
+      <div id="doc-upload-status" style="font-size:11px;min-height:16px"></div>
+    </div>
+    <input type="hidden" id="doc-src">
     <div class="fg"><label>Descrição (opcional)</label><textarea id="doc-desc" rows="2"></textarea></div>`,
     "add-doc-btn", "Adicionar"
   ) + modal(

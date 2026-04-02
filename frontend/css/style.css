@@ -1752,6 +1752,34 @@ textarea {
     box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
 }
 
+.form-field input[type="file"],
+.fg input[type="file"] {
+    padding: 8px 12px;
+    background: transparent;
+    border: 1.5px dashed rgba(8, 23, 45, 0.16);
+    color: var(--ink);
+    border-radius: 14px;
+}
+.form-field input[type="file"]::file-selector-button,
+.fg input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 6px 14px;
+    background: var(--blue-050);
+    border: 1px solid var(--blue-200);
+    border-radius: 8px;
+    color: var(--blue-700);
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.form-field input[type="file"]::file-selector-button:hover,
+.fg input[type="file"]::file-selector-button:hover {
+    background: var(--blue-500);
+    color: var(--white);
+    border-color: var(--blue-600);
+}
+
 .form-submit {
     width: 100%;
 }

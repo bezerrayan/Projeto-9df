@@ -801,6 +801,31 @@ input:focus,select:focus,textarea:focus{
   border-color:var(--c-blue-mid);
   box-shadow:0 0 0 4px rgba(37,99,235,.10);
 }
+input[type=file]{
+  padding:9px 12px;
+  background:var(--c-bg);
+  border:1.5px dashed var(--c-border);
+  color:var(--c-ink);
+  cursor:pointer;
+}
+input[type=file]::file-selector-button{
+  margin-right:12px;
+  padding:6px 14px;
+  background:rgba(37,99,235,.10);
+  border:1px solid rgba(37,99,235,.22);
+  border-radius:8px;
+  color:var(--c-blue);
+  font-weight:700;
+  font-size:.8rem;
+  font-family:inherit;
+  cursor:pointer;
+  transition:background .2s,color .2s;
+}
+input[type=file]::file-selector-button:hover{
+  background:var(--c-blue);
+  color:#fff;
+  border-color:var(--c-blue);
+}
 
 .cal-shell{
   display:grid;
@@ -1169,11 +1194,11 @@ input:focus,select:focus,textarea:focus{
 <div id="modal-root"></div>
 
 <div id="toast">
-  <i class="fas fa-circle-check"></i>
+  <i id="toast-icon" class="fas fa-circle-check"></i>
   <span id="toast-msg">Alterações salvas com sucesso.</span>
 </div>
 
 <script src="js/api.js"></script>
-    <script src="js/admin.js?v=1.0.4"></script>
+    <script src="js/admin.js?v=1.0.6"></script>
 </body>
 </html>
