@@ -1,23 +1,29 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+const config = require('../src/config/env');
 
 async function testConnection() {
+  const usingDatabaseUrl = Boolean(config.DATABASE.URL);
+  const connectionConfig = usingDatabaseUrl
+    ? config.DATABASE.URL
+    : {
+        host: config.DATABASE.HOST,
+        user: config.DATABASE.USER,
+        password: config.DATABASE.PASSWORD,
+        database: config.DATABASE.NAME,
+        port: config.DATABASE.PORT
+      };
+
   console.log('Testando conexão com o banco de dados...');
   console.log('Configurações:', {
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    database: process.env.MYSQL_DATABASE,
-    port: process.env.MYSQL_PORT
+    mode: usingDatabaseUrl ? 'DATABASE_URL' : 'variaveis-separadas',
+    host: usingDatabaseUrl ? '(via DATABASE_URL)' : config.DATABASE.HOST,
+    user: usingDatabaseUrl ? '(via DATABASE_URL)' : config.DATABASE.USER,
+    database: usingDatabaseUrl ? '(via DATABASE_URL)' : config.DATABASE.NAME,
+    port: usingDatabaseUrl ? '(via DATABASE_URL)' : config.DATABASE.PORT
   });
 
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.MYSQL_HOST,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-      port: Number(process.env.MYSQL_PORT || 3306)
-    });
+    const connection = await mysql.createConnection(connectionConfig);
     console.log('✅ Conexão estabelecida com sucesso!');
     await connection.end();
   } catch (error) {

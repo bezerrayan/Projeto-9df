@@ -7,8 +7,8 @@ const ROOT_DIR = path.join(BASE_DIR, '../');
 
 // Load .env and .env.local from both backend and root (for flexibility)
 [ROOT_DIR, BASE_DIR].forEach(dir => {
-  dotenv.config({ path: path.join(dir, '.env') });
-  dotenv.config({ path: path.join(dir, '.env.local'), override: true });
+  dotenv.config({ path: path.join(dir, '.env'), quiet: true });
+  dotenv.config({ path: path.join(dir, '.env.local'), override: true, quiet: true });
 });
 
 module.exports = {
