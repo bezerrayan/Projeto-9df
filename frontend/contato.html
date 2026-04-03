@@ -104,19 +104,18 @@
                         <div class="form-field">
                             <label for="subject">Assunto</label>
                             <div class="subject-picker">
-                                <select id="subjectPreset" class="subject-select">
-                                    <option value="">Escolha um assunto sugerido</option>
-                                    <option value="Inscrição">Inscrição</option>
-                                    <option value="Primeira visita">Primeira visita</option>
-                                    <option value="Mensalidade">Mensalidade</option>
-                                    <option value="Documentação">Documentação</option>
-                                    <option value="Transferência de grupo">Transferência de grupo</option>
-                                    <option value="Atividades e calendário">Atividades e calendário</option>
-                                    <option value="Uniforme">Uniforme</option>
-                                    <option value="Projeto social">Projeto social</option>
-                                    <option value="Parceria">Parceria</option>
-                                    <option value="Orçamento">Orçamento</option>
-                                </select>
+                                <div class="subject-chip-grid" aria-label="Assuntos sugeridos">
+                                    <button type="button" class="subject-chip" data-subject-option="Inscrição">Inscrição</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Primeira visita">Primeira visita</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Mensalidade">Mensalidade</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Documentação">Documentação</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Transferência de grupo">Transferência de grupo</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Atividades e calendário">Atividades e calendário</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Uniforme">Uniforme</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Projeto social">Projeto social</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Parceria">Parceria</button>
+                                    <button type="button" class="subject-chip" data-subject-option="Orçamento">Orçamento</button>
+                                </div>
                                 <input id="subject" type="text" placeholder="Ou escreva um assunto personalizado">
                             </div>
                             <p class="field-support">Escolha uma sugestão pronta ou escreva do seu jeito.</p>
@@ -174,7 +173,7 @@
     </footer>
 
     <script src="js/api.js"></script>
-    <script src="js/script.js?v=1.0.9"></script>
+    <script src="js/script.js?v=1.1.0"></script>
 </body>
 
 </html>

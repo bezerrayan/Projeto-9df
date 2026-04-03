@@ -897,13 +897,23 @@ function setupContactForm(state) {
     var draftWrapper = document.getElementById('contactDraftWrapper');
     var draftField = document.getElementById('contactDraft');
     var subjectInput = document.getElementById('subject');
-    var subjectPreset = document.getElementById('subjectPreset');
+    var subjectChips = form.querySelectorAll('[data-subject-option]');
     if (btn) { btn.innerHTML = 'Enviar mensagem <i class="fas fa-paper-plane"></i>'; }
-    if (subjectPreset) {
-        subjectPreset.addEventListener('change', function() {
-            if (!subjectInput || !subjectPreset.value) return;
-            subjectInput.value = subjectPreset.value;
+    subjectChips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            if (!subjectInput) return;
+            subjectInput.value = chip.dataset.subjectOption || '';
             subjectInput.focus();
+            subjectChips.forEach(function(item) { item.classList.remove('active'); });
+            chip.classList.add('active');
+        });
+    });
+    if (subjectInput) {
+        subjectInput.addEventListener('input', function() {
+            var current = subjectInput.value.trim();
+            subjectChips.forEach(function(chip) {
+                chip.classList.toggle('active', current && current === (chip.dataset.subjectOption || ''));
+            });
         });
     }
 
