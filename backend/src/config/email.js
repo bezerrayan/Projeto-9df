@@ -31,6 +31,10 @@ function getEmailConfig() {
     folders: {
       inbox: 'INBOX',
       sent: process.env.HOSTINGER_IMAP_SENT_FOLDER || 'Sent',
+      sentFallbacks: (process.env.HOSTINGER_IMAP_SENT_FALLBACKS || 'Sent,Sent Messages,Sent Mail,INBOX.Sent')
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean),
       financeiro: 'Financeiro',
       atendimento: 'Atendimento',
       comercial: 'Comercial',

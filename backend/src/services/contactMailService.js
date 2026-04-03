@@ -39,6 +39,7 @@ async function appendCopyToMailbox(path, mailOptions) {
 async function tryAppendCopyToMailbox(path, mailOptions, context) {
   try {
     await appendCopyToMailbox(path, mailOptions);
+    logger.info('Cópia sincronizada via IMAP com sucesso', { path, context });
     return true;
   } catch (error) {
     logger.warn('Falha ao sincronizar cópia via IMAP', {
@@ -76,6 +77,11 @@ async function sendContactNotification(message) {
   };
 
   await transport.sendMail(mailOptions);
+  logger.info('SMTP do formulário enviado com sucesso', {
+    to: config.user,
+    replyTo: message.email,
+    subject,
+  });
   await tryAppendCopyToMailbox(config.folders.inbox, mailOptions, 'contact_notification');
 
   logger.info('Mensagem do formulário encaminhada para a caixa principal', {
@@ -99,7 +105,27 @@ async function sendAdminReply(message, reply) {
   };
 
   await transport.sendMail(mailOptions);
-  await tryAppendCopyToMailbox(config.folders.sent, mailOptions, 'admin_reply');
+  logger.info('SMTP de resposta do admin enviado com sucesso', {
+    to: message.email,
+    subject,
+    adminEmail: reply.adminEmail,
+  });
+
+  const sentCandidates = Array.from(new Set([config.folders.sent].concat(config.folders.sentFallbacks || [])));
+  let appendedToSent = false;
+
+  for (const candidate of sentCandidates) {
+    appendedToSent = await tryAppendCopyToMailbox(candidate, mailOptions, 'admin_reply');
+    if (appendedToSent) break;
+  }
+
+  if (!appendedToSent) {
+    logger.warn('Não foi possível registrar cópia da resposta em nenhuma pasta de enviados', {
+      tried: sentCandidates,
+      subject,
+      to: message.email,
+    });
+  }
 
   logger.info('Resposta enviada pelo painel administrativo', {
     messageId: message.id,
