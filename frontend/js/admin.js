@@ -2,6 +2,7 @@
 const NAV = [
   { section: "Principal",  id: "dashboard",    icon: "fa-gauge",           label: "Dashboard" },
   { section: "Principal",  id: "calendario",   icon: "fa-calendar-days",   label: "Calendário" },
+  { section: "Principal",  id: "noticias",     icon: "fa-newspaper",       label: "Notícias" },
   { section: "Principal",  id: "galeria",       icon: "fa-images",          label: "Galeria" },
   { section: "Principal",  id: "projetos",      icon: "fa-hands-helping",   label: "Projetos" },
   { section: "Principal",  id: "ramos",         icon: "fa-layer-group",     label: "Ramos" },
@@ -20,6 +21,7 @@ const PAGE_META = {
   "sobre.html":      { icon: "fa-circle-info",  label: "Sobre",       desc: "Apresentação institucional e história." },
   "atividades.html": { icon: "fa-star",          label: "Atividades",  desc: "Atividades em destaque." },
   "galeria.html":    { icon: "fa-images",        label: "Galeria",     desc: "Textos e imagens da galeria." },
+  "noticias.html":   { icon: "fa-newspaper",     label: "Notícias",    desc: "Atualizações e destaques do grupo." },
   "ramo.html":       { icon: "fa-layer-group",   label: "Ramos",       desc: "Ramos e faixas etárias." },
   "projetos.html":   { icon: "fa-hands-helping", label: "Projetos",    desc: "Projetos em destaque." },
   "contato.html":    { icon: "fa-envelope",      label: "Contato",     desc: "Canais e localização." },
@@ -46,6 +48,7 @@ let CONTENT_PAGE = "index.html";
 let SAVING = false;
 let DIRTY = false;
 let TOAST_TIMER = null;
+let DOCUMENTS_IMPORTED_FROM_PUBLIC = false;
 const SCHEMA_CACHE = {};
 
 // ── Boot ──────────────────────────────────────────────────────────
@@ -164,6 +167,7 @@ const PAGE_TITLES = {
   dashboard: ["Dashboard", "Visão geral do grupo"],
   calendario: ["Calendário", "Agenda de eventos e atividades"],
   galeria: ["Galeria", "Fotos para o site público"],
+  noticias: ["Notícias", "Destaques, avisos e novidades do grupo"],
   projetos: ["Projetos", "Projetos e frentes especiais"],
   ramos: ["Ramos", "Apresentação das seções por faixa etária"],
   atividades: ["Atividades", "Vivências em destaque no site"],
@@ -191,6 +195,7 @@ function navigate(page) {
 function renderPage(page) {
   if (page === "dashboard")  return tplDashboard();
   if (page === "calendario") return tplCalendario();
+  if (page === "noticias")   return tplNoticias();
   if (page === "galeria")    return tplGaleria();
   if (page === "projetos")   return tplProjetos();
   if (page === "ramos")      return tplRamos();
@@ -589,6 +594,87 @@ function renderProjetos() {
   }, id => {
     STATE.adminPanel.projects = STATE.adminPanel.projects.filter(p => p.id !== id);
     renderProjetos(); toast("Projeto removido."); markDirty();
+  });
+}
+
+function tplNoticias() {
+  return `
+  <div class="hero-banner">
+    <h2>Notícias</h2>
+    <p>Publique destaques, chamadas e novidades do grupo para a home e para a página de notícias.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-sm" data-open-modal="modal-news"><i class="fas fa-newspaper"></i> Nova notícia</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">Notícias publicadas</div>
+    </div>
+    <div id="noticias-list" class="items-list"></div>
+  </div>`;
+}
+
+function renderNoticias() {
+  const list = document.getElementById("noticias-list");
+  if (!list) return;
+
+  const rows = STATE.adminPanel.news.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  list.innerHTML = rows.length
+    ? rows.map(n => itemCard({
+        id: n.id,
+        type: "news",
+        title: n.title,
+        sub: n.date ? fmtDate(n.date) : "Sem data",
+        badges: [
+          { label: n.tag || "Notícia", cls: "badge-blue" },
+          n.featured ? { label: "Destaque", cls: "badge-amber" } : null,
+        ].filter(Boolean),
+        desc: n.summary,
+        icon: "fa-newspaper",
+        fields: `
+          <div class="form-row">
+            <div class="fg"><label>Título</label><input data-news-title="${n.id}" value="${esc(n.title)}"></div>
+            <div class="fg"><label>Tag</label><input data-news-tag="${n.id}" value="${esc(n.tag || "Notícia")}"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>Data</label><input type="date" data-news-date="${n.id}" value="${esc(n.date || "")}"></div>
+            <div class="fg"><label>Destaque principal</label><select data-news-featured="${n.id}">
+              <option value="false"${n.featured ? "" : " selected"}>Não</option>
+              <option value="true"${n.featured ? " selected" : ""}>Sim</option>
+            </select></div>
+          </div>
+          ${renderImagePicker({
+            label: "Imagem da notícia",
+            value: n.src || "",
+            previewId: `news-preview-${n.id}`,
+            statusId: `news-status-${n.id}`,
+            uploadAttrs: `data-target-id="news-src-${n.id}"`,
+            inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="news-src-${n.id}" data-news-src="${n.id}" data-media-kind="image" data-preview-id="news-preview-${n.id}" value="${esc(n.src || "")}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+          })}
+          <div class="fg"><label>Resumo curto</label><textarea rows="2" data-news-summary="${n.id}">${esc(n.summary || "")}</textarea></div>
+          <div class="fg"><label>Texto da notícia</label><textarea rows="6" data-news-body="${n.id}">${esc(n.body || "")}</textarea></div>`,
+      })).join("")
+    : `<div class="empty-state"><i class="fas fa-newspaper"></i><p>Nenhuma notícia cadastrada.</p></div>`;
+
+  bindItemCards("news", id => {
+    const n = STATE.adminPanel.news.find(x => x.id === id);
+    if (!n) return;
+    n.title = val(`[data-news-title="${id}"]`, n.title);
+    n.tag = val(`[data-news-tag="${id}"]`, n.tag);
+    n.date = val(`[data-news-date="${id}"]`, n.date);
+    n.src = val(`[data-news-src="${id}"]`, n.src);
+    n.summary = val(`[data-news-summary="${id}"]`, n.summary);
+    n.body = val(`[data-news-body="${id}"]`, n.body);
+    n.featured = val(`[data-news-featured="${id}"]`, String(n.featured)) === "true";
+    if (n.featured) {
+      STATE.adminPanel.news.forEach(item => {
+        if (item.id !== id) item.featured = false;
+      });
+    }
+    renderNoticias(); toast("Notícia atualizada."); markDirty();
+  }, id => {
+    STATE.adminPanel.news = STATE.adminPanel.news.filter(n => n.id !== id);
+    renderNoticias(); toast("Notícia removida."); markDirty();
   });
 }
 
@@ -1148,6 +1234,27 @@ function renderModals() {
       <div class="fg"><label>Descrição (opcional)</label><textarea id="ev-desc" rows="2"></textarea></div>`,
       "add-event-btn", "Adicionar"),
 
+    modal("modal-news", "Nova notícia", `
+      <div class="form-row">
+        <div class="fg"><label>Título</label><input id="nw-title"></div>
+        <div class="fg"><label>Tag</label><input id="nw-tag" value="Notícia"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Data</label><input type="date" id="nw-date"></div>
+        <div class="fg"><label>Destaque principal</label><select id="nw-featured"><option value="false">Não</option><option value="true">Sim</option></select></div>
+      </div>
+      ${renderImagePicker({
+        label: "Imagem da notícia",
+        value: "",
+        previewId: "nw-preview",
+        statusId: "nw-upload-status",
+        uploadAttrs: `data-target-id="nw-src"`,
+        inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="nw-src" data-media-kind="image" data-preview-id="nw-preview" placeholder="Envie uma imagem ou cole a URL"></div>`,
+      })}
+      <div class="fg"><label>Resumo curto</label><textarea id="nw-summary" rows="2"></textarea></div>
+      <div class="fg"><label>Texto da notícia</label><textarea id="nw-body" rows="5"></textarea></div>`,
+      "add-news-btn", "Adicionar"),
+
     modal("modal-photo", "Adicionar foto", `
       <div class="form-row">
         <div class="fg"><label>Título</label><input id="ph-title"></div>
@@ -1330,8 +1437,37 @@ function bindPage(page) {
   }
   if (page === "paginas") initPaginasEditor();
   if (page === "mensagens") initMensagens();
+  if (page === "noticias") {
+    renderNoticias();
+    document.getElementById("add-news-btn")?.addEventListener("click", () => {
+      const title = document.getElementById("nw-title")?.value.trim();
+      const src = normPath(document.getElementById("nw-src")?.value || "");
+      if (!title) { toast("Preencha o título da notícia."); return; }
+      if (!src) { toast("Selecione uma imagem para a notícia.", "warn"); return; }
+      const featured = (document.getElementById("nw-featured")?.value || "false") === "true";
+      if (featured) {
+        STATE.adminPanel.news.forEach(item => { item.featured = false; });
+      }
+      STATE.adminPanel.news.push({
+        id: uid("nw"),
+        title,
+        tag: document.getElementById("nw-tag")?.value.trim() || "Notícia",
+        date: document.getElementById("nw-date")?.value || "",
+        summary: document.getElementById("nw-summary")?.value.trim() || "",
+        body: document.getElementById("nw-body")?.value.trim() || "",
+        src,
+        featured,
+      });
+      closeModal("modal-news"); renderNoticias(); toast("Notícia adicionada."); markDirty();
+    });
+  }
   if (page === "documentos") {
     renderDocumentos();
+    if (!STATE.adminPanel.documents.length) {
+      importDocumentsFromPublicPage().then(count => {
+        if (count) renderDocumentos();
+      });
+    }
     document.getElementById("add-doc-btn")?.addEventListener("click", () => {
       const title = document.getElementById("doc-title")?.value.trim();
       if (!title) { toast("Preencha o título."); return; }
@@ -1384,12 +1520,25 @@ function captureCurrent() {
   if (PAGE === "contato")    captureContato();
   if (PAGE === "config")     captureConfig();
   if (PAGE === "calendario") captureEvents();
+  if (PAGE === "noticias")   captureNews();
   if (PAGE === "galeria")    capturePhotos();
   if (PAGE === "projetos")   captureProjects();
   if (PAGE === "atividades") captureActivities();
   if (PAGE === "membros")    captureMembros();
   if (PAGE === "documentos") captureDocuments();
   if (PAGE === "links")      captureLinks();
+}
+
+function captureNews() {
+  STATE.adminPanel.news.forEach(n => {
+    n.title = val(`[data-news-title="${n.id}"]`, n.title);
+    n.tag = val(`[data-news-tag="${n.id}"]`, n.tag);
+    n.date = val(`[data-news-date="${n.id}"]`, n.date);
+    n.src = val(`[data-news-src="${n.id}"]`, n.src);
+    n.summary = val(`[data-news-summary="${n.id}"]`, n.summary);
+    n.body = val(`[data-news-body="${n.id}"]`, n.body);
+    n.featured = val(`[data-news-featured="${n.id}"]`, String(n.featured)) === "true";
+  });
 }
 
 function captureEvents() {
@@ -1451,6 +1600,63 @@ function captureDocuments() {
     d.src = normPath(val(`[data-doc-src="${d.id}"]`, d.src));
     d.desc = val(`[data-doc-desc="${d.id}"]`, d.desc);
   });
+}
+
+function normalizeImportedDocumentHref(href) {
+  const raw = String(href || "").trim();
+  if (!raw) return "";
+
+  try {
+    const url = new URL(raw, window.location.href);
+    if (url.origin === window.location.origin) {
+      return normPath(url.pathname);
+    }
+    return url.toString();
+  } catch {
+    return normPath(raw);
+  }
+}
+
+async function importDocumentsFromPublicPage() {
+  if (DOCUMENTS_IMPORTED_FROM_PUBLIC || STATE.adminPanel.documents.length) {
+    return STATE.adminPanel.documents.length;
+  }
+
+  try {
+    const response = await fetch("documentos.html", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Falha ao carregar documentos.html (${response.status})`);
+
+    const html = await response.text();
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+    const cards = Array.from(parsed.querySelectorAll("#docs-dynamic .doc-card"));
+    if (!cards.length) return 0;
+
+    const imported = cards.map((card, index) => {
+      const title = card.querySelector("h3")?.textContent?.trim() || `Documento ${index + 1}`;
+      const desc = card.querySelector(".doc-card-head p")?.textContent?.trim() || "";
+      const category = card.querySelector(".doc-badge, .doc-meta span")?.textContent?.trim() || "Geral";
+      const href = card.querySelector(".doc-actions a[href]")?.getAttribute("href") || "";
+
+      return {
+        id: uid("doc"),
+        title,
+        desc,
+        category,
+        src: normalizeImportedDocumentHref(href),
+      };
+    }).filter(doc => doc.src);
+
+    if (!imported.length) return 0;
+
+    STATE.adminPanel.documents = imported;
+    DOCUMENTS_IMPORTED_FROM_PUBLIC = true;
+    markDirty();
+    toast("Documentos atuais carregados da página pública. Clique em Salvar para manter no painel.");
+    return imported.length;
+  } catch (error) {
+    console.warn("[ADMIN DOCUMENTS IMPORT]", error);
+    return 0;
+  }
 }
 
 function captureLinks() {
@@ -1666,6 +1872,7 @@ function normalizeContent(c) {
 function ensureState() {
   const p = STATE.adminPanel;
   p.events     = Array.isArray(p.events)     ? p.events     : [];
+  p.news       = Array.isArray(p.news)       ? p.news.map(normalizeNews) : [];
   p.photos     = Array.isArray(p.photos)     ? p.photos.map(normalizePhoto) : [];
   p.projects   = Array.isArray(p.projects)   ? p.projects.map(normalizeProject)  : [];
   p.activities = Array.isArray(p.activities) ? p.activities.map(normalizeActivity) : [];
@@ -1718,6 +1925,19 @@ function ensurePageState(page) {
 
 function normalizePhoto(p) {
   return { id: p.id || uid("ph"), title: String(p.title || "").trim(), category: String(p.category || "atividade").toLowerCase(), caption: String(p.caption || p.title || "").trim(), src: p.src || "" };
+}
+
+function normalizeNews(item) {
+  return {
+    id: item.id || uid("nw"),
+    title: String(item.title || "").trim(),
+    tag: String(item.tag || "Destaque").trim(),
+    date: String(item.date || "").trim(),
+    summary: String(item.summary || "").trim(),
+    body: String(item.body || "").trim(),
+    src: String(item.src || "").trim(),
+    featured: Boolean(item.featured),
+  };
 }
 
 function normalizeProject(p) {

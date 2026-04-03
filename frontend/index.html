@@ -8,7 +8,7 @@
     <meta name="description"
         content="No GEAR 9&ordm; DF, jovens vivem aventuras reais, constroem amizades e desenvolvem car&aacute;ter para a vida toda.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1.2.1">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
 </head>
 
@@ -119,6 +119,38 @@
             </div>
         </section>
 
+        <section class="section news-home-section">
+            <div class="shell">
+                <div class="section-head news-head">
+                    <div>
+                        <div class="eyebrow">Acontecendo no grupo</div>
+                        <h2>Últimas <em>notícias e destaques</em></h2>
+                    </div>
+                    <a href="noticias.html" class="btn btn-outline">Ver todas as notícias</a>
+                </div>
+                <div class="news-carousel" data-news-carousel>
+                    <button type="button" class="news-carousel-arrow news-carousel-prev" data-news-prev aria-label="Notícia anterior">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="news-carousel-viewport">
+                        <div class="news-carousel-track" id="home-news-track">
+                            <article class="news-slide is-empty">
+                                <div class="news-slide-copy">
+                                    <span class="news-tag">Em breve</span>
+                                    <h3>As próximas notícias do grupo vão aparecer aqui.</h3>
+                                    <p>Use o painel admin para publicar novidades, avisos e destaques do GEArSF.</p>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                    <button type="button" class="news-carousel-arrow news-carousel-next" data-news-next aria-label="Próxima notícia">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="news-dots" data-news-dots></div>
+            </div>
+        </section>
+
         <section class="cta-band">
             <div class="shell cta-layout">
                 <div>
@@ -181,7 +213,7 @@
     </footer>
 
     <script src="js/api.js"></script>
-    <script src="js/script.js?v=1.0.6"></script>
+    <script src="js/script.js?v=1.2.1"></script>
 </body>
 
 </html>

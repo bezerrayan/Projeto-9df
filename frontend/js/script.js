@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    ensureNewsLinks();
     applyAdminContent();
     setupMenu();
     setupHeaderShadow();
@@ -9,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetchSiteContent().then(function(state) {
         applyAdminContent(state);
         applyDynamicCalendar(state);
+        applyDynamicNews(state);
         applyDynamicGallery(state);
         applyDynamicProjects(state);
         applyDynamicActivities(state);
@@ -19,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
         applyDynamicRamos(state);
         applyVisibility(state);
         setupGalleryFilter();
+        setupNewsCarousel();
         setupProjectToggles();
         setupContactForm(state);
     });
@@ -99,7 +102,8 @@ function setupScrollAnimations() {
         '.hero-copy h1', '.hero-copy p', '.card', 
         '.team-card', '.doc-card', '.resource-card', 
         '.activity-card', '.project-card', '.notice-card',
-        '.floating-card', '.hero-stats div', '.mini-card', '.link-group-card'
+        '.floating-card', '.hero-stats div', '.mini-card', '.link-group-card',
+        '.news-card', '.news-spotlight-card', '.news-slide'
     ];
 
     document.querySelectorAll(revealSelectors.join(', ')).forEach((el, i) => {
@@ -627,6 +631,155 @@ function applyDynamicDocuments(state) {
     setupScrollAnimations(); // Refresh animations for new elements
 }
 
+function formatNewsDate(value) {
+    if (!value) return 'Sem data definida';
+    var parts = String(value).split('-');
+    if (parts.length !== 3) return esc(value);
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+
+function getNewsItems(state) {
+    return (state.adminPanel && Array.isArray(state.adminPanel.news) ? state.adminPanel.news : [])
+        .filter(function(item) {
+            return item && item.title && item.src;
+        })
+        .sort(function(a, b) {
+            return String(b.date || '').localeCompare(String(a.date || ''));
+        });
+}
+
+function applyDynamicNews(state) {
+    var items = getNewsItems(state);
+    var homeTrack = document.getElementById('home-news-track');
+    var pageGrid = document.getElementById('news-page-grid');
+    var pageSpotlight = document.getElementById('news-page-spotlight');
+
+    if (homeTrack) {
+        if (!items.length) {
+            homeTrack.innerHTML = '<article class="news-slide is-empty"><div class="news-slide-copy"><span class="news-tag">Em breve</span><h3>As próximas notícias do grupo vão aparecer aqui.</h3><p>Use o painel admin para publicar novidades, avisos e destaques do GEArSF.</p></div></article>';
+        } else {
+            homeTrack.innerHTML = items.slice(0, 6).map(function(item, index) {
+                return (
+                    '<article class="news-slide' + (index === 0 ? ' active' : '') + '" data-news-slide="' + index + '">' +
+                        '<div class="news-slide-media">' +
+                            '<img loading="lazy" decoding="async" src="' + esc(item.src) + '" alt="' + esc(item.title) + '" class="cover-image">' +
+                        '</div>' +
+                        '<div class="news-slide-copy">' +
+                            '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
+                            '<h3>' + esc(item.title) + '</h3>' +
+                            '<p>' + esc(item.summary || item.body || '') + '</p>' +
+                            '<a href="noticias.html" class="btn btn-white btn-small">Ver notícia completa</a>' +
+                        '</div>' +
+                    '</article>'
+                );
+            }).join('');
+        }
+    }
+
+    if (pageSpotlight) {
+        var featured = items.find(function(item) { return item.featured; }) || items[0];
+        if (!featured) {
+            pageSpotlight.innerHTML = '';
+        } else {
+            pageSpotlight.innerHTML =
+                '<article class="news-spotlight-card">' +
+                    '<div class="news-spotlight-media"><img loading="lazy" decoding="async" src="' + esc(featured.src) + '" alt="' + esc(featured.title) + '" class="cover-image"></div>' +
+                    '<div class="news-spotlight-copy">' +
+                        '<div class="news-slide-meta"><span class="news-tag">' + esc(featured.tag || 'Destaque') + '</span><span>' + esc(formatNewsDate(featured.date)) + '</span></div>' +
+                        '<h2>' + esc(featured.title) + '</h2>' +
+                        '<p>' + esc(featured.summary || '') + '</p>' +
+                        '<div class="news-rich-text">' + esc(featured.body || '').replace(/\n/g, '<br>') + '</div>' +
+                    '</div>' +
+                '</article>';
+        }
+    }
+
+    if (pageGrid) {
+        var featuredId = (items.find(function(item) { return item.featured; }) || items[0] || {}).id;
+        var gridItems = items.filter(function(item) {
+            return items.length === 1 || item.id !== featuredId;
+        });
+        if (!items.length) {
+            pageGrid.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper"></i><p>Nenhuma notícia publicada ainda.</p></div>';
+        } else {
+            pageGrid.innerHTML = gridItems.map(function(item) {
+                return (
+                    '<article class="news-card">' +
+                        '<div class="news-card-media"><img loading="lazy" decoding="async" src="' + esc(item.src) + '" alt="' + esc(item.title) + '" class="cover-image"></div>' +
+                        '<div class="news-card-body">' +
+                            '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
+                            '<h3>' + esc(item.title) + '</h3>' +
+                            '<p>' + esc(item.summary || '') + '</p>' +
+                            '<div class="news-card-text">' + esc(item.body || '').replace(/\n/g, '<br>') + '</div>' +
+                        '</div>' +
+                    '</article>'
+                );
+            }).join('');
+        }
+    }
+
+    setupScrollAnimations();
+}
+
+function setupNewsCarousel() {
+    var root = document.querySelector('[data-news-carousel]');
+    if (!root) return;
+    var track = root.querySelector('#home-news-track');
+    var prev = root.querySelector('[data-news-prev]');
+    var next = root.querySelector('[data-news-next]');
+    var dotsWrap = root.querySelector('[data-news-dots]');
+    if (!track) return;
+
+    var slides = Array.from(track.querySelectorAll('[data-news-slide]'));
+    if (slides.length <= 1) {
+        if (prev) prev.hidden = true;
+        if (next) next.hidden = true;
+        if (dotsWrap) dotsWrap.innerHTML = '';
+        return;
+    }
+
+    var index = 0;
+    var timer = null;
+
+    function render() {
+        slides.forEach(function(slide, slideIndex) {
+            slide.classList.toggle('active', slideIndex === index);
+        });
+        if (dotsWrap) {
+            dotsWrap.innerHTML = slides.map(function(_, dotIndex) {
+                return '<button type="button" class="news-dot' + (dotIndex === index ? ' active' : '') + '" data-news-dot="' + dotIndex + '" aria-label="Ir para notícia ' + (dotIndex + 1) + '"></button>';
+            }).join('');
+            dotsWrap.querySelectorAll('[data-news-dot]').forEach(function(dot) {
+                dot.addEventListener('click', function() {
+                    index = Number(dot.dataset.newsDot) || 0;
+                    render();
+                    restart();
+                });
+            });
+        }
+    }
+
+    function go(step) {
+        index = (index + step + slides.length) % slides.length;
+        render();
+        restart();
+    }
+
+    function restart() {
+        if (timer) window.clearInterval(timer);
+        timer = window.setInterval(function() {
+            index = (index + 1) % slides.length;
+            render();
+        }, 5500);
+    }
+
+    if (prev) prev.addEventListener('click', function() { go(-1); });
+    if (next) next.addEventListener('click', function() { go(1); });
+
+    render();
+    restart();
+}
+
 function applyDynamicLinks(state) {
     const container = document.getElementById('links-dynamic');
     if (!container) return;
@@ -894,8 +1047,6 @@ function setupContactForm(state) {
     if (!form) return;
     var btn = form.querySelector('button[type="submit"]') || form.querySelector('button');
     var feedback = document.getElementById('contactFeedback');
-    var draftWrapper = document.getElementById('contactDraftWrapper');
-    var draftField = document.getElementById('contactDraft');
     var subjectInput = document.getElementById('subject');
     var subjectToggle = form.querySelector('[data-subject-toggle]');
     var subjectToggleLabel = form.querySelector('[data-subject-toggle-label]');
@@ -946,6 +1097,7 @@ function setupContactForm(state) {
         if (subjectPanel && subjectPanel.contains(event.target)) return;
         closeSubjectPanel();
     });
+    closeSubjectPanel();
     setSubjectState(subjectInput ? subjectInput.value : '');
 
     form.addEventListener('submit', function (e) {
@@ -968,7 +1120,6 @@ function setupContactForm(state) {
         if (feedback) {
             feedback.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-spinner fa-spin"></i> Enviando mensagem...</span>';
         }
-        if (draftWrapper) draftWrapper.hidden = true;
         if (btn) btn.disabled = true;
 
         var payload = { name: name, email: email, subject: subject || 'Contato pelo site', message: msg };
@@ -977,14 +1128,6 @@ function setupContactForm(state) {
             if (feedback) {
                 feedback.innerHTML = '<span style="color:var(--blue-600);font-weight:600;"><i class="fas fa-check-circle"></i> Mensagem enviada com sucesso!</span>';
             }
-            if (draftField) {
-                draftField.value =
-                    'Nome: ' + name + '\n' +
-                    'E-mail: ' + email + '\n' +
-                    'Assunto: ' + (subject || 'Contato pelo site') + '\n\n' +
-                    msg;
-            }
-            if (draftWrapper) draftWrapper.hidden = false;
             form.reset();
             setSubjectState('');
             closeSubjectPanel();
@@ -997,6 +1140,35 @@ function setupContactForm(state) {
         .finally(function() {
             if (btn) btn.disabled = false;
         });
+    });
+}
+
+function ensureNewsLinks() {
+    document.querySelectorAll('.site-nav').forEach(function (nav) {
+        if (!nav || nav.querySelector('a[href="noticias.html"]')) return;
+        var reference = nav.querySelector('a[href="documentos.html"]') || nav.querySelector('a[href="links.html"]');
+        var link = document.createElement('a');
+        link.href = 'noticias.html';
+        link.innerHTML = 'Not&iacute;cias';
+        if (window.location.pathname.endsWith('/noticias.html') || window.location.pathname.endsWith('noticias.html')) {
+            link.classList.add('active');
+        }
+        if (reference) nav.insertBefore(link, reference);
+        else nav.appendChild(link);
+    });
+
+    document.querySelectorAll('.footer-links').forEach(function (list) {
+        var heading = list.parentElement ? list.parentElement.querySelector('h4') : null;
+        if (!heading || !/navega/i.test(heading.textContent || '')) return;
+        if (!list || list.querySelector('a[href="noticias.html"]')) return;
+        var docsItem = Array.from(list.querySelectorAll('a')).find(function (link) { return link.getAttribute('href') === 'documentos.html'; });
+        var item = document.createElement('li');
+        item.innerHTML = '<a href="noticias.html">Not&iacute;cias</a>';
+        if (docsItem && docsItem.parentElement) {
+            docsItem.parentElement.insertAdjacentElement('beforebegin', item);
+        } else {
+            list.appendChild(item);
+        }
     });
 }
 
