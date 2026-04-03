@@ -1,4 +1,4 @@
-const { sendWithHostingerTransport } = require('../modules/mail/services/hostingerSmtp.service');
+const { sendOutboundMail, resolveProvider } = require('../modules/mail/services/outboundMail.service');
 const { HostingerImapService } = require('../modules/mail/services/hostingerImap.service');
 const { createLogger } = require('../lib/logger');
 const { getEmailConfig } = require('../config/email');
@@ -53,11 +53,15 @@ async function tryAppendCopyToMailbox(path, mailOptions, context) {
 
 async function sendContactNotification(message) {
   const config = getEmailConfig();
-  const smtpLogger = logger.child('SMTP');
+  const outboundLogger = logger.child('OUTBOUND');
+  const provider = resolveProvider(config);
 
   const subject = `[Site] ${message.subject || 'Contato pelo site'}`;
+  const fromAddress = provider === 'resend'
+    ? `"GEAR 9º DF - Site" <${config.resend.fromEmail}>`
+    : `"GEAR 9º DF - Site" <${config.user}>`;
   const mailOptions = {
-    from: `"GEAR 9º DF - Site" <${config.user}>`,
+    from: fromAddress,
     to: config.user,
     replyTo: message.email,
     subject,
@@ -76,8 +80,8 @@ async function sendContactNotification(message) {
       `<p>${formatMessageAsHtml(message.message)}</p>`,
   };
 
-  await sendWithHostingerTransport(mailOptions, { config, logger: smtpLogger });
-  logger.info('SMTP do formulário enviado com sucesso', {
+  await sendOutboundMail(mailOptions, { config, logger: outboundLogger });
+  logger.info('Envio do formulário concluído com sucesso', {
     to: config.user,
     replyTo: message.email,
     subject,
@@ -93,10 +97,14 @@ async function sendContactNotification(message) {
 
 async function sendAdminReply(message, reply) {
   const config = getEmailConfig();
-  const smtpLogger = logger.child('SMTP');
+  const outboundLogger = logger.child('OUTBOUND');
+  const provider = resolveProvider(config);
   const subject = reply.subject || `Re: ${message.subject || 'Contato pelo site'}`;
+  const fromAddress = provider === 'resend'
+    ? `"GEAR 9º DF" <${config.resend.fromEmail}>`
+    : `"GEAR 9º DF" <${config.user}>`;
   const mailOptions = {
-    from: `"GEAR 9º DF" <${config.user}>`,
+    from: fromAddress,
     to: message.email,
     replyTo: config.user,
     subject,
@@ -104,8 +112,8 @@ async function sendAdminReply(message, reply) {
     html: `<p>${formatMessageAsHtml(reply.body)}</p>`,
   };
 
-  await sendWithHostingerTransport(mailOptions, { config, logger: smtpLogger });
-  logger.info('SMTP de resposta do admin enviado com sucesso', {
+  await sendOutboundMail(mailOptions, { config, logger: outboundLogger });
+  logger.info('Envio de resposta do admin concluído com sucesso', {
     to: message.email,
     subject,
     adminEmail: reply.adminEmail,

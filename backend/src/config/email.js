@@ -17,6 +17,9 @@ function getEmailConfig() {
   const config = {
     user: process.env.HOSTINGER_EMAIL_USER || '',
     pass: process.env.HOSTINGER_EMAIL_PASS || '',
+    outbound: {
+      provider: String(process.env.EMAIL_DELIVERY_PROVIDER || 'auto').trim().toLowerCase(),
+    },
     imap: {
       host: process.env.HOSTINGER_IMAP_HOST || 'imap.hostinger.com',
       port: toNumber(process.env.HOSTINGER_IMAP_PORT, 993),
@@ -34,6 +37,13 @@ function getEmailConfig() {
       fallbackPort: toNumber(process.env.HOSTINGER_SMTP_FALLBACK_PORT, 587),
       fallbackSecure: toBoolean(process.env.HOSTINGER_SMTP_FALLBACK_SECURE, false),
       fallbackRequireTls: toBoolean(process.env.HOSTINGER_SMTP_FALLBACK_REQUIRE_TLS, true),
+    },
+    resend: {
+      apiKey: process.env.RESEND_API_KEY || '',
+      apiBaseUrl: process.env.RESEND_API_BASE_URL || 'https://api.resend.com',
+      fromEmail: process.env.RESEND_FROM_EMAIL || process.env.HOSTINGER_EMAIL_USER || '',
+      fromName: process.env.RESEND_FROM_NAME || 'GEAR 9º DF',
+      replyToEmail: process.env.RESEND_REPLY_TO_EMAIL || process.env.HOSTINGER_EMAIL_USER || '',
     },
     folders: {
       inbox: 'INBOX',
