@@ -103,29 +103,23 @@
                                 type="email" placeholder="seu@email.com" required></div>
                         <div class="form-field">
                             <label for="subject">Assunto</label>
-                            <input id="subject" type="text" list="contactSubjectOptions"
-                                placeholder="Escolha uma sugest&atilde;o ou escreva outro assunto">
-                            <datalist id="contactSubjectOptions">
-                                <option value="Inscrição"></option>
-                                <option value="Primeira visita"></option>
-                                <option value="Mensalidade"></option>
-                                <option value="Documentação"></option>
-                                <option value="Transferência de grupo"></option>
-                                <option value="Atividades e calendário"></option>
-                                <option value="Uniforme"></option>
-                                <option value="Projeto social"></option>
-                                <option value="Parceria"></option>
-                                <option value="Orçamento"></option>
-                            </datalist>
-                            <div class="subject-suggestions">
-                                <button type="button" class="subject-chip" data-subject-option="Inscrição">Inscrição</button>
-                                <button type="button" class="subject-chip" data-subject-option="Primeira visita">Primeira visita</button>
-                                <button type="button" class="subject-chip" data-subject-option="Mensalidade">Mensalidade</button>
-                                <button type="button" class="subject-chip" data-subject-option="Documentação">Documentação</button>
-                                <button type="button" class="subject-chip" data-subject-option="Parceria">Parceria</button>
-                                <button type="button" class="subject-chip" data-subject-option="Orçamento">Orçamento</button>
+                            <div class="subject-picker">
+                                <select id="subjectPreset" class="subject-select">
+                                    <option value="">Escolha um assunto sugerido</option>
+                                    <option value="Inscrição">Inscrição</option>
+                                    <option value="Primeira visita">Primeira visita</option>
+                                    <option value="Mensalidade">Mensalidade</option>
+                                    <option value="Documentação">Documentação</option>
+                                    <option value="Transferência de grupo">Transferência de grupo</option>
+                                    <option value="Atividades e calendário">Atividades e calendário</option>
+                                    <option value="Uniforme">Uniforme</option>
+                                    <option value="Projeto social">Projeto social</option>
+                                    <option value="Parceria">Parceria</option>
+                                    <option value="Orçamento">Orçamento</option>
+                                </select>
+                                <input id="subject" type="text" placeholder="Ou escreva um assunto personalizado">
                             </div>
-                            <p class="field-support">Pode escolher uma opção pronta ou escrever um assunto personalizado.</p>
+                            <p class="field-support">Escolha uma sugestão pronta ou escreva do seu jeito.</p>
                         </div>
                         <div class="form-field"><label for="message">Mensagem *</label><textarea id="message" rows="6"
                                 placeholder="Escreva sua mensagem aqui..." required></textarea></div>
@@ -180,7 +174,7 @@
     </footer>
 
     <script src="js/api.js"></script>
-    <script src="js/script.js?v=1.0.8"></script>
+    <script src="js/script.js?v=1.0.9"></script>
 </body>
 
 </html>

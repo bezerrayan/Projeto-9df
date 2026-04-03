@@ -30,6 +30,7 @@ function getEmailConfig() {
     },
     folders: {
       inbox: 'INBOX',
+      sent: process.env.HOSTINGER_IMAP_SENT_FOLDER || 'Sent',
       financeiro: 'Financeiro',
       atendimento: 'Atendimento',
       comercial: 'Comercial',

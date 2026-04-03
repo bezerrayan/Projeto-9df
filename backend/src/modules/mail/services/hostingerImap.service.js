@@ -82,10 +82,14 @@ class HostingerImapService {
   }
 
   async openInbox() {
-    await this.connect();
-    const mailbox = await this.client.mailboxOpen(this.config.folders.inbox);
+    const mailbox = await this.openMailbox(this.config.folders.inbox);
     this.logger.info('INBOX aberta', { path: mailbox.path, exists: mailbox.exists });
     return mailbox;
+  }
+
+  async openMailbox(path) {
+    await this.connect();
+    return this.client.mailboxOpen(path);
   }
 
   async listUnprocessedMessageUids(options = {}) {
@@ -136,6 +140,12 @@ class HostingerImapService {
     await this.openInbox();
     await this.client.messageMove(String(uid), destination, { uid: true });
     this.logger.info('Mensagem movida com sucesso', { uid, destination });
+  }
+
+  async appendMessage(path, content, flags = ['\\Seen']) {
+    await this.connect();
+    await this.client.append(path, content, flags, new Date());
+    this.logger.info('Mensagem adicionada à caixa IMAP', { path });
   }
 }
 

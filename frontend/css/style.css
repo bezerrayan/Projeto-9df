@@ -1791,33 +1791,27 @@ textarea {
     width: 100%;
 }
 
-.subject-suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 4px;
+.subject-picker {
+    display: grid;
+    gap: 10px;
 }
 
-.subject-chip {
-    appearance: none;
-    border: 1px solid rgba(0, 113, 227, 0.14);
-    background: var(--blue-050);
-    color: var(--blue-700);
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    line-height: 1;
-    transition: transform var(--transition), background var(--transition), border-color var(--transition), color var(--transition);
+.subject-select {
+    width: 100%;
+    border: 1.5px solid rgba(8, 23, 45, 0.12);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f1f6fd 100%);
+    padding: 14px 16px;
+    color: var(--ink);
+    font-weight: 600;
+    transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
 }
 
-.subject-chip:hover,
-.subject-chip:focus-visible {
-    background: var(--blue-500);
-    border-color: var(--blue-600);
-    color: var(--white);
-    transform: translateY(-1px);
+.subject-select:focus {
     outline: none;
+    border-color: var(--blue-400);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
 }
 
 .form-feedback {

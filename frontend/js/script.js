@@ -897,14 +897,15 @@ function setupContactForm(state) {
     var draftWrapper = document.getElementById('contactDraftWrapper');
     var draftField = document.getElementById('contactDraft');
     var subjectInput = document.getElementById('subject');
+    var subjectPreset = document.getElementById('subjectPreset');
     if (btn) { btn.innerHTML = 'Enviar mensagem <i class="fas fa-paper-plane"></i>'; }
-    form.querySelectorAll('[data-subject-option]').forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            if (!subjectInput) return;
-            subjectInput.value = chip.dataset.subjectOption || '';
+    if (subjectPreset) {
+        subjectPreset.addEventListener('change', function() {
+            if (!subjectInput || !subjectPreset.value) return;
+            subjectInput.value = subjectPreset.value;
             subjectInput.focus();
         });
-    });
+    }
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();

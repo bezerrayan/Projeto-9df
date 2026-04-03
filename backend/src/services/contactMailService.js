@@ -1,6 +1,8 @@
 const { createHostingerTransport } = require('../modules/mail/services/hostingerSmtp.service');
+const { HostingerImapService } = require('../modules/mail/services/hostingerImap.service');
 const { createLogger } = require('../lib/logger');
 const { getEmailConfig } = require('../config/email');
+const MailComposer = require('nodemailer/lib/mail-composer');
 
 const logger = createLogger('MAIL:CONTACT');
 
@@ -17,13 +19,29 @@ function formatMessageAsHtml(message) {
   return escapeHtml(message).replace(/\n/g, '<br>');
 }
 
+async function buildRawMessage(message) {
+  const composer = new MailComposer(message);
+  return composer.compile().build();
+}
+
+async function appendCopyToMailbox(path, mailOptions) {
+  const config = getEmailConfig();
+  const imapService = new HostingerImapService({ config, logger: logger.child('IMAP') });
+
+  try {
+    const raw = await buildRawMessage(mailOptions);
+    await imapService.appendMessage(path, raw);
+  } finally {
+    await imapService.close();
+  }
+}
+
 async function sendContactNotification(message) {
   const config = getEmailConfig();
   const transport = createHostingerTransport({ config, logger: logger.child('SMTP') });
 
   const subject = `[Site] ${message.subject || 'Contato pelo site'}`;
-
-  await transport.sendMail({
+  const mailOptions = {
     from: `"GEAR 9º DF - Site" <${config.user}>`,
     to: config.user,
     replyTo: message.email,
@@ -41,7 +59,10 @@ async function sendContactNotification(message) {
       `<p><strong>Assunto:</strong> ${escapeHtml(message.subject)}</p>` +
       `<hr>` +
       `<p>${formatMessageAsHtml(message.message)}</p>`,
-  });
+  };
+
+  await transport.sendMail(mailOptions);
+  await appendCopyToMailbox(config.folders.inbox, mailOptions);
 
   logger.info('Mensagem do formulário encaminhada para a caixa principal', {
     to: config.user,
@@ -54,15 +75,17 @@ async function sendAdminReply(message, reply) {
   const config = getEmailConfig();
   const transport = createHostingerTransport({ config, logger: logger.child('SMTP') });
   const subject = reply.subject || `Re: ${message.subject || 'Contato pelo site'}`;
-
-  await transport.sendMail({
+  const mailOptions = {
     from: `"GEAR 9º DF" <${config.user}>`,
     to: message.email,
     replyTo: config.user,
     subject,
     text: reply.body,
     html: `<p>${formatMessageAsHtml(reply.body)}</p>`,
-  });
+  };
+
+  await transport.sendMail(mailOptions);
+  await appendCopyToMailbox(config.folders.sent, mailOptions);
 
   logger.info('Resposta enviada pelo painel administrativo', {
     messageId: message.id,
