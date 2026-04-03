@@ -53,7 +53,7 @@ async function tryAppendCopyToMailbox(path, mailOptions, context) {
 
 async function sendContactNotification(message) {
   const config = getEmailConfig();
-  const transport = createHostingerTransport({ config, logger: logger.child('SMTP') });
+  const transport = await createHostingerTransport({ config, logger: logger.child('SMTP') });
 
   const subject = `[Site] ${message.subject || 'Contato pelo site'}`;
   const mailOptions = {
@@ -93,7 +93,7 @@ async function sendContactNotification(message) {
 
 async function sendAdminReply(message, reply) {
   const config = getEmailConfig();
-  const transport = createHostingerTransport({ config, logger: logger.child('SMTP') });
+  const transport = await createHostingerTransport({ config, logger: logger.child('SMTP') });
   const subject = reply.subject || `Re: ${message.subject || 'Contato pelo site'}`;
   const mailOptions = {
     from: `"GEAR 9º DF" <${config.user}>`,

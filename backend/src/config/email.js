@@ -1,5 +1,6 @@
 require('./env');
 
+const dns = require('dns');
 const { maskSecret } = require('../lib/logger');
 
 function toBoolean(value, fallback) {
@@ -27,6 +28,8 @@ function getEmailConfig() {
       host: process.env.HOSTINGER_SMTP_HOST || 'smtp.hostinger.com',
       port: toNumber(process.env.HOSTINGER_SMTP_PORT, 465),
       secure: toBoolean(process.env.HOSTINGER_SMTP_SECURE, true),
+      ipFamily: toNumber(process.env.HOSTINGER_SMTP_IP_FAMILY, 4),
+      forceIpFamily: toBoolean(process.env.HOSTINGER_SMTP_FORCE_IP_FAMILY, true),
     },
     folders: {
       inbox: 'INBOX',
@@ -77,7 +80,24 @@ function getSafeEmailConfigForLogs() {
   };
 }
 
+function resolveEmailHost(host, family) {
+  return new Promise((resolve, reject) => {
+    dns.lookup(host, { family, all: false }, (error, address, resolvedFamily) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve({
+        address,
+        family: resolvedFamily,
+      });
+    });
+  });
+}
+
 module.exports = {
   getEmailConfig,
   getSafeEmailConfigForLogs,
+  resolveEmailHost,
 };
