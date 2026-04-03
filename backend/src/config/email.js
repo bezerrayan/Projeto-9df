@@ -30,6 +30,10 @@ function getEmailConfig() {
       secure: toBoolean(process.env.HOSTINGER_SMTP_SECURE, true),
       ipFamily: toNumber(process.env.HOSTINGER_SMTP_IP_FAMILY, 4),
       forceIpFamily: toBoolean(process.env.HOSTINGER_SMTP_FORCE_IP_FAMILY, true),
+      fallbackEnabled: toBoolean(process.env.HOSTINGER_SMTP_FALLBACK_ENABLED, true),
+      fallbackPort: toNumber(process.env.HOSTINGER_SMTP_FALLBACK_PORT, 587),
+      fallbackSecure: toBoolean(process.env.HOSTINGER_SMTP_FALLBACK_SECURE, false),
+      fallbackRequireTls: toBoolean(process.env.HOSTINGER_SMTP_FALLBACK_REQUIRE_TLS, true),
     },
     folders: {
       inbox: 'INBOX',

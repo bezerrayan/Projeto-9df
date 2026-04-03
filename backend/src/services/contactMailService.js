@@ -1,4 +1,4 @@
-const { createHostingerTransport } = require('../modules/mail/services/hostingerSmtp.service');
+const { sendWithHostingerTransport } = require('../modules/mail/services/hostingerSmtp.service');
 const { HostingerImapService } = require('../modules/mail/services/hostingerImap.service');
 const { createLogger } = require('../lib/logger');
 const { getEmailConfig } = require('../config/email');
@@ -53,7 +53,7 @@ async function tryAppendCopyToMailbox(path, mailOptions, context) {
 
 async function sendContactNotification(message) {
   const config = getEmailConfig();
-  const transport = await createHostingerTransport({ config, logger: logger.child('SMTP') });
+  const smtpLogger = logger.child('SMTP');
 
   const subject = `[Site] ${message.subject || 'Contato pelo site'}`;
   const mailOptions = {
@@ -76,7 +76,7 @@ async function sendContactNotification(message) {
       `<p>${formatMessageAsHtml(message.message)}</p>`,
   };
 
-  await transport.sendMail(mailOptions);
+  await sendWithHostingerTransport(mailOptions, { config, logger: smtpLogger });
   logger.info('SMTP do formulário enviado com sucesso', {
     to: config.user,
     replyTo: message.email,
@@ -93,7 +93,7 @@ async function sendContactNotification(message) {
 
 async function sendAdminReply(message, reply) {
   const config = getEmailConfig();
-  const transport = await createHostingerTransport({ config, logger: logger.child('SMTP') });
+  const smtpLogger = logger.child('SMTP');
   const subject = reply.subject || `Re: ${message.subject || 'Contato pelo site'}`;
   const mailOptions = {
     from: `"GEAR 9º DF" <${config.user}>`,
@@ -104,7 +104,7 @@ async function sendAdminReply(message, reply) {
     html: `<p>${formatMessageAsHtml(reply.body)}</p>`,
   };
 
-  await transport.sendMail(mailOptions);
+  await sendWithHostingerTransport(mailOptions, { config, logger: smtpLogger });
   logger.info('SMTP de resposta do admin enviado com sucesso', {
     to: message.email,
     subject,
