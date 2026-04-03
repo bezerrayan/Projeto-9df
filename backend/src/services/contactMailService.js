@@ -36,6 +36,20 @@ async function appendCopyToMailbox(path, mailOptions) {
   }
 }
 
+async function tryAppendCopyToMailbox(path, mailOptions, context) {
+  try {
+    await appendCopyToMailbox(path, mailOptions);
+    return true;
+  } catch (error) {
+    logger.warn('Falha ao sincronizar cópia via IMAP', {
+      path,
+      context,
+      message: error.message,
+    });
+    return false;
+  }
+}
+
 async function sendContactNotification(message) {
   const config = getEmailConfig();
   const transport = createHostingerTransport({ config, logger: logger.child('SMTP') });
@@ -62,7 +76,7 @@ async function sendContactNotification(message) {
   };
 
   await transport.sendMail(mailOptions);
-  await appendCopyToMailbox(config.folders.inbox, mailOptions);
+  await tryAppendCopyToMailbox(config.folders.inbox, mailOptions, 'contact_notification');
 
   logger.info('Mensagem do formulário encaminhada para a caixa principal', {
     to: config.user,
@@ -85,7 +99,7 @@ async function sendAdminReply(message, reply) {
   };
 
   await transport.sendMail(mailOptions);
-  await appendCopyToMailbox(config.folders.sent, mailOptions);
+  await tryAppendCopyToMailbox(config.folders.sent, mailOptions, 'admin_reply');
 
   logger.info('Resposta enviada pelo painel administrativo', {
     messageId: message.id,
