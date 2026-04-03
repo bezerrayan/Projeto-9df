@@ -1740,7 +1740,8 @@ textarea {
 }
 
 .form-field input,
-.form-field textarea {
+.form-field textarea,
+.form-field select {
     width: 100%;
     border: 1.5px solid rgba(8, 23, 45, 0.12);
     border-radius: 14px;
@@ -1752,7 +1753,8 @@ textarea {
 }
 
 .form-field input:focus,
-.form-field textarea:focus {
+.form-field textarea:focus,
+.form-field select:focus {
     outline: none;
     border-color: var(--blue-400);
     background: var(--white);
@@ -1797,14 +1799,25 @@ textarea {
 }
 
 .subject-select {
-    width: 100%;
-    border: 1.5px solid rgba(8, 23, 45, 0.12);
-    border-radius: 14px;
-    background: linear-gradient(180deg, #f8fbff 0%, #f1f6fd 100%);
-    padding: 14px 16px;
-    color: var(--ink);
-    font-weight: 600;
-    transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 48px;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--blue-700) 50%),
+        linear-gradient(135deg, var(--blue-700) 50%, transparent 50%),
+        linear-gradient(180deg, #f8fbff 0%, #f1f6fd 100%);
+    background-position:
+        calc(100% - 22px) calc(50% - 3px),
+        calc(100% - 16px) calc(50% - 3px),
+        0 0;
+    background-size:
+        6px 6px,
+        6px 6px,
+        100% 100%;
+    background-repeat: no-repeat;
+    color: var(--blue-900);
+    font-weight: 700;
 }
 
 .subject-select:focus {
