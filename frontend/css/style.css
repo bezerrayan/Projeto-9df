@@ -2078,7 +2078,7 @@ textarea {
 
 .news-head {
     display: flex;
-    align-items: end;
+    align-items: center;
     justify-content: space-between;
     gap: 18px;
 }
@@ -2088,6 +2088,10 @@ textarea {
     grid-template-columns: auto 1fr auto;
     gap: 18px;
     align-items: center;
+}
+
+.news-carousel.is-empty {
+    grid-template-columns: 1fr;
 }
 
 .news-carousel-viewport {
@@ -2100,8 +2104,7 @@ textarea {
 }
 
 .news-slide {
-    position: absolute;
-    inset: 0;
+    display: none;
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
     border-radius: 32px;
@@ -2109,21 +2112,20 @@ textarea {
     background: #10233f;
     box-shadow: 0 22px 55px rgba(8, 23, 45, 0.18);
     opacity: 0;
-    pointer-events: none;
-    transform: translateX(24px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+    transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
 .news-slide.active,
 .news-slide.is-empty {
+    display: grid;
     opacity: 1;
-    pointer-events: auto;
-    transform: translateX(0);
+    transform: translateY(0);
 }
 
 .news-slide.is-empty {
     position: relative;
-    min-height: 320px;
+    min-height: 260px;
     grid-template-columns: 1fr;
     background: linear-gradient(135deg, #173159 0%, #2b86ee 100%);
 }
@@ -2233,6 +2235,29 @@ textarea {
     height: 100%;
 }
 
+.news-page-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    width: fit-content;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.news-page-badge img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.news-page-badge span {
+    color: rgba(232, 242, 255, 0.88);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
 .news-page-hero-copy strong {
     display: block;
     font-size: 2rem;
@@ -2242,6 +2267,14 @@ textarea {
 .news-page-hero-copy p {
     margin: 0;
     color: rgba(238, 244, 255, 0.86);
+}
+
+.links-hero-card {
+    min-height: 260px;
+    background:
+        radial-gradient(circle at top right, rgba(125, 211, 252, 0.28), transparent 13rem),
+        linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
 .news-spotlight-card {

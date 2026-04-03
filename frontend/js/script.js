@@ -641,28 +641,36 @@ function formatNewsDate(value) {
 function getNewsItems(state) {
     return (state.adminPanel && Array.isArray(state.adminPanel.news) ? state.adminPanel.news : [])
         .filter(function(item) {
-            return item && item.title && item.src;
+            return item && item.title;
         })
         .sort(function(a, b) {
             return String(b.date || '').localeCompare(String(a.date || ''));
         });
 }
 
+function getNewsImage(item) {
+    var src = String((item && item.src) || '').trim();
+    return src || 'images/logo_9df.png';
+}
+
 function applyDynamicNews(state) {
     var items = getNewsItems(state);
     var homeTrack = document.getElementById('home-news-track');
+    var homeCarousel = document.querySelector('[data-news-carousel]');
     var pageGrid = document.getElementById('news-page-grid');
     var pageSpotlight = document.getElementById('news-page-spotlight');
 
     if (homeTrack) {
         if (!items.length) {
+            if (homeCarousel) homeCarousel.classList.add('is-empty');
             homeTrack.innerHTML = '<article class="news-slide is-empty"><div class="news-slide-copy"><span class="news-tag">Em breve</span><h3>As próximas notícias do grupo vão aparecer aqui.</h3><p>Use o painel admin para publicar novidades, avisos e destaques do GEArSF.</p></div></article>';
         } else {
+            if (homeCarousel) homeCarousel.classList.remove('is-empty');
             homeTrack.innerHTML = items.slice(0, 6).map(function(item, index) {
                 return (
                     '<article class="news-slide' + (index === 0 ? ' active' : '') + '" data-news-slide="' + index + '">' +
                         '<div class="news-slide-media">' +
-                            '<img loading="lazy" decoding="async" src="' + esc(item.src) + '" alt="' + esc(item.title) + '" class="cover-image">' +
+                            '<img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="cover-image">' +
                         '</div>' +
                         '<div class="news-slide-copy">' +
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
@@ -683,7 +691,7 @@ function applyDynamicNews(state) {
         } else {
             pageSpotlight.innerHTML =
                 '<article class="news-spotlight-card">' +
-                    '<div class="news-spotlight-media"><img loading="lazy" decoding="async" src="' + esc(featured.src) + '" alt="' + esc(featured.title) + '" class="cover-image"></div>' +
+                    '<div class="news-spotlight-media"><img loading="lazy" decoding="async" src="' + esc(getNewsImage(featured)) + '" alt="' + esc(featured.title) + '" class="cover-image"></div>' +
                     '<div class="news-spotlight-copy">' +
                         '<div class="news-slide-meta"><span class="news-tag">' + esc(featured.tag || 'Destaque') + '</span><span>' + esc(formatNewsDate(featured.date)) + '</span></div>' +
                         '<h2>' + esc(featured.title) + '</h2>' +
@@ -705,7 +713,7 @@ function applyDynamicNews(state) {
             pageGrid.innerHTML = gridItems.map(function(item) {
                 return (
                     '<article class="news-card">' +
-                        '<div class="news-card-media"><img loading="lazy" decoding="async" src="' + esc(item.src) + '" alt="' + esc(item.title) + '" class="cover-image"></div>' +
+                        '<div class="news-card-media"><img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="cover-image"></div>' +
                         '<div class="news-card-body">' +
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
                             '<h3>' + esc(item.title) + '</h3>' +
