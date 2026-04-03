@@ -897,25 +897,56 @@ function setupContactForm(state) {
     var draftWrapper = document.getElementById('contactDraftWrapper');
     var draftField = document.getElementById('contactDraft');
     var subjectInput = document.getElementById('subject');
-    var subjectChips = form.querySelectorAll('[data-subject-option]');
+    var subjectToggle = form.querySelector('[data-subject-toggle]');
+    var subjectToggleLabel = form.querySelector('[data-subject-toggle-label]');
+    var subjectPanel = form.querySelector('[data-subject-panel]');
+    var subjectOptions = form.querySelectorAll('[data-subject-option]');
+    function setSubjectState(value) {
+        var current = (value || '').trim();
+        subjectOptions.forEach(function(option) {
+            option.classList.toggle('active', current && current === (option.dataset.subjectOption || ''));
+        });
+        if (subjectToggleLabel) {
+            subjectToggleLabel.textContent = current || 'Escolher assunto sugerido';
+        }
+    }
+    function closeSubjectPanel() {
+        if (subjectPanel) subjectPanel.hidden = true;
+        if (subjectToggle) subjectToggle.setAttribute('aria-expanded', 'false');
+    }
+    function openSubjectPanel() {
+        if (subjectPanel) subjectPanel.hidden = false;
+        if (subjectToggle) subjectToggle.setAttribute('aria-expanded', 'true');
+    }
     if (btn) { btn.innerHTML = 'Enviar mensagem <i class="fas fa-paper-plane"></i>'; }
-    subjectChips.forEach(function(chip) {
-        chip.addEventListener('click', function() {
+    if (subjectToggle) {
+        subjectToggle.addEventListener('click', function() {
+            var expanded = subjectToggle.getAttribute('aria-expanded') === 'true';
+            if (expanded) closeSubjectPanel();
+            else openSubjectPanel();
+        });
+    }
+    subjectOptions.forEach(function(option) {
+        option.addEventListener('click', function() {
             if (!subjectInput) return;
-            subjectInput.value = chip.dataset.subjectOption || '';
+            subjectInput.value = option.dataset.subjectOption || '';
             subjectInput.focus();
-            subjectChips.forEach(function(item) { item.classList.remove('active'); });
-            chip.classList.add('active');
+            setSubjectState(subjectInput.value);
+            closeSubjectPanel();
         });
     });
     if (subjectInput) {
         subjectInput.addEventListener('input', function() {
-            var current = subjectInput.value.trim();
-            subjectChips.forEach(function(chip) {
-                chip.classList.toggle('active', current && current === (chip.dataset.subjectOption || ''));
-            });
+            setSubjectState(subjectInput.value);
         });
     }
+    document.addEventListener('click', function(event) {
+        if (subjectPanel && subjectPanel.hidden) return;
+        if (subjectToggle && subjectToggle.contains(event.target)) return;
+        if (subjectPanel && subjectPanel.contains(event.target)) return;
+        closeSubjectPanel();
+    });
+    setSubjectState(subjectInput ? subjectInput.value : '');
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -955,6 +986,8 @@ function setupContactForm(state) {
             }
             if (draftWrapper) draftWrapper.hidden = false;
             form.reset();
+            setSubjectState('');
+            closeSubjectPanel();
         })
         .catch(function(error) {
             if (feedback) {
