@@ -896,13 +896,20 @@ function setupContactForm(state) {
     var feedback = document.getElementById('contactFeedback');
     var draftWrapper = document.getElementById('contactDraftWrapper');
     var draftField = document.getElementById('contactDraft');
+    var subjectInput = document.getElementById('subject');
     if (btn) { btn.innerHTML = 'Enviar mensagem <i class="fas fa-paper-plane"></i>'; }
+    form.querySelectorAll('[data-subject-option]').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+            if (!subjectInput) return;
+            subjectInput.value = chip.dataset.subjectOption || '';
+            subjectInput.focus();
+        });
+    });
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         var nameInput = document.getElementById('name');
         var emailInput = document.getElementById('email');
-        var subjectInput = document.getElementById('subject');
         var messageInput = document.getElementById('message');
         var name = nameInput ? nameInput.value.trim() : '';
         var email = emailInput ? emailInput.value.trim() : '';
