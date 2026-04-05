@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+var DEFAULT_ACTIVITIES_CACHE = null;
+
 function esc(str) {
     if (!str) return "";
     return String(str)
@@ -561,16 +563,23 @@ function applyDynamicActivities(state) {
     var container = document.getElementById('activities-dynamic');
     if (!container) return;
     var activities = (state.adminPanel && Array.isArray(state.adminPanel.activities)) ? state.adminPanel.activities : [];
-    if (!activities.length) return;
-    var fallbackImages = {
-        acampamentos: 'images/hero2.webp',
-        trilhas: 'cla.webp',
-        fogueiras: 'images/hero1.webp',
-        especialidades: 'images/logo_escoteiros.jpg',
-        lideranca: 'images/photo_4909301671674973021_x.jpg',
-        liderança: 'images/photo_4909301671674973021_x.jpg',
-        conquistas: 'images/photo_4909301671674973017_y.jpg'
-    };
+    if (!DEFAULT_ACTIVITIES_CACHE) {
+        DEFAULT_ACTIVITIES_CACHE = Array.from(container.querySelectorAll('.activity-card')).map(function(card, index) {
+            var img = card.querySelector('.activity-image img');
+            var titleNode = card.querySelector('h3');
+            var descNode = card.querySelector('p');
+            return {
+                id: 'default-' + index,
+                icon: '',
+                title: titleNode ? titleNode.textContent.trim() : '',
+                category: '',
+                meta: '',
+                src: img ? img.getAttribute('src') || '' : '',
+                description: descNode ? descNode.textContent.trim() : '',
+            };
+        });
+    }
+
     function normalizeKey(value) {
         return String(value || '')
             .toLowerCase()
@@ -578,11 +587,41 @@ function applyDynamicActivities(state) {
             .replace(/[\u0300-\u036f]/g, '')
             .trim();
     }
-    container.innerHTML = activities.map(function(a) {
-        var imageSrc = String(a.src || '').trim() || fallbackImages[normalizeKey(a.title)] || 'images/logo_9df.png';
+
+    var defaultsByTitle = new Map((DEFAULT_ACTIVITIES_CACHE || []).map(function(item) {
+        return [normalizeKey(item.title), item];
+    }));
+
+    var mergedActivities = [];
+    var usedKeys = new Set();
+
+    activities.forEach(function(item) {
+        var key = normalizeKey(item.title);
+        var base = defaultsByTitle.get(key) || {};
+        usedKeys.add(key);
+        mergedActivities.push({
+            id: item.id || base.id || ('at-' + key),
+            icon: item.icon || base.icon || '⭐',
+            title: item.title || base.title || '',
+            category: item.category || base.category || '',
+            meta: item.meta || base.meta || '',
+            src: String(item.src || '').trim() || String(base.src || '').trim(),
+            description: item.description || base.description || '',
+        });
+    });
+
+    (DEFAULT_ACTIVITIES_CACHE || []).forEach(function(item) {
+        var key = normalizeKey(item.title);
+        if (!usedKeys.has(key)) mergedActivities.push(item);
+    });
+
+    if (!mergedActivities.length) return;
+
+    container.innerHTML = mergedActivities.map(function(a) {
+        var imageSrc = String(a.src || '').trim() || 'images/logo_9df.png';
         var imageAlt = a.title ? 'Atividade ' + a.title : 'Atividade escoteira';
         return '<article class="activity-card">' +
-            '<div class="activity-image"><img loading="lazy" decoding="async" src="' + esc(imageSrc) + '" alt="' + esc(imageAlt) + '" class="cover-image"></div>' +
+            '<div class="activity-image"><img loading="lazy" decoding="async" src="' + esc(imageSrc) + '" alt="' + esc(imageAlt) + '" class="cover-image" onerror="if(this.dataset.fallbackApplied!==\'1\'){this.dataset.fallbackApplied=\'1\';this.src=\'images/logo_9df.png\';}"></div>' +
             '<div class="activity-body">' +
                 '<span class="info-icon"><i class="fas fa-star"></i></span>' +
                 (a.icon ? '<span style="font-size:2rem;margin-bottom:8px;display:block">' + esc(a.icon) + '</span>' : '') +
