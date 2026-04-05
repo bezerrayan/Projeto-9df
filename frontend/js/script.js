@@ -562,14 +562,36 @@ function applyDynamicActivities(state) {
     if (!container) return;
     var activities = (state.adminPanel && Array.isArray(state.adminPanel.activities)) ? state.adminPanel.activities : [];
     if (!activities.length) return;
+    var fallbackImages = {
+        acampamentos: 'images/hero2.webp',
+        trilhas: 'cla.webp',
+        fogueiras: 'images/hero1.webp',
+        especialidades: 'images/logo_escoteiros.jpg',
+        lideranca: 'images/photo_4909301671674973021_x.jpg',
+        liderança: 'images/photo_4909301671674973021_x.jpg',
+        conquistas: 'images/photo_4909301671674973017_y.jpg'
+    };
+    function normalizeKey(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim();
+    }
     container.innerHTML = activities.map(function(a) {
+        var imageSrc = String(a.src || '').trim() || fallbackImages[normalizeKey(a.title)] || 'images/logo_9df.png';
+        var imageAlt = a.title ? 'Atividade ' + a.title : 'Atividade escoteira';
         return '<article class="activity-card">' +
+            '<div class="activity-image"><img loading="lazy" decoding="async" src="' + esc(imageSrc) + '" alt="' + esc(imageAlt) + '" class="cover-image"></div>' +
             '<div class="activity-body">' +
                 '<span class="info-icon"><i class="fas fa-star"></i></span>' +
                 (a.icon ? '<span style="font-size:2rem;margin-bottom:8px;display:block">' + esc(a.icon) + '</span>' : '') +
                 '<h3>' + esc(a.title) + '</h3>' +
                 '<p>' + esc(a.description || '') + '</p>' +
-                (a.category ? '<div style="margin-top:14px"><span class="badge badge-gray">' + esc(a.category) + '</span></div>' : '') +
+                ((a.category || a.meta) ? '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
+                    (a.category ? '<span class="badge badge-gray">' + esc(a.category) + '</span>' : '') +
+                    (a.meta ? '<span class="badge badge-blue">' + esc(a.meta) + '</span>' : '') +
+                '</div>' : '') +
             '</div></article>';
     }).join("");
 }

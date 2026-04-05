@@ -750,7 +750,10 @@ function renderAtividades() {
     ? STATE.adminPanel.activities.map(a => itemCard({
         id: a.id, type: "activity",
         title: `${a.icon || "⭐"} ${a.title}`, sub: a.category || "Destaque no site",
-        badges: a.category ? [{ label: a.category, cls: "badge-gray" }] : [],
+        badges: [
+          ...(a.category ? [{ label: a.category, cls: "badge-gray" }] : []),
+          ...(a.meta ? [{ label: a.meta, cls: "badge-blue" }] : []),
+        ],
         desc: a.description,
         fields: `
           <div class="form-row">
@@ -758,6 +761,16 @@ function renderAtividades() {
             <div class="fg"><label>Título</label><input data-ativ-title="${a.id}" value="${esc(a.title)}"></div>
           </div>
           <div class="fg"><label>Categoria</label><input data-ativ-cat="${a.id}" value="${esc(a.category||"")}"></div>
+          <div class="fg"><label>Especificação curta</label><input data-ativ-meta="${a.id}" value="${esc(a.meta||"")}" placeholder="ex: Aventura ao ar livre, liderança, trabalho em equipe"></div>
+          ${renderImagePicker({
+            label: "Imagem da atividade",
+            value: a.src || "",
+            previewId: `at-preview-${a.id}`,
+            statusId: `at-status-${a.id}`,
+            uploadAttrs: `data-target-id="at-src-${a.id}"`,
+            inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="at-src-${a.id}" data-ativ-src="${a.id}" data-media-kind="image" data-preview-id="at-preview-${a.id}" value="${esc(a.src||"")}" placeholder="Envie uma imagem ou cole a URL"></div>`,
+            helper: "Essa imagem vai aparecer na vitrine pública de atividades.",
+          })}
           <div class="fg"><label>Descrição</label><textarea rows="3" data-ativ-desc="${a.id}">${esc(a.description||"")}</textarea></div>`,
       })).join("")
     : `<div class="empty-state"><i class="fas fa-star"></i><p>Nenhuma atividade cadastrada.</p></div>`;
@@ -767,6 +780,8 @@ function renderAtividades() {
     a.icon = val(`[data-ativ-icon="${id}"]`, a.icon) || "⭐";
     a.title = val(`[data-ativ-title="${id}"]`, a.title);
     a.category = val(`[data-ativ-cat="${id}"]`, a.category);
+    a.meta = val(`[data-ativ-meta="${id}"]`, a.meta);
+    a.src = val(`[data-ativ-src="${id}"]`, a.src);
     a.description = val(`[data-ativ-desc="${id}"]`, a.description);
     renderAtividades(); toast("Atividade atualizada."); markDirty();
   }, id => {
@@ -1303,6 +1318,16 @@ function renderModals() {
         <div class="fg"><label>Título</label><input id="at-title"></div>
       </div>
       <div class="fg"><label>Categoria</label><input id="at-cat" placeholder="ex: Acampamento, Serviço…"></div>
+      <div class="fg"><label>Especificação curta</label><input id="at-meta" placeholder="ex: Aventura ao ar livre, progressão pessoal, patrulha"></div>
+      ${renderImagePicker({
+        label: "Imagem da atividade",
+        value: "",
+        previewId: "at-image-preview",
+        statusId: "at-upload-status",
+        uploadAttrs: `data-target-id="at-src"`,
+        inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="at-src" data-media-kind="image" data-preview-id="at-image-preview" placeholder="Envie uma imagem ou cole a URL"></div>`,
+        helper: "Prefira uma foto horizontal marcante da atividade.",
+      })}
       <div class="fg"><label>Descrição</label><textarea id="at-desc" rows="3"></textarea></div>`,
       "add-activity-btn", "Adicionar"),
 
@@ -1413,6 +1438,8 @@ function bindPage(page) {
         icon: document.getElementById("at-icon")?.value || "⭐",
         title,
         category: document.getElementById("at-cat")?.value.trim() || "",
+        meta: document.getElementById("at-meta")?.value.trim() || "",
+        src: document.getElementById("at-src")?.value.trim() || "",
         description: document.getElementById("at-desc")?.value.trim() || "",
       });
       closeModal("modal-activity"); renderAtividades(); toast("Atividade adicionada."); markDirty();
@@ -1579,6 +1606,8 @@ function captureActivities() {
     a.icon        = val(`[data-ativ-icon="${a.id}"]`, a.icon);
     a.title       = val(`[data-ativ-title="${a.id}"]`, a.title);
     a.category    = val(`[data-ativ-cat="${a.id}"]`, a.category);
+    a.meta        = val(`[data-ativ-meta="${a.id}"]`, a.meta);
+    a.src         = val(`[data-ativ-src="${a.id}"]`, a.src);
     a.description = val(`[data-ativ-desc="${a.id}"]`, a.description);
   });
 }
@@ -1960,6 +1989,8 @@ function normalizeActivity(a) {
     icon:        String(a.icon        || "⭐"),
     title:       String(a.title       || "").trim(),
     category:    String(a.category    || "").trim(),
+    meta:        String(a.meta        || "").trim(),
+    src:         String(a.src         || "").trim(),
     description: String(a.description || "").trim(),
   };
 }
