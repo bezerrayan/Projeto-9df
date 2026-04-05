@@ -568,9 +568,11 @@ function applyDynamicActivities(state) {
             var img = card.querySelector('.activity-image img');
             var titleNode = card.querySelector('h3');
             var descNode = card.querySelector('p');
+            var iconNode = card.querySelector('.info-icon i');
             return {
                 id: 'default-' + index,
                 icon: '',
+                iconClass: iconNode ? iconNode.className : '',
                 title: titleNode ? titleNode.textContent.trim() : '',
                 category: '',
                 meta: '',
@@ -588,6 +590,16 @@ function applyDynamicActivities(state) {
             .trim();
     }
 
+    var fallbackIconClasses = {
+        acampamentos: 'fas fa-campground',
+        trilhas: 'fas fa-hiking',
+        fogueiras: 'fas fa-fire',
+        especialidades: 'fas fa-star',
+        lideranca: 'fas fa-users',
+        liderança: 'fas fa-users',
+        conquistas: 'fas fa-medal'
+    };
+
     var defaultsByTitle = new Map((DEFAULT_ACTIVITIES_CACHE || []).map(function(item) {
         return [normalizeKey(item.title), item];
     }));
@@ -602,6 +614,7 @@ function applyDynamicActivities(state) {
         mergedActivities.push({
             id: item.id || base.id || ('at-' + key),
             icon: item.icon || base.icon || '⭐',
+            iconClass: item.iconClass || base.iconClass || fallbackIconClasses[key] || 'fas fa-star',
             title: item.title || base.title || '',
             category: item.category || base.category || '',
             meta: item.meta || base.meta || '',
@@ -620,11 +633,20 @@ function applyDynamicActivities(state) {
     container.innerHTML = mergedActivities.map(function(a) {
         var imageSrc = String(a.src || '').trim() || 'images/logo_9df.png';
         var imageAlt = a.title ? 'Atividade ' + a.title : 'Atividade escoteira';
+        var emojiHtml = a.icon ? '<span style="font-size:2rem;margin-bottom:8px;display:block">' + esc(a.icon) + '</span>' : '';
+        var iconHtml = '';
+        if (a.iconClass) {
+            iconHtml = '<span class="info-icon"><i class="' + esc(a.iconClass) + '"></i></span>';
+        } else if (emojiHtml) {
+            iconHtml = '';
+        } else {
+            iconHtml = '<span class="info-icon"><i class="fas fa-star"></i></span>';
+        }
         return '<article class="activity-card">' +
             '<div class="activity-image"><img loading="lazy" decoding="async" src="' + esc(imageSrc) + '" alt="' + esc(imageAlt) + '" class="cover-image" onerror="if(this.dataset.fallbackApplied!==\'1\'){this.dataset.fallbackApplied=\'1\';this.src=\'images/logo_9df.png\';}"></div>' +
             '<div class="activity-body">' +
-                '<span class="info-icon"><i class="fas fa-star"></i></span>' +
-                (a.icon ? '<span style="font-size:2rem;margin-bottom:8px;display:block">' + esc(a.icon) + '</span>' : '') +
+                iconHtml +
+                emojiHtml +
                 '<h3>' + esc(a.title) + '</h3>' +
                 '<p>' + esc(a.description || '') + '</p>' +
                 ((a.category || a.meta) ? '<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">' +
