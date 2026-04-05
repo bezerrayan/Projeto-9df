@@ -98,7 +98,7 @@ textarea {
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(10, 31, 60, 0.06);
-    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), height 220ms ease, transform 220ms ease;
 }
 
 .site-header.header-dark {
@@ -125,10 +125,12 @@ textarea {
     font-family: var(--font-heading);
     font-weight: 700;
     letter-spacing: 0.015em;
+    transition: gap 220ms ease, transform 220ms ease;
 }
 
 .brand-text {
     color: var(--blue-900);
+    transition: font-size 220ms ease, letter-spacing 220ms ease, opacity 220ms ease;
 }
 
 .brand-text em {
@@ -159,6 +161,7 @@ textarea {
     overflow: hidden;
     background: transparent;
     border-radius: 0;
+    transition: width 220ms ease, height 220ms ease, transform 220ms ease, filter 220ms ease;
 }
 
 .brand-mark img {
@@ -166,6 +169,55 @@ textarea {
     height: 100%;
     object-fit: contain;
     border-radius: 0;
+}
+
+.home-page .site-header {
+    height: 104px;
+}
+
+.home-page .nav-shell {
+    gap: 28px;
+}
+
+.home-page .brand {
+    gap: 16px;
+}
+
+.home-page .brand-mark {
+    width: 84px;
+    height: 84px;
+    transform: translateY(2px);
+    filter: drop-shadow(0 12px 24px rgba(8, 23, 45, 0.22));
+}
+
+.home-page .brand-text {
+    font-size: 1.04rem;
+    letter-spacing: 0.04em;
+}
+
+.home-page .brand-text em {
+    display: inline-block;
+    margin-left: 2px;
+}
+
+.home-page .site-header.scrolled {
+    height: var(--nav-height);
+}
+
+.home-page .site-header.scrolled .brand {
+    gap: 12px;
+}
+
+.home-page .site-header.scrolled .brand-mark {
+    width: 52px;
+    height: 52px;
+    transform: none;
+    filter: none;
+}
+
+.home-page .site-header.scrolled .brand-text {
+    font-size: 1rem;
+    letter-spacing: 0.015em;
 }
 
 .info-icon,
@@ -2100,12 +2152,11 @@ textarea {
 
 .news-carousel-track {
     position: relative;
-    min-height: 420px;
+    min-height: 340px;
 }
 
 .news-slide {
     display: none;
-    display: grid;
     grid-template-columns: 1.15fr 0.85fr;
     border-radius: 32px;
     overflow: hidden;
@@ -2132,7 +2183,7 @@ textarea {
 
 .news-slide-media {
     position: relative;
-    min-height: 420px;
+    min-height: 340px;
 }
 
 .news-slide-media::after {
@@ -2143,7 +2194,7 @@ textarea {
 }
 
 .news-slide-copy {
-    padding: 34px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -2153,15 +2204,15 @@ textarea {
 
 .news-slide-copy h3 {
     margin: 10px 0 14px;
-    font-size: clamp(1.6rem, 2vw, 2.2rem);
+    font-size: clamp(1.35rem, 1.8vw, 1.9rem);
     line-height: 1.1;
     color: #fff;
 }
 
 .news-slide-copy p {
-    margin: 0 0 22px;
+    margin: 0 0 18px;
     color: rgba(232, 240, 255, 0.85);
-    line-height: 1.7;
+    line-height: 1.6;
 }
 
 .news-slide-meta {
@@ -2591,6 +2642,23 @@ textarea {
 @media (max-width: 640px) {
     .shell {
         width: min(calc(100% - 28px), var(--shell));
+    }
+
+    .home-page .site-header {
+        height: 82px;
+    }
+
+    .home-page .brand-mark,
+    .home-page .site-header.scrolled .brand-mark {
+        width: 48px;
+        height: 48px;
+        transform: none;
+        filter: none;
+    }
+
+    .home-page .brand-text,
+    .home-page .site-header.scrolled .brand-text {
+        display: none;
     }
 
     .brand {
