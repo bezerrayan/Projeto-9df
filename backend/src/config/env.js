@@ -16,7 +16,14 @@ module.exports = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   DB_MODE: (process.env.DB_MODE || 'file').toLowerCase(),
   JWT_SECRET: process.env.JWT_SECRET || 'strong-secret-needed-for-production',
-  CORS_ORIGINS: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  CORS_ORIGINS: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://escoteiros9df.org.br',
+    'https://www.escoteiros9df.org.br',
+    'https://gear.escoteiros9df.org.br',
+    'https://antigo.escoteiros9df.org.br'
+  ],
   
   DATABASE: {
     URL: process.env.DATABASE_URL,
