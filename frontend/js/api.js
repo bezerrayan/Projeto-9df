@@ -3,10 +3,15 @@
  * Centraliza todas as chamadas para o backend Railway.
  */
 
-// URL do backend (Mude para a URL do Railway em produção)
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000/api'
-  : 'https://projeto-9df-production.up.railway.app/api'; 
+// URL do backend (permite override por meta ou localStorage)
+const metaApiBase = document.querySelector('meta[name="api-base"]')?.getAttribute('content');
+const storedApiBase = localStorage.getItem('gear9df_api_base');
+
+const API_BASE_URL = metaApiBase || storedApiBase || (
+  window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://projeto-9df-production.up.railway.app/api'
+);
 
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
