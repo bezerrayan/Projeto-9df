@@ -1472,6 +1472,54 @@ h2 em {
     margin: 18px 0 0;
 }
 
+.branch-detail {
+    margin-top: 20px;
+    border: 1px solid rgba(27, 83, 145, 0.14);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, rgba(245, 249, 255, 0.92), rgba(255, 255, 255, 0.98));
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.branch-detail summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 800;
+    color: var(--blue-900);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.branch-detail summary::-webkit-details-marker {
+    display: none;
+}
+
+.branch-detail summary::after {
+    content: "\f078";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: var(--blue-500);
+    transition: transform 0.24s ease;
+}
+
+.branch-detail[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.branch-detail-body {
+    padding: 0 20px 18px;
+    display: grid;
+    gap: 12px;
+}
+
+.branch-detail-body p {
+    margin: 0;
+    color: var(--text);
+}
+
 .branch-copy li,
 .footer-info li {
     display: flex;
