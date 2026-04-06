@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 var DEFAULT_ACTIVITIES_CACHE = null;
+var DEFAULT_PROJECTS_CACHE = null;
 
 function esc(str) {
     if (!str) return "";
@@ -542,19 +543,79 @@ function applyDynamicProjects(state) {
     if (!container) return;
     var projects = (state.adminPanel && Array.isArray(state.adminPanel.projects)) ? state.adminPanel.projects : [];
     if (!projects.length) return;
-    container.innerHTML = projects.map(function(p) {
-        var imgHtml = p.src
-            ? '<div class="project-image"><img loading="lazy" src="' + esc(p.src) + '" alt="' + esc(p.title) + '" class="cover-image"></div>'
-            : '';
+    if (!DEFAULT_PROJECTS_CACHE) {
+        DEFAULT_PROJECTS_CACHE = Array.from(container.querySelectorAll('.project-card')).map(function(card, index) {
+            var img = card.querySelector('.project-image img');
+            var titleNode = card.querySelector('.project-head h3');
+            var subtitleNode = card.querySelector('.project-body h4');
+            var descNode = card.querySelector('.project-body > p');
+            var tagNodes = Array.from(card.querySelectorAll('.project-head .tag-row span'));
+            var metaNodes = Array.from(card.querySelectorAll('.project-meta span'));
+            var detailsNode = card.querySelector('.project-details');
+            var iconNode = card.querySelector('.project-head .info-icon i');
+            return {
+                id: 'default-project-' + index,
+                title: titleNode ? titleNode.textContent.trim() : '',
+                iconClass: iconNode ? iconNode.className : '',
+                src: img ? img.getAttribute('src') || '' : '',
+                subtitle: subtitleNode ? subtitleNode.textContent.trim() : '',
+                description: descNode ? descNode.textContent.trim() : '',
+                tags: tagNodes.map(function(node) { return node.textContent.trim(); }).filter(Boolean),
+                metaItems: metaNodes.map(function(node) { return node.innerHTML; }).filter(Boolean),
+                detailsHtml: detailsNode ? detailsNode.innerHTML : '',
+            };
+        });
+    }
+
+    function normalizeProjectKey(value) {
+        return String(value || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+    }
+
+    function findDefaultProject(project) {
+        var key = normalizeProjectKey(project && project.title);
+        return (DEFAULT_PROJECTS_CACHE || []).find(function(item) {
+            var baseKey = normalizeProjectKey(item.title);
+            return key === baseKey || key.includes(baseKey) || baseKey.includes(key);
+        }) || null;
+    }
+
+    container.innerHTML = projects.map(function(p, index) {
+        var base = findDefaultProject(p) || (DEFAULT_PROJECTS_CACHE || [])[index] || {};
+        var imageSrc = String(p.src || '').trim() || String(base.src || '').trim() || 'images/logo_9df.png';
+        var title = esc(p.title || base.title || '');
+        var description = esc(p.description || base.description || '');
+        var tags = String(p.meta || '').trim()
+            ? String(p.meta).split('·').map(function(part) { return part.trim(); }).filter(Boolean)
+            : (base.tags || []);
+        var metaItems = (base.metaItems && base.metaItems.length)
+            ? base.metaItems
+            : [];
+        var subtitle = esc(base.subtitle || '');
+        var detailsHtml = base.detailsHtml || '';
+        var iconClass = p.iconClass || base.iconClass || 'fas fa-seedling';
         return '<article class="project-card">' +
-            imgHtml +
+            '<div class="project-image"><img loading="lazy" decoding="async" src="' + esc(imageSrc) + '" alt="' + title + '" class="cover-image" onerror="if(this.dataset.fallbackApplied!==\'1\'){this.dataset.fallbackApplied=\'1\';this.src=\'images/logo_9df.png\';}"></div>' +
             '<div class="project-body">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                   '<span class="badge badge-gray">' + esc(p.category || p.meta || '') + '</span>' +
-                   '<span class="badge ' + (p.status==='ativo'?'badge-green':'badge-amber') + '">' + esc(p.status) + '</span>' +
+                '<div class="project-head">' +
+                    '<span class="info-icon"><i class="' + esc(iconClass) + '"></i></span>' +
+                    '<div>' +
+                        '<h3>' + title + '</h3>' +
+                        '<div class="tag-row">' + tags.map(function(tag) { return '<span>' + esc(tag) + '</span>'; }).join('') + '</div>' +
+                    '</div>' +
                 '</div>' +
-                '<h3>' + (p.icon ? p.icon + ' ' : '') + esc(p.title) + '</h3>' +
-                '<p>' + esc(p.description || '') + '</p>' +
+                (subtitle ? '<h4>' + subtitle + '</h4>' : '') +
+                '<p>' + description + '</p>' +
+                '<div class="project-meta">' +
+                    (metaItems.length
+                        ? metaItems.map(function(item) { return '<span>' + item + '</span>'; }).join('')
+                        : '<span><i class="fas fa-layer-group"></i>' + esc(p.category || 'Projeto em andamento') + '</span><span><i class="fas fa-signal"></i>' + esc(p.status || 'ativo') + '</span>') +
+                '</div>' +
+                (detailsHtml ? '<button class="project-toggle" type="button" aria-expanded="false">Saiba mais</button><div class="project-details">' + detailsHtml + '</div>' : '') +
             '</div></article>';
     }).join("");
 }

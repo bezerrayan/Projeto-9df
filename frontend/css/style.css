@@ -172,52 +172,32 @@ textarea {
 }
 
 .home-page .site-header {
-    height: 104px;
-}
-
-.home-page .nav-shell {
-    gap: 28px;
-}
-
-.home-page .brand {
-    gap: 16px;
-}
-
-.home-page .brand-mark {
-    width: 84px;
-    height: 84px;
-    transform: translateY(2px);
-    filter: drop-shadow(0 12px 24px rgba(8, 23, 45, 0.22));
-}
-
-.home-page .brand-text {
-    font-size: 1.04rem;
-    letter-spacing: 0.04em;
-}
-
-.home-page .brand-text em {
-    display: inline-block;
-    margin-left: 2px;
-}
-
-.home-page .site-header.scrolled {
     height: var(--nav-height);
 }
 
+.home-page .brand {
+    transform: scale(1.07);
+    transform-origin: left center;
+}
+
+.home-page .brand-mark {
+    width: 52px;
+    height: 52px;
+    filter: drop-shadow(0 8px 16px rgba(8, 23, 45, 0.14));
+}
+
+.home-page .brand-text {
+    opacity: 1;
+}
+
 .home-page .site-header.scrolled .brand {
-    gap: 12px;
+    transform: none;
 }
 
 .home-page .site-header.scrolled .brand-mark {
     width: 52px;
     height: 52px;
-    transform: none;
     filter: none;
-}
-
-.home-page .site-header.scrolled .brand-text {
-    font-size: 1rem;
-    letter-spacing: 0.015em;
 }
 
 .info-icon,
@@ -268,6 +248,30 @@ textarea {
 .site-nav .nav-cta.active {
     background: var(--blue-400);
     color: var(--white);
+}
+
+body:not(.home-page) .site-header .brand,
+.site-header:not(.home-header) .brand {
+    display: none;
+}
+
+body:not(.home-page) .site-header .nav-shell,
+.site-header:not(.home-header) .nav-shell {
+    justify-content: flex-end;
+}
+
+body:not(.home-page) .site-header .site-nav a[href="index.html"],
+.site-header:not(.home-header) .site-nav a[href="index.html"] {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--white);
+}
+
+body:not(.home-page) .site-header .site-nav a[href="index.html"]:hover,
+body:not(.home-page) .site-header .site-nav a[href="index.html"].active,
+.site-header:not(.home-header) .site-nav a[href="index.html"]:hover,
+.site-header:not(.home-header) .site-nav a[href="index.html"].active {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .menu-toggle {
@@ -514,52 +518,6 @@ h2 em {
     position: relative;
     z-index: 1;
     padding: 96px 0 60px;
-}
-
-.home-hero-brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 18px 12px 12px;
-    margin-bottom: 18px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 18px 34px rgba(6, 16, 34, 0.18);
-    backdrop-filter: blur(18px);
-}
-
-.home-hero-brand-mark {
-    width: 74px;
-    height: 74px;
-    flex-shrink: 0;
-    display: grid;
-    place-items: center;
-}
-
-.home-hero-brand-mark img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.home-hero-brand-copy {
-    display: grid;
-    gap: 2px;
-}
-
-.home-hero-brand-copy strong {
-    color: var(--white);
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    letter-spacing: 0.04em;
-}
-
-.home-hero-brand-copy span {
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 0.88rem;
-    max-width: 32ch;
-    line-height: 1.45;
 }
 
 .hero-copy h1 {
@@ -2690,25 +2648,26 @@ textarea {
         width: min(calc(100% - 28px), var(--shell));
     }
 
+    .home-page .brand,
+    .home-page .site-header.scrolled .brand {
+        transform: none;
+    }
+
     .home-page .site-header {
-        height: 92px;
+        height: var(--nav-height);
     }
 
     .home-page .brand-mark,
     .home-page .site-header.scrolled .brand-mark {
-        width: 62px;
-        height: 62px;
+        width: 44px;
+        height: 44px;
         transform: none;
         filter: none;
     }
 
     .home-page .brand-text,
     .home-page .site-header.scrolled .brand-text {
-        display: block;
-        font-size: 0.76rem;
-        letter-spacing: 0.03em;
-        line-height: 1.1;
-        max-width: 70px;
+        display: none;
     }
 
     .brand {
@@ -2734,28 +2693,6 @@ textarea {
         max-width: none;
         font-size: 2.2rem;
         line-height: 1.06;
-    }
-
-    .home-hero-brand {
-        width: 100%;
-        gap: 12px;
-        padding: 12px 14px 12px 12px;
-        margin-bottom: 16px;
-        border-radius: 24px;
-    }
-
-    .home-hero-brand-mark {
-        width: 64px;
-        height: 64px;
-    }
-
-    .home-hero-brand-copy strong {
-        font-size: 0.92rem;
-    }
-
-    .home-hero-brand-copy span {
-        font-size: 0.8rem;
-        max-width: none;
     }
 
     .hero-copy p {
