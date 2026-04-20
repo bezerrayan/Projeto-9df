@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "create-admin": "node src/server.js --create-admin",
+    "create-admin": "node scripts/manage-admins.js add",
+    "list-admins": "node scripts/manage-admins.js list",
     "mail:process": "node src/scripts/runMailProcessor.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

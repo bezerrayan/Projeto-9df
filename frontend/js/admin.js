@@ -2198,7 +2198,7 @@ async function initMensagens() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
           <button class="btn btn-xs btn-ghost" data-msg-reply-toggle="${esc(m.id)}"><i class="fas fa-reply"></i> Responder</button>
           ${m.is_read ? "" : `<button class="btn btn-xs btn-ghost" data-msg-read="${esc(m.id)}"><i class="fas fa-envelope-open"></i> Marcar como lida</button>`}
-          <a class="btn btn-xs btn-ghost" href="mailto:${esc(m.email)}?subject=${encodeURIComponent(`Re: ${m.subject || "Contato pelo site"}`)}"><i class="fas fa-paper-plane"></i> Abrir no e-mail</a>
+          <button type="button" class="btn btn-xs btn-ghost" data-open-mailbox><i class="fas fa-paper-plane"></i> Abrir no e-mail</button>
         </div>
         <div id="reply-box-${esc(m.id)}" style="display:none;margin-top:12px;padding:12px;border:1px solid var(--c-border);border-radius:var(--r-md);background:#f8fbff;">
           <div class="fg"><label>Assunto da resposta</label><input id="reply-subject-${esc(m.id)}" value="${esc(`Re: ${m.subject || "Contato pelo site"}`)}"></div>
@@ -2234,6 +2234,12 @@ async function initMensagens() {
         } catch {
           toast("Não foi possível marcar a mensagem como lida.", "error");
         }
+      })
+    );
+
+    list.querySelectorAll("[data-open-mailbox]").forEach(btn =>
+      btn.addEventListener("click", () => {
+        window.open("https://mail.hostinger.com/mailboxes/INBOX", "_blank", "noopener");
       })
     );
 
