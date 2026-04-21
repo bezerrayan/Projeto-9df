@@ -37,6 +37,22 @@ const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","A
 const MONTHS_SHORT = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 const GALLERY_EXTENSIONS = ["webp","jpg","jpeg","png","svg"];
 const MEMBER_COLORS = [["#eff6ff","#1d4ed8"],["#f0fdf4","#15803d"],["#fefce8","#a16207"],["#fef2f2","#b91c1c"],["#f5f3ff","#6d28d9"]];
+const EDITABLE_TEXT_SELECTOR = [
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "p", "li", "label", "button", "a",
+  ".eyebrow", ".btn", ".text-link", ".mini-link-pill",
+  ".notice-tag", ".chip", ".badge", ".hero-motto",
+  ".section-label", ".floating-card strong", ".hero-stats strong", ".hero-stats span",
+  "[data-subject-toggle-label]", "[data-subject-option]",
+].join(",");
+const EDITABLE_ATTRS = [
+  { selector: "a[href]", attr: "href", title: "Destino do link" },
+  { selector: "iframe[src]", attr: "src", title: "Fonte do iframe/mapa" },
+  { selector: "input[placeholder]", attr: "placeholder", title: "Placeholder do campo" },
+  { selector: "textarea[placeholder]", attr: "placeholder", title: "Placeholder do campo" },
+  { selector: "button[data-subject-option]", attr: "data-subject-option", title: "Valor enviado do assunto" },
+  { selector: "[aria-label]", attr: "aria-label", title: "Texto de acessibilidade" },
+];
 
 // ── State ─────────────────────────────────────────────────────────
 let STATE = { pages: {}, adminPanel: {} };
@@ -963,6 +979,7 @@ async function renderPaginasEditor() {
     const pState = ensurePageState(CONTENT_PAGE);
     const texts = getFeaturedEntries(CONTENT_PAGE, schema.texts, false);
     const images = getFeaturedEntries(CONTENT_PAGE, schema.images, true);
+    const attrs = getFeaturedEntries(CONTENT_PAGE, schema.attrs || [], false);
     wrap.innerHTML = `
       <div style="margin-bottom:15px;">
         <div class="notice notice-info">
@@ -1027,6 +1044,27 @@ async function renderPaginasEditor() {
         </div>
       </div>
       <div class="card">
+        <div class="section-title-wrap">
+          <div>
+            <div class="card-title">Links, botões e campos especiais</div>
+            <p class="section-caption">Destinos de botões, links externos, mapa incorporado e textos de placeholder.</p>
+          </div>
+          <span class="badge badge-blue">${attrs.length}</span>
+        </div>
+        <div class="editor-grid">
+          ${attrs.length
+            ? attrs.map((f, idx) => `<div class="text-field-card" style="margin-bottom:14px">
+                <div class="field-kicker">Campo especial ${idx + 1}</div>
+                <div class="fg" style="margin-top:12px">
+                  <label>${esc(f.title)}</label>
+                  <input data-site-attr="${esc(f.key)}" value="${esc((pState.attrs && pState.attrs[f.key]) ?? f.value)}">
+                </div>
+                <div class="field-hint">${esc(f.hint)}</div>
+              </div>`).join("")
+            : `<div class="empty-state"><i class="fas fa-link"></i><p>Nenhum link ou campo especial identificado.</p></div>`}
+        </div>
+      </div>
+      <div class="card">
         <div class="card-head">
           <div class="card-title">Blocos extras</div>
           <div style="display:flex;gap:8px;align-items:center">
@@ -1088,7 +1126,7 @@ function bindPaginasEditor() {
 }
 
 function capturePaginasContent() {
-  const schema = SCHEMA_CACHE[CONTENT_PAGE] || { texts: [], images: [] };
+  const schema = SCHEMA_CACHE[CONTENT_PAGE] || { texts: [], images: [], attrs: [] };
   const ps = ensurePageState(CONTENT_PAGE);
   const nextText = {};
   schema.texts.forEach(f => {
@@ -1115,6 +1153,13 @@ function capturePaginasContent() {
     if (Object.keys(obj).length) nextImages[f.key] = obj;
   });
   ps.images = nextImages;
+  const nextAttrs = {};
+  (schema.attrs || []).forEach(f => {
+    const el = document.querySelector(`[data-site-attr="${cssescape(f.key)}"]`);
+    if (!el) return;
+    nextAttrs[f.key] = el.value.trim();
+  });
+  ps.attrs = nextAttrs;
   ps.extras = Array.from(document.querySelectorAll("[data-extra-id]")).map(card => ({
     id: card.dataset.extraId || uid("ex"),
     title:       (card.querySelector("[data-extra-title]")?.value || "").trim(),
@@ -1134,14 +1179,51 @@ async function getPageSchema(page) {
   const doc = new DOMParser().parseFromString(html, "text/html");
   const root = doc.querySelector("main") || doc.body;
   const schema = {
-    texts: Array.from(root.querySelectorAll("h1,h2,h3,h4,p,.eyebrow,.btn"))
-      .filter(n => n.textContent.trim())
+    texts: Array.from(root.querySelectorAll(EDITABLE_TEXT_SELECTOR))
+      .filter(n => isEditableTextElement(n, root))
       .map(n => ({ key: buildKey(n, root), label: `${n.tagName.toLowerCase()} — ${n.textContent.trim().replace(/\s+/g," ").slice(0,70)}`, value: n.textContent.trim() })),
     images: Array.from(root.querySelectorAll("img"))
       .map((n, i) => ({ key: buildKey(n, root), label: `img ${i+1} — ${n.alt || n.src || ""}`, src: n.getAttribute("src") || "", alt: n.getAttribute("alt") || "" })),
+    attrs: getEditableAttrs(root),
   };
   SCHEMA_CACHE[page] = schema;
   return schema;
+}
+
+function isEditableTextElement(node, root) {
+  if (!node || !node.textContent || !node.textContent.trim()) return false;
+  if (node.closest("script,style,svg,.admin-shell")) return false;
+  const text = node.textContent.trim().replace(/\s+/g, " ");
+  const parentEditable = node.parentElement?.closest?.(EDITABLE_TEXT_SELECTOR);
+  if (parentEditable && parentEditable !== node && root.contains(parentEditable)) {
+    const parentText = parentEditable.textContent.trim().replace(/\s+/g, " ");
+    if (parentText === text) return false;
+  }
+
+  const childEditable = Array.from(node.querySelectorAll?.(EDITABLE_TEXT_SELECTOR) || [])
+    .find(child => child.textContent.trim().replace(/\s+/g, " ") === text);
+  if (childEditable) return false;
+
+  return true;
+}
+
+function getEditableAttrs(root) {
+  const seen = new Set();
+  return EDITABLE_ATTRS.flatMap(def =>
+    Array.from(root.querySelectorAll(def.selector)).map(node => {
+      const value = node.getAttribute(def.attr) || "";
+      if (!value.trim()) return null;
+      const key = `${buildKey(node, root)}@${def.attr}`;
+      if (seen.has(key)) return null;
+      seen.add(key);
+      const text = node.textContent.trim().replace(/\s+/g, " ").slice(0, 50);
+      return {
+        key,
+        label: `${def.title} — ${text || value.slice(0, 70)}`,
+        value,
+      };
+    }).filter(Boolean)
+  );
 }
 
 function buildKey(el, root) {
@@ -1168,9 +1250,8 @@ const FEATURED_TEXTS = {
 };
 
 function getFeaturedEntries(page, items, isImage) {
-  const limit = isImage ? 4 : 8;
-  const tagMap = { h1:"Título principal", h2:"Subtítulo", h3:"Subtítulo", h4:"Cabeçalho", p:"Parágrafo", eyebrow:"Destaque", btn:"Botão" };
-  return items.slice(0, limit).map((item, i) => {
+  const tagMap = { h1:"Título principal", h2:"Subtítulo", h3:"Subtítulo", h4:"Cabeçalho", h5:"Cabeçalho", h6:"Cabeçalho", p:"Parágrafo", li:"Item de lista", label:"Rótulo", button:"Botão", a:"Link", span:"Texto curto", strong:"Número/destaque", div:"Destaque", eyebrow:"Destaque", btn:"Botão" };
+  return items.map((item, i) => {
     const rawTag = (item.label || "").split(" — ")[0].trim();
     const title = isImage ? `Imagem ${i+1}` : (tagMap[rawTag] || `Campo ${i+1}`);
     return { ...item, title, hint: (item.label || "").replace(/\s+/g, " ").slice(0, 80) };
@@ -1943,10 +2024,11 @@ function ensureState() {
 }
 
 function ensurePageState(page) {
-  if (!STATE.pages[page] || typeof STATE.pages[page] !== "object") STATE.pages[page] = { text: {}, images: {}, sections: {}, extras: [] };
+  if (!STATE.pages[page] || typeof STATE.pages[page] !== "object") STATE.pages[page] = { text: {}, images: {}, attrs: {}, sections: {}, extras: [] };
   const s = STATE.pages[page];
   s.text    = (s.text    && typeof s.text    === "object") ? s.text    : {};
   s.images  = (s.images  && typeof s.images  === "object") ? s.images  : {};
+  s.attrs   = (s.attrs   && typeof s.attrs   === "object") ? s.attrs   : {};
   s.sections= (s.sections&& typeof s.sections=== "object") ? s.sections: {};
   s.extras  = Array.isArray(s.extras) ? s.extras : [];
   return s;

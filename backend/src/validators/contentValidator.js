@@ -33,6 +33,7 @@ function sanitize(payload) {
     cleaned.pages[pageName] = {
       text: pageData.text && typeof pageData.text === "object" ? pageData.text : {},
       images: pageData.images && typeof pageData.images === "object" ? pageData.images : {},
+      attrs: pageData.attrs && typeof pageData.attrs === "object" ? pageData.attrs : {},
       sections: pageData.sections && typeof pageData.sections === "object" ? pageData.sections : {},
       extras: Array.isArray(pageData.extras) ? pageData.extras : [],
     };

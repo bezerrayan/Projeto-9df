@@ -501,6 +501,14 @@ function setupProjectToggles() {
 console.log("%c[GEAR 9º DF]%c Script de conteúdo iniciado.", "color:#2563eb;font-weight:bold;", "color:inherit;");
 
 var SITE_CONTENT_CACHE = null;
+var EDITABLE_TEXT_SELECTOR = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'li', 'label', 'button', 'a',
+    '.eyebrow', '.btn', '.text-link', '.mini-link-pill',
+    '.notice-tag', '.chip', '.badge', '.hero-motto',
+    '.section-label', '.floating-card strong', '.hero-stats strong', '.hero-stats span',
+    '[data-subject-toggle-label]', '[data-subject-option]'
+].join(',');
 
 function fetchSiteContent() {
     console.log("[API] Buscando conteúdo do site...");
@@ -1079,10 +1087,21 @@ function buildAdminPath(element, root) {
 }
 
 function getEditableTextNodes(root) {
-    return Array.from(root.querySelectorAll('h1, h2, h3, h4, p, .eyebrow, .btn'))
+    return Array.from(root.querySelectorAll(EDITABLE_TEXT_SELECTOR))
         .filter(function (node) {
             if (!node.textContent || !node.textContent.trim()) return false;
             if (node.closest('.admin-shell')) return false;
+            var text = node.textContent.trim().replace(/\s+/g, ' ');
+            var parentEditable = node.parentElement && node.parentElement.closest ? node.parentElement.closest(EDITABLE_TEXT_SELECTOR) : null;
+            if (parentEditable && parentEditable !== node && root.contains(parentEditable)) {
+                var parentText = parentEditable.textContent.trim().replace(/\s+/g, ' ');
+                if (parentText === text) return false;
+            }
+            var childEditable = Array.from(node.querySelectorAll ? node.querySelectorAll(EDITABLE_TEXT_SELECTOR) : [])
+                .find(function(child) {
+                    return child.textContent.trim().replace(/\s+/g, ' ') === text;
+                });
+            if (childEditable) return false;
             return true;
         })
         .map(function (node, index) {
@@ -1121,7 +1140,7 @@ function getEditableSections(root) {
 }
 
 function writeEditableText(node, value) {
-    if (node.classList.contains('btn')) {
+    if (node.classList.contains('btn') || node.querySelector('i')) {
         var icon = node.querySelector('i');
         if (icon) {
             var iconClone = icon.cloneNode(true);
@@ -1134,6 +1153,24 @@ function writeEditableText(node, value) {
         return;
     }
     node.innerHTML = value;
+}
+
+function applyEditableAttrs(root, pageState) {
+    if (!pageState.attrs) return;
+    Object.entries(pageState.attrs).forEach(function(entry) {
+        var key = entry[0];
+        var value = entry[1];
+        var splitAt = key.lastIndexOf('@');
+        if (splitAt <= 0) return;
+        var selector = key.slice(0, splitAt);
+        var attr = key.slice(splitAt + 1);
+        try {
+            var node = root.querySelector(selector);
+            if (node) node.setAttribute(attr, value || '');
+        } catch (error) {
+            console.warn('[ADMIN ATTR]', error);
+        }
+    });
 }
 
 function renderAdminExtraSections(root, pageState) {
@@ -1157,9 +1194,9 @@ function renderAdminExtraSections(root, pageState) {
 
 function ensurePageState(state, pageName) {
     if (!state.pages) state.pages = {};
-    if (!state.pages[pageName]) state.pages[pageName] = { text: {}, images: {}, sections: {}, extras: [] };
+    if (!state.pages[pageName]) state.pages[pageName] = { text: {}, images: {}, attrs: {}, sections: {}, extras: [] };
     var p = state.pages[pageName];
-    p.text = p.text || {}; p.images = p.images || {}; p.sections = p.sections || {}; p.extras = p.extras || [];
+    p.text = p.text || {}; p.images = p.images || {}; p.attrs = p.attrs || {}; p.sections = p.sections || {}; p.extras = p.extras || [];
     return p;
 }
 
@@ -1185,6 +1222,8 @@ function applyAdminContent(state) {
         if (img && Object.prototype.hasOwnProperty.call(img, 'src')) entry.element.setAttribute('src', img.src || '');
         if (img && Object.prototype.hasOwnProperty.call(img, 'alt')) entry.element.setAttribute('alt', img.alt || '');
     });
+
+    applyEditableAttrs(root, pageState);
 
     getEditableSections(root).forEach(function (entry) {
         var s = pageState.sections[entry.key];
