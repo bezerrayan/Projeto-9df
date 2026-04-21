@@ -1651,10 +1651,10 @@ function captureNews() {
 
 function captureEvents() {
   STATE.adminPanel.events.forEach(e => {
-    e.title = val(`[data-ev-title="${e.id}"]`, e.title);
-    e.date = val(`[data-ev-date="${e.id}"]`, e.date);
-    e.type = val(`[data-ev-type="${e.id}"]`, e.type);
-    e.description = val(`[data-ev-desc="${e.id}"]`, e.description);
+    e.title = val(`[data-event-title="${e.id}"]`, e.title);
+    e.date = val(`[data-event-date="${e.id}"]`, e.date);
+    e.type = val(`[data-event-type="${e.id}"]`, e.type);
+    e.description = val(`[data-event-desc="${e.id}"]`, e.description);
   });
 }
 

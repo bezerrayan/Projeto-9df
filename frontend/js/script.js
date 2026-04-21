@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+    window.setTimeout(finalizeContentLoad, 3000);
     ensureNewsLinks();
-    applyAdminContent();
     setupMenu();
     setupHeaderShadow();
     setupYear();
@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', function () {
         setupNewsCarousel();
         setupProjectToggles();
         setupContactForm(state);
+        finalizeContentLoad();
+    }).catch(function() {
+        finalizeContentLoad();
     });
 });
 
@@ -130,13 +133,13 @@ function setupYear() {
     });
 }
 
-function setupCalendar() {
+function setupCalendar(eventsOverride) {
     const calendarRoot = document.querySelector('[data-group-calendar]');
     if (!calendarRoot) {
         return;
     }
 
-    const events = [
+    const defaultEvents = [
         { date: '2026-01-01', title: 'Dia Mundial da Paz', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-01-08', title: 'Falecimento de Baden-Powell (1941 - Nyeri, Quênia)', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-01-12', endDate: '2026-02-12', title: 'Curso Avançado Escotista e Dirigente (EAD)', type: 'grupo', label: 'Curso' },
@@ -292,6 +295,9 @@ function setupCalendar() {
         { date: '2026-12-05', title: 'Dia Internacional do Voluntariado', type: 'comemorativo', label: 'Comemorativo' },
         { date: '2026-12-25', title: 'Natal', type: 'feriado', label: 'Feriado' }
     ];
+    const events = Array.isArray(eventsOverride)
+        ? eventsOverride.map(normalizeCalendarEvent).filter(Boolean)
+        : defaultEvents;
 
     const monthLabel = calendarRoot.querySelector('[data-cal-month]');
     const grid = calendarRoot.querySelector('[data-cal-grid]');
@@ -373,10 +379,10 @@ function setupCalendar() {
             const item = document.createElement('li');
             item.innerHTML =
                 '<div class="event-meta">' +
-                '<span class="tag ' + event.type + '">' + (event.label || event.type) + '</span>' +
+                '<span class="tag ' + esc(event.type) + '">' + esc(event.label || event.type) + '</span>' +
                 '<span>' + formatDateRange(event) + '</span>' +
                 '</div>' +
-                '<div class="event-title">' + event.title + '</div>';
+                '<div class="event-title">' + esc(event.title) + '</div>';
             eventsList.appendChild(item);
         });
     }
@@ -454,6 +460,25 @@ function setupCalendar() {
     renderCalendar();
 }
 
+function normalizeCalendarEvent(event) {
+    if (!event || !event.date || !event.title) return null;
+    var type = String(event.type || 'grupo').trim().toLowerCase();
+    var labels = {
+        grupo: 'Grupo',
+        regional: 'Regional',
+        nacional: 'Nacional',
+        comemorativo: 'Comemorativo',
+        feriado: 'Feriado'
+    };
+    return {
+        date: String(event.date).trim(),
+        endDate: event.endDate ? String(event.endDate).trim() : '',
+        title: String(event.title).trim(),
+        type: labels[type] ? type : 'grupo',
+        label: event.label || labels[type] || 'Grupo'
+    };
+}
+
 function setupGalleryFilter() {
     const buttons = document.querySelectorAll('.filter-btn');
     const items = document.querySelectorAll('.gallery-item');
@@ -525,12 +550,13 @@ function fetchSiteContent() {
 }
 
 function applyDynamicCalendar(state) {
-    var events = (state.adminPanel && Array.isArray(state.adminPanel.events)) ? state.adminPanel.events : [];
-    if (!events.length) { setupCalendar(); return; } // fallback
-    // We will just invoke setupCalendar but we should realistically merge.
-    // Since setupCalendar is complex, we just prepend admin events to it globally if needed.
-    window.ADMIN_EVENTS = events; 
-    setupCalendar();
+    var hasAdminEvents = state.adminPanel && Array.isArray(state.adminPanel.events);
+    setupCalendar(hasAdminEvents ? state.adminPanel.events : undefined);
+}
+
+function finalizeContentLoad() {
+    document.body.classList.remove('content-loading');
+    document.body.classList.add('content-ready');
 }
 
 function applyDynamicGallery(state) {

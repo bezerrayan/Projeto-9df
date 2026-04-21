@@ -63,6 +63,17 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+body.content-loading main,
+body.content-loading .site-footer {
+    opacity: 0;
+}
+
+body.content-ready main,
+body.content-ready .site-footer {
+    opacity: 1;
+    transition: opacity 160ms ease;
+}
+
 img {
     display: block;
     max-width: 100%;
@@ -340,6 +351,11 @@ body:not(.home-page) .site-header .site-nav a[href="index.html"].active,
     color: var(--blue-300);
 }
 
+.page-hero-dark .eyebrow,
+.cta-band .eyebrow {
+    color: var(--blue-200);
+}
+
 h1,
 h2,
 h3,
@@ -357,6 +373,18 @@ h1 em,
 h2 em {
     color: var(--blue-400);
     font-style: normal;
+}
+
+.page-hero-dark h1 em,
+.hero-home h1 em,
+.cta-band h2 em {
+    color: var(--blue-200);
+}
+
+.section-soft h1 em,
+.section-soft h2 em,
+.section-soft h3 em {
+    color: var(--blue-600);
 }
 
 .section-head h2,
@@ -1063,6 +1091,26 @@ h2 em {
     background: #ef4444;
 }
 
+.calendar-day.has-event {
+    color: var(--blue-900);
+    font-weight: 700;
+}
+
+.calendar-day.has-event.has-regional {
+    background: #ecfdf5;
+    border-color: rgba(16, 185, 129, 0.22);
+}
+
+.calendar-day.has-event.has-commemorative {
+    background: #fffbeb;
+    border-color: rgba(245, 158, 11, 0.24);
+}
+
+.calendar-day.has-event.has-holiday {
+    background: #fef2f2;
+    border-color: rgba(239, 68, 68, 0.24);
+}
+
 .calendar-legend {
     display: flex;
     flex-wrap: wrap;
@@ -1165,8 +1213,8 @@ h2 em {
 }
 
 .tag.nacional {
-    background: rgba(0, 113, 227, 0.1);
-    color: var(--blue-700);
+    background: rgba(13, 45, 90, 0.1);
+    color: var(--blue-800);
 }
 
 .event-title {
