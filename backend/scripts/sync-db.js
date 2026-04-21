@@ -28,8 +28,16 @@ async function sync() {
     console.log("Conectado ao MySQL com sucesso.");
 
     // Sincroniza site_content (ID 1)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS site_content (
+        id INT PRIMARY KEY,
+        content_json LONGTEXT NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
     await connection.execute(
-      "UPDATE site_content SET content_json = ? WHERE id = 1",
+      "INSERT INTO site_content (id, content_json) VALUES (1, ?) ON DUPLICATE KEY UPDATE content_json = VALUES(content_json)",
       [JSON.stringify(content)]
     );
     console.log("Banco de dados MySQL atualizado com sucesso (site_content).");

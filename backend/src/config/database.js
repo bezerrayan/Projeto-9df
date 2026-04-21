@@ -64,6 +64,14 @@ async function init() {
     `);
 
     await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_content (
+        id INT PRIMARY KEY,
+        content_json LONGTEXT NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS mail_inbox_messages (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         message_id VARCHAR(255) NOT NULL UNIQUE,

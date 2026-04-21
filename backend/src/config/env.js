@@ -4,12 +4,15 @@ const dotenv = require('dotenv');
 // Load .env and .env.local
 const BASE_DIR = path.join(__dirname, '../../');
 const ROOT_DIR = path.join(BASE_DIR, '../');
+const EXTERNAL_ENV = { ...process.env };
 
 // Load .env and .env.local from both backend and root (for flexibility)
 [ROOT_DIR, BASE_DIR].forEach(dir => {
   dotenv.config({ path: path.join(dir, '.env'), quiet: true });
   dotenv.config({ path: path.join(dir, '.env.local'), override: true, quiet: true });
 });
+
+Object.assign(process.env, EXTERNAL_ENV);
 
 module.exports = {
   PORT: Number(process.env.PORT || 5000),

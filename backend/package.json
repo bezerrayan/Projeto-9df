@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "create-admin": "node scripts/manage-admins.js add",
     "list-admins": "node scripts/manage-admins.js list",
+    "sync-db": "node scripts/sync-db.js",
     "mail:process": "node src/scripts/runMailProcessor.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
