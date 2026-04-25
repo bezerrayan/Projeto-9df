@@ -526,6 +526,7 @@ function setupProjectToggles() {
 console.log("%c[GEAR 9º DF]%c Script de conteúdo iniciado.", "color:#2563eb;font-weight:bold;", "color:inherit;");
 
 var SITE_CONTENT_CACHE = null;
+var FRONTEND_ASSET_VERSION = '20260425-admin-sync-2';
 var EDITABLE_TEXT_SELECTOR = [
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
     'p', 'li', 'label', 'button', 'a',
@@ -828,7 +829,15 @@ function getNewsItems(state) {
 
 function getNewsImage(item) {
     var src = String((item && item.src) || '').trim();
-    return src || 'images/logo_9df.png';
+    return cacheBustImage(src || 'images/logo_9df.png');
+}
+
+function cacheBustImage(src) {
+    if (!src || src.startsWith('data:') || src.indexOf('v=') !== -1) {
+        return src;
+    }
+
+    return src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=' + FRONTEND_ASSET_VERSION;
 }
 
 function applyDynamicNews(state) {
