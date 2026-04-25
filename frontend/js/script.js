@@ -1105,6 +1105,49 @@ function getCurrentPageName() {
     return name;
 }
 
+function getCurrentPageAliases(pageName) {
+    var normalized = pageName || getCurrentPageName();
+    var withoutExtension = normalized.replace(/\.html$/i, '');
+    var aliases = [normalized];
+
+    if (withoutExtension && withoutExtension !== normalized) {
+        aliases.push(withoutExtension);
+    }
+
+    if (withoutExtension === 'index') {
+        aliases.push('');
+        aliases.push('/');
+        aliases.push('home');
+    }
+
+    return aliases.filter(function (value, index, list) {
+        return list.indexOf(value) === index;
+    });
+}
+
+function getSavedPageState(state, pageName) {
+    var pages = state && state.pages ? state.pages : {};
+    var aliases = getCurrentPageAliases(pageName);
+    var fallback = { text: {}, images: {}, attrs: {}, sections: {}, extras: [] };
+
+    aliases.forEach(function (alias) {
+        var page = pages[alias];
+        if (!page || typeof page !== 'object') {
+            return;
+        }
+
+        fallback.text = Object.assign({}, fallback.text, page.text || {});
+        fallback.images = Object.assign({}, fallback.images, page.images || {});
+        fallback.attrs = Object.assign({}, fallback.attrs, page.attrs || {});
+        fallback.sections = Object.assign({}, fallback.sections, page.sections || {});
+        if (Array.isArray(page.extras) && page.extras.length) {
+            fallback.extras = page.extras;
+        }
+    });
+
+    return fallback;
+}
+
 function buildAdminPath(element, root) {
     var parts = [];
     var current = element;
@@ -1245,7 +1288,7 @@ function applyAdminContent(state) {
     if (!state) return;
 
     var pageName = getCurrentPageName();
-    var pageState = ensurePageState(state, pageName);
+    var pageState = getSavedPageState(state, pageName);
 
     getEditableTextNodes(root).forEach(function (entry) {
         if (pageState.text && Object.prototype.hasOwnProperty.call(pageState.text, entry.key)) {
