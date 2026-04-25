@@ -537,7 +537,7 @@ var EDITABLE_TEXT_SELECTOR = [
 
 function fetchSiteContent() {
     console.log("[API] Buscando conteúdo do site...");
-    return window.apiFetch('/content')
+    return window.apiFetch('/content?_=' + Date.now(), { cache: 'no-store' })
         .then(function(data) { 
             console.log("[API] Conteúdo recebido com sucesso:", data);
             SITE_CONTENT_CACHE = data; 
@@ -1091,8 +1091,18 @@ function applyVisibility(state) {
 
 // ── Contact Form Override ─────────────────────────────────────────
 function getCurrentPageName() {
-    var name = window.location.pathname.split('/').pop();
-    return name || 'index.html';
+    var path = window.location.pathname.replace(/\/+$/, '');
+    var name = path.split('/').pop();
+
+    if (!name || name === 'index') {
+        return 'index.html';
+    }
+
+    if (name.indexOf('.') === -1) {
+        return name + '.html';
+    }
+
+    return name;
 }
 
 function buildAdminPath(element, root) {

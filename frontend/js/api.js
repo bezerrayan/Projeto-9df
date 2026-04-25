@@ -15,6 +15,10 @@ const API_BASE_URL = metaApiBase || storedApiBase || (
 
 async function apiFetch(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  options = {
+    cache: 'no-store',
+    ...options
+  };
   
   // Incluir token de autenticação se existir
   const token = localStorage.getItem('gear9df_token');
