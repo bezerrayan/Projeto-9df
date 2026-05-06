@@ -63,6 +63,30 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+.skip-link {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 2000;
+    transform: translateY(-140%);
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--blue-900);
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
+:focus-visible {
+    outline: 3px solid var(--blue-300);
+    outline-offset: 3px;
+}
+
 body.content-loading main,
 body.content-loading .site-footer {
     opacity: 0;
@@ -259,16 +283,6 @@ textarea {
 .site-nav .nav-cta.active {
     background: var(--blue-400);
     color: var(--white);
-}
-
-body:not(.home-page) .site-header .brand,
-.site-header:not(.home-header) .brand {
-    display: none;
-}
-
-body:not(.home-page) .site-header .nav-shell,
-.site-header:not(.home-header) .nav-shell {
-    justify-content: flex-end;
 }
 
 body:not(.home-page) .site-header .site-nav a[href="index.html"],
@@ -2660,13 +2674,22 @@ textarea {
         gap: 28px;
     }
 
-    .hero-copy {
+    .hero-copy,
+    .page-hero-grid,
+    .page-hero .shell {
         text-align: center;
     }
 
     .hero-copy p,
+    .page-hero p,
     .cta-band p {
         max-width: none;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .page-hero .eyebrow {
+        justify-content: center;
     }
 
     .button-row {
@@ -2761,11 +2784,6 @@ textarea {
         filter: none;
     }
 
-    .home-page .brand-text,
-    .home-page .site-header.scrolled .brand-text {
-        display: none;
-    }
-
     .brand {
         gap: 8px;
     }
@@ -2776,7 +2794,15 @@ textarea {
     }
 
     .brand-text {
-        display: none;
+        display: inline-block;
+        max-width: 8.5rem;
+        font-size: 0.78rem;
+        line-height: 1.16;
+        white-space: normal;
+    }
+
+    .brand-text em {
+        white-space: nowrap;
     }
 
     .section,

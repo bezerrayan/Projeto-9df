@@ -1,11 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
     window.setTimeout(finalizeContentLoad, 3000);
+    ensureAccessibilityBasics();
     ensureNewsLinks();
     setupMenu();
     setupHeaderShadow();
     setupYear();
     setupScrollAnimations();
     setupAdminMode();
+    setupContactForm({});
 
     fetchSiteContent().then(function(state) {
         applyAdminContent(state);
@@ -26,6 +28,10 @@ document.addEventListener('DOMContentLoaded', function () {
         setupContactForm(state);
         finalizeContentLoad();
     }).catch(function() {
+        setupGalleryFilter();
+        setupNewsCarousel();
+        setupProjectToggles();
+        setupContactForm({});
         finalizeContentLoad();
     });
 });
@@ -51,6 +57,11 @@ function setupMenu() {
     if (!toggle || !nav) {
         return;
     }
+
+    if (!nav.id) {
+        nav.id = 'site-navigation';
+    }
+    toggle.setAttribute('aria-controls', nav.id);
 
     toggle.addEventListener('click', function () {
         const open = nav.classList.toggle('open');
@@ -850,7 +861,7 @@ function applyDynamicNews(state) {
     if (homeTrack) {
         if (!items.length) {
             if (homeCarousel) homeCarousel.classList.add('is-empty');
-            homeTrack.innerHTML = '<article class="news-slide is-empty"><div class="news-slide-copy"><span class="news-tag">Em breve</span><h3>As próximas notícias do grupo vão aparecer aqui.</h3><p>Use o painel admin para publicar novidades, avisos e destaques do GEArSF.</p></div></article>';
+            homeTrack.innerHTML = '<article class="news-slide is-empty"><div class="news-slide-copy"><span class="news-tag">Em breve</span><h3>Novidades do grupo</h3></div></article>';
         } else {
             if (homeCarousel) homeCarousel.classList.remove('is-empty');
             homeTrack.innerHTML = items.slice(0, 6).map(function(item, index) {
@@ -1134,6 +1145,28 @@ function getCurrentPageAliases(pageName) {
     });
 }
 
+function ensureAccessibilityBasics() {
+    if (!document.querySelector('.skip-link')) {
+        var skip = document.createElement('a');
+        skip.className = 'skip-link';
+        skip.href = '#main-content';
+        skip.textContent = 'Pular para o conteúdo';
+        document.body.insertBefore(skip, document.body.firstChild);
+    }
+
+    var main = document.querySelector('main');
+    if (main && !main.id) {
+        main.id = 'main-content';
+        main.setAttribute('tabindex', '-1');
+    }
+
+    document.querySelectorAll('.site-nav').forEach(function(nav) {
+        if (!nav.getAttribute('aria-label')) {
+            nav.setAttribute('aria-label', 'Navegação principal');
+        }
+    });
+}
+
 function getSavedPageState(state, pageName) {
     var pages = state && state.pages ? state.pages : {};
     var aliases = getCurrentPageAliases(pageName);
@@ -1324,6 +1357,8 @@ function applyAdminContent(state) {
 function setupContactForm(state) {
     var form = document.getElementById('contactForm') || document.querySelector('.contact-form-panel');
     if (!form) return;
+    if (form.dataset.contactReady === 'true') return;
+    form.dataset.contactReady = 'true';
     var btn = form.querySelector('button[type="submit"]') || form.querySelector('button');
     var feedback = document.getElementById('contactFeedback');
     var subjectInput = document.getElementById('subject');
@@ -1413,7 +1448,7 @@ function setupContactForm(state) {
         })
         .catch(function(error) {
             if (feedback) {
-                feedback.innerHTML = '<span style="color:#b91c1c;font-weight:600;"><i class="fas fa-exclamation-circle"></i> Erro ao enviar: ' + esc(error && error.message ? error.message : 'tente novamente.') + '</span>';
+                feedback.innerHTML = '<span style="color:#b91c1c;font-weight:600;"><i class="fas fa-exclamation-circle"></i> Não foi possível enviar pelo site agora. Tente novamente ou fale pelo Instagram @gear9df.</span>';
             }
         })
         .finally(function() {
