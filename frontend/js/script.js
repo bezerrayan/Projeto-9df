@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.setTimeout(finalizeContentLoad, 3000);
     ensureAccessibilityBasics();
     ensureNewsLinks();
+    setupCategorizedNav();
     setupMenu();
     setupHeaderShadow();
     setupYear();
@@ -78,6 +79,11 @@ function setupMenu() {
     nav.querySelectorAll('a').forEach(function (link) {
         link.addEventListener('click', function () {
             nav.classList.remove('open');
+            nav.querySelectorAll('.nav-group.open').forEach(function(group) {
+                group.classList.remove('open');
+                var button = group.querySelector('.nav-group-toggle');
+                if (button) button.setAttribute('aria-expanded', 'false');
+            });
             toggle.setAttribute('aria-expanded', 'false');
 
             const bars = toggle.querySelectorAll('span');
@@ -1472,6 +1478,23 @@ function setupContactForm(state) {
             if (btn) btn.disabled = false;
         });
     });
+
+    nav.querySelectorAll('.nav-group-toggle').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            var group = button.closest('.nav-group');
+            if (!group) return;
+            var open = !group.classList.contains('open');
+            nav.querySelectorAll('.nav-group.open').forEach(function(otherGroup) {
+                if (otherGroup === group) return;
+                otherGroup.classList.remove('open');
+                var otherButton = otherGroup.querySelector('.nav-group-toggle');
+                if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
+            });
+            group.classList.toggle('open', open);
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+    });
 }
 
 function ensureNewsLinks() {
@@ -1500,6 +1523,81 @@ function ensureNewsLinks() {
         } else {
             list.appendChild(item);
         }
+    });
+}
+
+function setupCategorizedNav() {
+    document.querySelectorAll('.site-nav').forEach(function(nav) {
+        if (!nav || nav.dataset.categorized === 'true') return;
+
+        var currentPath = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+        var groups = [
+            {
+                type: 'link',
+                label: 'In&iacute;cio',
+                href: 'index.html',
+            },
+            {
+                type: 'group',
+                label: 'Escotismo',
+                items: [
+                    { label: 'Sobre', href: 'sobre.html' },
+                    { label: 'Atividades', href: 'atividades.html' },
+                    { label: 'Ramos', href: 'ramo.html' },
+                    { label: 'Projetos', href: 'projetos.html' },
+                    { label: 'Galeria', href: 'galeria.html' },
+                    { label: 'Equipe', href: 'equipe.html' },
+                ],
+            },
+            {
+                type: 'link',
+                label: 'Not&iacute;cias',
+                href: 'noticias.html',
+            },
+            {
+                type: 'group',
+                label: 'Servi&ccedil;os',
+                items: [
+                    { label: 'Calend&aacute;rio', href: 'calendario.html' },
+                    { label: 'Documentos', href: 'documentos.html' },
+                    { label: 'Links &uacute;teis', href: 'links.html' },
+                    { label: 'Contato', href: 'contato.html' },
+                ],
+            },
+            {
+                type: 'link',
+                label: 'Participar',
+                href: 'participar.html',
+                cta: true,
+            },
+        ];
+
+        function isActive(href) {
+            return currentPath === href.toLowerCase() || (currentPath === '' && href === 'index.html');
+        }
+
+        nav.innerHTML = groups.map(function(group, index) {
+            if (group.type === 'link') {
+                return '<a href="' + group.href + '" class="' + (isActive(group.href) ? 'active ' : '') + (group.cta ? 'nav-cta' : '') + '">' + group.label + '</a>';
+            }
+
+            var active = group.items.some(function(item) { return isActive(item.href); });
+            var menuId = 'nav-group-' + index;
+            return (
+                '<div class="nav-group' + (active ? ' active' : '') + '">' +
+                    '<button type="button" class="nav-group-toggle" aria-expanded="false" aria-controls="' + menuId + '">' +
+                        '<span>' + group.label + '</span><i class="fas fa-chevron-down" aria-hidden="true"></i>' +
+                    '</button>' +
+                    '<div class="nav-group-menu" id="' + menuId + '">' +
+                        group.items.map(function(item) {
+                            return '<a href="' + item.href + '" class="' + (isActive(item.href) ? 'active' : '') + '">' + item.label + '</a>';
+                        }).join('') +
+                    '</div>' +
+                '</div>'
+            );
+        }).join('');
+
+        nav.dataset.categorized = 'true';
     });
 }
 
