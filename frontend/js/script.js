@@ -884,7 +884,8 @@ function applyDynamicNews(state) {
                         '<div class="news-slide-copy">' +
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
                             '<h3>' + esc(item.title) + '</h3>' +
-                            '<p>' + esc(item.summary || item.body || '') + '</p>' +
+                            (item.summary ? '<p class="news-slide-summary">' + esc(item.summary) + '</p>' : '') +
+                            (item.body ? '<p class="news-slide-description">' + esc(item.body) + '</p>' : '') +
                             '<div class="news-actions">' +
                                 getNewsCta(item, 'btn btn-white btn-small') +
                                 '<a href="noticias.html" class="btn btn-white btn-small">Ver notícia completa</a>' +

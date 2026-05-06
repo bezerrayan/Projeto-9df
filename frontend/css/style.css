@@ -2308,11 +2308,13 @@ textarea {
     background: #071326;
 }
 
-.news-slide-media .cover-image,
-.news-spotlight-media .cover-image,
-.news-card-media .cover-image {
-    object-fit: contain;
-    object-position: center;
+.news-slide-media img.cover-image,
+.news-spotlight-media img.cover-image,
+.news-card-media img.cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+    object-position: center center !important;
     background: #071326;
 }
 
@@ -2349,6 +2351,16 @@ textarea {
     overflow: hidden;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+
+.news-slide-summary {
+    margin-bottom: 8px;
+}
+
+.news-slide-description {
+    color: rgba(232, 240, 255, 0.78);
+    font-size: 0.92rem;
+    -webkit-line-clamp: 4;
 }
 
 .news-slide-meta {
