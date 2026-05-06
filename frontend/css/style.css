@@ -2254,6 +2254,8 @@ textarea {
     grid-template-columns: auto 1fr auto;
     gap: 18px;
     align-items: center;
+    max-width: 980px;
+    margin: 0 auto;
 }
 
 .news-carousel.is-empty {
@@ -2266,12 +2268,13 @@ textarea {
 
 .news-carousel-track {
     position: relative;
-    min-height: 340px;
+    min-height: clamp(320px, 34vw, 430px);
 }
 
 .news-slide {
     display: none;
     grid-template-columns: 1.15fr 0.85fr;
+    height: clamp(320px, 34vw, 430px);
     border-radius: 32px;
     overflow: hidden;
     background: #10233f;
@@ -2290,14 +2293,16 @@ textarea {
 
 .news-slide.is-empty {
     position: relative;
-    min-height: 260px;
+    min-height: 240px;
+    height: 240px;
     grid-template-columns: 1fr;
     background: linear-gradient(135deg, #173159 0%, #2b86ee 100%);
 }
 
 .news-slide-media {
     position: relative;
-    min-height: 340px;
+    min-height: 0;
+    height: 100%;
 }
 
 .news-slide-media::after {
@@ -2308,7 +2313,8 @@ textarea {
 }
 
 .news-slide-copy {
-    padding: 28px;
+    min-width: 0;
+    padding: 26px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -2318,7 +2324,7 @@ textarea {
 
 .news-slide-copy h3 {
     margin: 10px 0 14px;
-    font-size: clamp(1.35rem, 1.8vw, 1.9rem);
+    font-size: clamp(1.2rem, 1.6vw, 1.65rem);
     line-height: 1.1;
     color: #fff;
 }
@@ -2327,6 +2333,10 @@ textarea {
     margin: 0 0 18px;
     color: rgba(232, 240, 255, 0.85);
     line-height: 1.6;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .news-slide-meta {
@@ -2452,24 +2462,28 @@ textarea {
 
 .news-spotlight-card {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 0.95fr 1.05fr;
+    max-width: 980px;
+    margin: 0 auto;
     overflow: hidden;
-    border-radius: 32px;
+    border-radius: 26px;
     background: #fff;
     box-shadow: 0 20px 50px rgba(8, 23, 45, 0.1);
 }
 
 .news-spotlight-media {
-    min-height: 420px;
+    min-height: 0;
+    height: clamp(300px, 32vw, 390px);
 }
 
 .news-spotlight-copy {
-    padding: 34px;
+    min-width: 0;
+    padding: 28px;
 }
 
 .news-spotlight-copy h2 {
-    margin: 14px 0 16px;
-    font-size: clamp(1.9rem, 2.6vw, 3rem);
+    margin: 12px 0 14px;
+    font-size: clamp(1.5rem, 2.1vw, 2.2rem);
     line-height: 1.06;
 }
 
@@ -2485,6 +2499,20 @@ textarea {
     line-height: 1.8;
 }
 
+.news-rich-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+}
+
+.news-card-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+
 .news-page-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2493,22 +2521,22 @@ textarea {
 
 .news-card {
     overflow: hidden;
-    border-radius: 28px;
+    border-radius: 22px;
     background: #fff;
     box-shadow: 0 16px 40px rgba(8, 23, 45, 0.08);
 }
 
 .news-card-media {
-    height: 220px;
+    height: clamp(150px, 18vw, 190px);
 }
 
 .news-card-body {
-    padding: 24px;
+    padding: 20px;
 }
 
 .news-card-body h3 {
-    margin: 14px 0 12px;
-    font-size: 1.25rem;
+    margin: 12px 0 10px;
+    font-size: 1.08rem;
     line-height: 1.2;
 }
 
@@ -2765,19 +2793,24 @@ textarea {
     }
 
     .news-carousel-track {
-        min-height: 560px;
+        min-height: auto;
     }
 
     .news-slide {
         grid-template-columns: 1fr;
+        height: auto;
     }
 
     .news-slide-media {
-        min-height: 260px;
+        height: auto;
+        aspect-ratio: 16 / 10;
+        min-height: 0;
     }
 
     .news-spotlight-media {
-        min-height: 280px;
+        height: auto;
+        aspect-ratio: 16 / 10;
+        min-height: 0;
     }
 
     .news-page-hero-card {
@@ -2931,11 +2964,16 @@ textarea {
     }
 
     .news-carousel-track {
-        min-height: 600px;
+        min-height: auto;
     }
 
     .news-slide {
         border-radius: 24px;
+    }
+
+    .news-card-media {
+        height: auto;
+        aspect-ratio: 16 / 10;
     }
 }
 
