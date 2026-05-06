@@ -668,7 +668,11 @@ function renderNoticias() {
             inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="news-src-${n.id}" data-news-src="${n.id}" data-media-kind="image" data-preview-id="news-preview-${n.id}" value="${esc(n.src || "")}" placeholder="Envie uma imagem ou cole a URL"></div>`,
           })}
           <div class="fg"><label>Resumo curto</label><textarea rows="2" data-news-summary="${n.id}">${esc(n.summary || "")}</textarea></div>
-          <div class="fg"><label>Texto da notícia</label><textarea rows="6" data-news-body="${n.id}">${esc(n.body || "")}</textarea></div>`,
+          <div class="fg"><label>Texto da notícia</label><textarea rows="6" data-news-body="${n.id}">${esc(n.body || "")}</textarea></div>
+          <div class="form-row">
+            <div class="fg"><label>Texto do botão</label><input data-news-cta-label="${n.id}" value="${esc(n.ctaLabel || "")}" placeholder="Comprar ingresso"></div>
+            <div class="fg"><label>Link do botão</label><input data-news-cta-href="${n.id}" value="${esc(n.ctaHref || "")}" placeholder="https://..."></div>
+          </div>`,
       })).join("")
     : `<div class="empty-state"><i class="fas fa-newspaper"></i><p>Nenhuma notícia cadastrada.</p></div>`;
 
@@ -681,6 +685,8 @@ function renderNoticias() {
     n.src = val(`[data-news-src="${id}"]`, n.src);
     n.summary = val(`[data-news-summary="${id}"]`, n.summary);
     n.body = val(`[data-news-body="${id}"]`, n.body);
+    n.ctaLabel = val(`[data-news-cta-label="${id}"]`, n.ctaLabel || "");
+    n.ctaHref = val(`[data-news-cta-href="${id}"]`, n.ctaHref || "");
     n.featured = val(`[data-news-featured="${id}"]`, String(n.featured)) === "true";
     if (n.featured) {
       STATE.adminPanel.news.forEach(item => {
@@ -1348,7 +1354,11 @@ function renderModals() {
         inputHtml: `<div class="fg"><label>Caminho da imagem</label><input id="nw-src" data-media-kind="image" data-preview-id="nw-preview" placeholder="Envie uma imagem ou cole a URL"></div>`,
       })}
       <div class="fg"><label>Resumo curto</label><textarea id="nw-summary" rows="2"></textarea></div>
-      <div class="fg"><label>Texto da notícia</label><textarea id="nw-body" rows="5"></textarea></div>`,
+      <div class="fg"><label>Texto da notícia</label><textarea id="nw-body" rows="5"></textarea></div>
+      <div class="form-row">
+        <div class="fg"><label>Texto do botão</label><input id="nw-cta-label" placeholder="Comprar ingresso"></div>
+        <div class="fg"><label>Link do botão</label><input id="nw-cta-href" placeholder="https://..."></div>
+      </div>`,
       "add-news-btn", "Adicionar"),
 
     modal("modal-photo", "Adicionar foto", `
@@ -1563,6 +1573,8 @@ function bindPage(page) {
         date: document.getElementById("nw-date")?.value || "",
         summary: document.getElementById("nw-summary")?.value.trim() || "",
         body: document.getElementById("nw-body")?.value.trim() || "",
+        ctaLabel: document.getElementById("nw-cta-label")?.value.trim() || "",
+        ctaHref: document.getElementById("nw-cta-href")?.value.trim() || "",
         src,
         featured,
       });
@@ -1645,6 +1657,8 @@ function captureNews() {
     n.src = val(`[data-news-src="${n.id}"]`, n.src);
     n.summary = val(`[data-news-summary="${n.id}"]`, n.summary);
     n.body = val(`[data-news-body="${n.id}"]`, n.body);
+    n.ctaLabel = val(`[data-news-cta-label="${n.id}"]`, n.ctaLabel || "");
+    n.ctaHref = val(`[data-news-cta-href="${n.id}"]`, n.ctaHref || "");
     n.featured = val(`[data-news-featured="${n.id}"]`, String(n.featured)) === "true";
   });
 }
@@ -2046,6 +2060,8 @@ function normalizeNews(item) {
     date: String(item.date || "").trim(),
     summary: String(item.summary || "").trim(),
     body: String(item.body || "").trim(),
+    ctaLabel: String(item.ctaLabel || "").trim(),
+    ctaHref: String(item.ctaHref || "").trim(),
     src: String(item.src || "").trim(),
     featured: Boolean(item.featured),
   };

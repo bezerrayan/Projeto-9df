@@ -843,6 +843,17 @@ function getNewsImage(item) {
     return cacheBustImage(src || 'images/logo_9df.png');
 }
 
+function getNewsCta(item, className) {
+    var href = String((item && item.ctaHref) || '').trim();
+    if (!href) return '';
+
+    var label = String((item && item.ctaLabel) || '').trim() || 'Acessar link';
+    var external = /^https?:\/\//i.test(href);
+    return '<a href="' + esc(href) + '" class="' + esc(className || 'btn btn-primary btn-small') + '"' +
+        (external ? ' target="_blank" rel="noopener noreferrer"' : '') +
+        '>' + esc(label) + '</a>';
+}
+
 function cacheBustImage(src) {
     if (!src || src.startsWith('data:') || src.indexOf('v=') !== -1) {
         return src;
@@ -874,7 +885,10 @@ function applyDynamicNews(state) {
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
                             '<h3>' + esc(item.title) + '</h3>' +
                             '<p>' + esc(item.summary || item.body || '') + '</p>' +
-                            '<a href="noticias.html" class="btn btn-white btn-small">Ver notícia completa</a>' +
+                            '<div class="news-actions">' +
+                                getNewsCta(item, 'btn btn-white btn-small') +
+                                '<a href="noticias.html" class="btn btn-white btn-small">Ver notícia completa</a>' +
+                            '</div>' +
                         '</div>' +
                     '</article>'
                 );
@@ -895,6 +909,7 @@ function applyDynamicNews(state) {
                         '<h2>' + esc(featured.title) + '</h2>' +
                         '<p>' + esc(featured.summary || '') + '</p>' +
                         '<div class="news-rich-text">' + esc(featured.body || '').replace(/\n/g, '<br>') + '</div>' +
+                        getNewsCta(featured, 'btn btn-primary btn-small news-cta') +
                     '</div>' +
                 '</article>';
         }
@@ -917,6 +932,7 @@ function applyDynamicNews(state) {
                             '<h3>' + esc(item.title) + '</h3>' +
                             '<p>' + esc(item.summary || '') + '</p>' +
                             '<div class="news-card-text">' + esc(item.body || '').replace(/\n/g, '<br>') + '</div>' +
+                            getNewsCta(item, 'btn btn-primary btn-small news-cta') +
                         '</div>' +
                     '</article>'
                 );

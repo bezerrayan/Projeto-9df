@@ -2387,16 +2387,18 @@ textarea {
 .news-page-hero-card {
     min-height: 260px;
     background:
-        radial-gradient(circle at top right, rgba(125, 211, 252, 0.35), transparent 14rem),
-        linear-gradient(135deg, #10233f 0%, #244a82 100%);
+        linear-gradient(135deg, rgba(8, 23, 45, 0.94) 0%, rgba(18, 65, 125, 0.92) 100%),
+        url("../images/landing.webp") center / cover;
     color: #fff;
 }
 
 .news-page-hero-copy {
-    padding: 32px;
+    min-height: 260px;
+    padding: 30px;
     display: flex;
     flex-direction: column;
-    justify-content: end;
+    justify-content: center;
+    align-items: flex-start;
     height: 100%;
 }
 
@@ -2409,6 +2411,7 @@ textarea {
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
+    margin-bottom: 22px;
 }
 
 .news-page-badge img {
@@ -2425,13 +2428,18 @@ textarea {
 
 .news-page-hero-copy strong {
     display: block;
-    font-size: 2rem;
-    margin: 14px 0 10px;
+    max-width: 12ch;
+    font-family: var(--font-heading);
+    font-size: clamp(1.7rem, 3vw, 2.35rem);
+    line-height: 1.08;
+    margin: 0 0 14px;
 }
 
 .news-page-hero-copy p {
+    max-width: 34ch;
     margin: 0;
     color: rgba(238, 244, 255, 0.86);
+    line-height: 1.72;
 }
 
 .links-hero-card {
@@ -2508,6 +2516,17 @@ textarea {
     margin: 0 0 14px;
     color: var(--muted);
     line-height: 1.7;
+}
+
+.news-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.news-cta {
+    margin-top: 18px;
 }
 
 .journey-step {
@@ -2759,6 +2778,16 @@ textarea {
 
     .news-spotlight-media {
         min-height: 280px;
+    }
+
+    .news-page-hero-card {
+        aspect-ratio: auto;
+    }
+
+    .news-page-hero-copy {
+        min-height: 300px;
+        align-items: center;
+        text-align: center;
     }
 }
 
