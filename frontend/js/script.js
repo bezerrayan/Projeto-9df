@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function () {
     window.setTimeout(finalizeContentLoad, 3000);
     ensureAccessibilityBasics();
-    ensureNewsLinks();
     setupCategorizedNav();
+    ensureNewsLinks();
     setupMenu();
     setupHeaderShadow();
     setupYear();
@@ -91,6 +91,23 @@ function setupMenu() {
                 bar.style.transform = '';
                 bar.style.opacity = '';
             });
+        });
+    });
+
+    nav.querySelectorAll('.nav-group-toggle').forEach(function(button) {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            var group = button.closest('.nav-group');
+            if (!group) return;
+            var open = !group.classList.contains('open');
+            nav.querySelectorAll('.nav-group.open').forEach(function(otherGroup) {
+                if (otherGroup === group) return;
+                otherGroup.classList.remove('open');
+                var otherButton = otherGroup.querySelector('.nav-group-toggle');
+                if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
+            });
+            group.classList.toggle('open', open);
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
     });
 }
@@ -1479,22 +1496,6 @@ function setupContactForm(state) {
         });
     });
 
-    nav.querySelectorAll('.nav-group-toggle').forEach(function(button) {
-        button.addEventListener('click', function(event) {
-            event.preventDefault();
-            var group = button.closest('.nav-group');
-            if (!group) return;
-            var open = !group.classList.contains('open');
-            nav.querySelectorAll('.nav-group.open').forEach(function(otherGroup) {
-                if (otherGroup === group) return;
-                otherGroup.classList.remove('open');
-                var otherButton = otherGroup.querySelector('.nav-group-toggle');
-                if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
-            });
-            group.classList.toggle('open', open);
-            button.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-    });
 }
 
 function ensureNewsLinks() {

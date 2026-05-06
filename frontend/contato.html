@@ -9,7 +9,7 @@
     <meta name="description"
         content="Entre em contato com o GEAR 9&ordm;&nbsp;DF para visitas, d&uacute;vidas e orienta&ccedil;&otilde;es sobre participa&ccedil;&atilde;o no grupo.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=1.4.0">
+    <link rel="stylesheet" href="css/style.css?v=1.4.1">
     <link rel="icon" href="images/logo_9df.png" type="image/png">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-CPLHKQQGL3"></script>
@@ -36,15 +36,27 @@
             </button>
             <nav class="site-nav">
                 <a href="index.html">In&iacute;cio</a>
-                <a href="sobre.html">Sobre</a>
-                <a href="atividades.html">Atividades</a>
-                <a href="galeria.html">Galeria</a>
-                <a href="ramo.html">Ramos</a>
-                <a href="projetos.html">Projetos</a>
-                <a href="calendario.html">Calend&aacute;rio</a>
-                <a href="documentos.html">Documentos</a>
-                <a href="links.html">Links &uacute;teis</a>
-                <a href="contato.html" class="active">Contato</a>
+                <div class="nav-group">
+                    <button type="button" class="nav-group-toggle" aria-expanded="false"><span>Escotismo</span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+                    <div class="nav-group-menu">
+                        <a href="sobre.html">Sobre</a>
+                        <a href="atividades.html">Atividades</a>
+                        <a href="ramo.html">Ramos</a>
+                        <a href="projetos.html">Projetos</a>
+                        <a href="galeria.html">Galeria</a>
+                        <a href="equipe.html">Equipe</a>
+                    </div>
+                </div>
+                <a href="noticias.html">Not&iacute;cias</a>
+                <div class="nav-group">
+                    <button type="button" class="nav-group-toggle" aria-expanded="false"><span>Servi&ccedil;os</span><i class="fas fa-chevron-down" aria-hidden="true"></i></button>
+                    <div class="nav-group-menu">
+                        <a href="calendario.html">Calend&aacute;rio</a>
+                        <a href="documentos.html">Documentos</a>
+                        <a href="links.html">Links &uacute;teis</a>
+                        <a href="contato.html">Contato</a>
+                    </div>
+                </div>
                 <a href="participar.html" class="nav-cta">Participar</a>
             </nav>
         </div>
@@ -184,8 +196,8 @@
             dedica&ccedil;&atilde;o por <strong>Gustavo</strong> e <strong>Yan</strong>.</div>
     </footer>
 
-    <script src="js/api.js?v=20260506-nav-groups"></script>
-    <script src="js/script.js?v=20260506-nav-groups"></script>
+    <script src="js/api.js?v=20260506-nav-groups-fixed"></script>
+    <script src="js/script.js?v=20260506-nav-groups-fixed"></script>
 </body>
 
 </html>
