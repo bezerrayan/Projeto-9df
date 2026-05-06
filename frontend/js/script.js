@@ -878,8 +878,8 @@ function applyDynamicNews(state) {
             homeTrack.innerHTML = items.slice(0, 6).map(function(item, index) {
                 return (
                     '<article class="news-slide' + (index === 0 ? ' active' : '') + '" data-news-slide="' + index + '">' +
-                        '<div class="news-slide-media">' +
-                            '<img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="news-image">' +
+                        '<div class="carousel-image-container news-slide-media">' +
+                            '<img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="carousel-image news-image">' +
                         '</div>' +
                         '<div class="news-slide-copy">' +
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
