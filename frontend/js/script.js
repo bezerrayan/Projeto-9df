@@ -879,7 +879,7 @@ function applyDynamicNews(state) {
                 return (
                     '<article class="news-slide' + (index === 0 ? ' active' : '') + '" data-news-slide="' + index + '">' +
                         '<div class="news-slide-media">' +
-                            '<img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="cover-image">' +
+                            '<img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="news-image">' +
                         '</div>' +
                         '<div class="news-slide-copy">' +
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
@@ -904,7 +904,7 @@ function applyDynamicNews(state) {
         } else {
             pageSpotlight.innerHTML =
                 '<article class="news-spotlight-card">' +
-                    '<div class="news-spotlight-media"><img loading="lazy" decoding="async" src="' + esc(getNewsImage(featured)) + '" alt="' + esc(featured.title) + '" class="cover-image"></div>' +
+                    '<div class="news-spotlight-media"><img loading="lazy" decoding="async" src="' + esc(getNewsImage(featured)) + '" alt="' + esc(featured.title) + '" class="news-image"></div>' +
                     '<div class="news-spotlight-copy">' +
                         '<div class="news-slide-meta"><span class="news-tag">' + esc(featured.tag || 'Destaque') + '</span><span>' + esc(formatNewsDate(featured.date)) + '</span></div>' +
                         '<h2>' + esc(featured.title) + '</h2>' +
@@ -927,7 +927,7 @@ function applyDynamicNews(state) {
             pageGrid.innerHTML = gridItems.map(function(item) {
                 return (
                     '<article class="news-card">' +
-                        '<div class="news-card-media"><img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="cover-image"></div>' +
+                        '<div class="news-card-media"><img loading="lazy" decoding="async" src="' + esc(getNewsImage(item)) + '" alt="' + esc(item.title) + '" class="news-image"></div>' +
                         '<div class="news-card-body">' +
                             '<div class="news-slide-meta"><span class="news-tag">' + esc(item.tag || 'Notícia') + '</span><span>' + esc(formatNewsDate(item.date)) + '</span></div>' +
                             '<h3>' + esc(item.title) + '</h3>' +

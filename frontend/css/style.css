@@ -2306,15 +2306,17 @@ textarea {
     display: grid;
     place-items: center;
     background: #071326;
+    overflow: hidden;
 }
 
-.news-slide-media img.cover-image,
-.news-spotlight-media img.cover-image,
-.news-card-media img.cover-image {
+.news-image {
+    display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain !important;
-    object-position: center center !important;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center center;
     background: #071326;
 }
 
@@ -2501,6 +2503,7 @@ textarea {
     display: grid;
     place-items: center;
     background: #071326;
+    overflow: hidden;
 }
 
 .news-spotlight-copy {
@@ -2547,6 +2550,8 @@ textarea {
 }
 
 .news-card {
+    display: grid;
+    grid-template-rows: auto 1fr;
     overflow: hidden;
     border-radius: 22px;
     background: #fff;
@@ -2558,9 +2563,15 @@ textarea {
     display: grid;
     place-items: center;
     background: #071326;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 .news-card-body {
+    position: relative;
+    z-index: 2;
+    background: #fff;
     padding: 20px;
 }
 
