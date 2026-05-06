@@ -64,6 +64,20 @@ function setupMenu() {
     }
     toggle.setAttribute('aria-controls', nav.id);
 
+    nav.querySelectorAll('.nav-group').forEach(function(group, index) {
+        var button = group.querySelector('.nav-group-toggle');
+        var menu = group.querySelector('.nav-group-menu');
+        if (!button || !menu) return;
+
+        if (!menu.id) {
+            menu.id = nav.id + '-group-' + index;
+        }
+
+        button.setAttribute('aria-controls', menu.id);
+        button.setAttribute('aria-expanded', group.classList.contains('open') ? 'true' : 'false');
+        menu.hidden = !group.classList.contains('open');
+    });
+
     toggle.addEventListener('click', function () {
         const open = nav.classList.toggle('open');
         toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -82,7 +96,9 @@ function setupMenu() {
             nav.querySelectorAll('.nav-group.open').forEach(function(group) {
                 group.classList.remove('open');
                 var button = group.querySelector('.nav-group-toggle');
+                var menu = group.querySelector('.nav-group-menu');
                 if (button) button.setAttribute('aria-expanded', 'false');
+                if (menu) menu.hidden = true;
             });
             toggle.setAttribute('aria-expanded', 'false');
 
@@ -104,10 +120,14 @@ function setupMenu() {
                 if (otherGroup === group) return;
                 otherGroup.classList.remove('open');
                 var otherButton = otherGroup.querySelector('.nav-group-toggle');
+                var otherMenu = otherGroup.querySelector('.nav-group-menu');
                 if (otherButton) otherButton.setAttribute('aria-expanded', 'false');
+                if (otherMenu) otherMenu.hidden = true;
             });
             group.classList.toggle('open', open);
             button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            var menu = group.querySelector('.nav-group-menu');
+            if (menu) menu.hidden = !open;
         });
     });
 }
@@ -1589,7 +1609,7 @@ function setupCategorizedNav() {
                     '<button type="button" class="nav-group-toggle" aria-expanded="false" aria-controls="' + menuId + '">' +
                         '<span>' + group.label + '</span><i class="fas fa-chevron-down" aria-hidden="true"></i>' +
                     '</button>' +
-                    '<div class="nav-group-menu" id="' + menuId + '">' +
+                    '<div class="nav-group-menu" id="' + menuId + '" hidden>' +
                         group.items.map(function(item) {
                             return '<a href="' + item.href + '" class="' + (isActive(item.href) ? 'active' : '') + '">' + item.label + '</a>';
                         }).join('') +

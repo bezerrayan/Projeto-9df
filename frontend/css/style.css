@@ -309,8 +309,7 @@ textarea {
     transition: transform var(--transition);
 }
 
-.nav-group.open .nav-group-toggle i,
-.nav-group:hover .nav-group-toggle i {
+.nav-group.open .nav-group-toggle i {
     transform: rotate(180deg);
 }
 
@@ -337,12 +336,15 @@ textarea {
     min-width: 190px;
 }
 
+.nav-group-menu[hidden] {
+    display: none !important;
+}
+
 .header-dark .nav-group-menu {
     background: rgba(8, 23, 45, 0.98);
     border-color: var(--line-soft);
 }
 
-.nav-group:hover .nav-group-menu,
 .nav-group.open .nav-group-menu,
 .nav-group:focus-within .nav-group-menu {
     opacity: 1;
@@ -2837,12 +2839,6 @@ textarea {
     .nav-group-toggle {
         justify-content: space-between;
         width: 100%;
-    }
-
-    .nav-group:hover .nav-group-menu {
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-6px);
     }
 
     .nav-group.open .nav-group-menu,
